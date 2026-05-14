@@ -609,12 +609,20 @@ export default function ProductDetailsPage() {
     }
 
     if (selectedVariations.length === 0) {
-      const stock = Number(directStockValue);
+      const value = Number(directStockValue);
 
-      if (directStockValue === "" || Number.isNaN(stock) || stock < 0) {
+      if (directStockValue === "" || Number.isNaN(value) || value < 0) {
         toast({ variant: "destructive", title: "Informe uma quantidade válida" });
         return;
       }
+
+      const currentStock = savedItems.find((item) => item.options.length === 0)?.stock ?? 0;
+      const stock =
+        bulkMode === "add"
+          ? currentStock + value
+          : bulkMode === "subtract"
+            ? Math.max(0, currentStock - value)
+            : value;
 
       saveDirectStockMutation.mutate({ currentProductId: productId, stock });
       return;

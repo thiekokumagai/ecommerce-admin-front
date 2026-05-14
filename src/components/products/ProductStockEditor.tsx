@@ -57,34 +57,32 @@ export function ProductStockEditor({
       <CardHeader className="space-y-4">
         <CardTitle className="text-lg">Estoque</CardTitle>
 
-        {hasVariations ? (
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant={bulkMode === "add" ? "default" : "outline"}
-              onClick={() => onModeChange("add")}
-            >
-              Somar
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={bulkMode === "subtract" ? "default" : "outline"}
-              onClick={() => onModeChange("subtract")}
-            >
-              Subtrair
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={bulkMode === "replace" ? "default" : "outline"}
-              onClick={() => onModeChange("replace")}
-            >
-              Substituir
-            </Button>
-          </div>
-        ) : null}
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant={bulkMode === "add" ? "default" : "outline"}
+            onClick={() => onModeChange("add")}
+          >
+            Somar
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={bulkMode === "subtract" ? "default" : "outline"}
+            onClick={() => onModeChange("subtract")}
+          >
+            Subtrair
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={bulkMode === "replace" ? "default" : "outline"}
+            onClick={() => onModeChange("replace")}
+          >
+            Substituir
+          </Button>
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-6">
@@ -101,18 +99,29 @@ export function ProductStockEditor({
               </p>
             </div>
 
-            <div className="max-w-xs space-y-2">
-              <p className="text-sm font-medium">Quantidade</p>
-              <Input
-                type="number"
-                min="0"
-                value={directStockValue}
-                onChange={(event) => onDirectStockChange(event.target.value)}
-                placeholder="0"
-              />
-              {directSavedItem ? (
-                <p className="text-sm text-muted-foreground">Estoque atual: {directSavedItem.stock}</p>
-              ) : null}
+            <div className="grid gap-3 md:grid-cols-[160px_220px] md:items-end">
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Quantidade</p>
+                <Input
+                  type="number"
+                  min="0"
+                  value={directStockValue}
+                  onChange={(event) => onDirectStockChange(event.target.value)}
+                  placeholder="0"
+                />
+                {directSavedItem ? (
+                  <p className="text-sm text-muted-foreground">Atual: {directSavedItem.stock}</p>
+                ) : null}
+              </div>
+
+              <div className="rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground">
+                Resultado previsto:{" "}
+                <span className="font-medium text-foreground">
+                  {directStockValue === "" || Number.isNaN(Number(directStockValue))
+                    ? directSavedItem?.stock ?? 0
+                    : getNextStock(directSavedItem?.stock ?? 0, Number(directStockValue), bulkMode)}
+                </span>
+              </div>
             </div>
 
             <div className="flex justify-end">
