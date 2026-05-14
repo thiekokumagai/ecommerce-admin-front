@@ -99,35 +99,37 @@ export function ProductStockEditor({
               </p>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-[160px_220px] md:items-end">
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Quantidade</p>
-                <Input
-                  type="number"
-                  min="0"
-                  value={directStockValue}
-                  onChange={(event) => onDirectStockChange(event.target.value)}
-                  placeholder="0"
-                />
-                {directSavedItem ? (
-                  <p className="text-sm text-muted-foreground">Atual: {directSavedItem.stock}</p>
-                ) : null}
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div className="flex flex-col gap-3 md:flex-row md:items-end">
+                <div className="w-full md:w-40 space-y-2">
+                  <p className="text-sm font-medium">Quantidade</p>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={directStockValue}
+                    onChange={(event) => onDirectStockChange(event.target.value)}
+                    placeholder="0"
+                  />
+                  {directSavedItem ? (
+                    <p className="text-sm text-muted-foreground">Atual: {directSavedItem.stock}</p>
+                  ) : null}
+                </div>
+
+                <div className="rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground md:min-w-[220px]">
+                  Resultado previsto:{" "}
+                  <span className="font-medium text-foreground">
+                    {directStockValue === "" || Number.isNaN(Number(directStockValue))
+                      ? directSavedItem?.stock ?? 0
+                      : getNextStock(directSavedItem?.stock ?? 0, Number(directStockValue), bulkMode)}
+                  </span>
+                </div>
               </div>
 
-              <div className="rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground">
-                Resultado previsto:{" "}
-                <span className="font-medium text-foreground">
-                  {directStockValue === "" || Number.isNaN(Number(directStockValue))
-                    ? directSavedItem?.stock ?? 0
-                    : getNextStock(directSavedItem?.stock ?? 0, Number(directStockValue), bulkMode)}
-                </span>
+              <div className="flex justify-end md:justify-start">
+                <Button type="button" onClick={onSaveAll} disabled={isSaving}>
+                  Salvar
+                </Button>
               </div>
-            </div>
-
-            <div className="flex justify-end">
-              <Button type="button" onClick={onSaveAll} disabled={isSaving}>
-                Salvar
-              </Button>
             </div>
           </div>
         ) : loadingSavedItems ? (
