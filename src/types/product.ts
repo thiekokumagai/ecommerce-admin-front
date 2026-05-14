@@ -62,7 +62,8 @@ export type CreateProductPayload = {
 
 export type CreateProductItemPayload = {
   stock: number;
-  options: string[];
+  options?: string[];
+  sku?: string;
 };
 
 export type UpdateProductItemPayload = {

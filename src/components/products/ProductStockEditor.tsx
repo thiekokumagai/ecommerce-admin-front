@@ -10,10 +10,12 @@ type ProductStockEditorProps = {
   hasVariations: boolean;
   loadingSavedItems: boolean;
   savedItems: ProductItem[];
+  directStockValue: string;
   bulkMode: QuickEditMode;
   bulkValues: Record<string, string>;
   isSaving: boolean;
   onModeChange: (mode: QuickEditMode) => void;
+  onDirectStockChange: (value: string) => void;
   onValueChange: (itemId: string, value: string) => void;
   onSaveAll: () => void;
 };
@@ -39,44 +41,50 @@ export function ProductStockEditor({
   hasVariations,
   loadingSavedItems,
   savedItems,
+  directStockValue,
   bulkMode,
   bulkValues,
   isSaving,
   onModeChange,
+  onDirectStockChange,
   onValueChange,
   onSaveAll,
 }: ProductStockEditorProps) {
+  const directSavedItem = savedItems[0];
+
   return (
     <Card className="rounded-3xl border-0 bg-muted/20 shadow-none">
       <CardHeader className="space-y-4">
         <CardTitle className="text-lg">Estoque</CardTitle>
 
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant={bulkMode === "add" ? "default" : "outline"}
-            onClick={() => onModeChange("add")}
-          >
-            Somar
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant={bulkMode === "subtract" ? "default" : "outline"}
-            onClick={() => onModeChange("subtract")}
-          >
-            Subtrair
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant={bulkMode === "replace" ? "default" : "outline"}
-            onClick={() => onModeChange("replace")}
-          >
-            Substituir
-          </Button>
-        </div>
+        {hasVariations ? (
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={bulkMode === "add" ? "default" : "outline"}
+              onClick={() => onModeChange("add")}
+            >
+              Somar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={bulkMode === "subtract" ? "default" : "outline"}
+              onClick={() => onModeChange("subtract")}
+            >
+              Subtrair
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={bulkMode === "replace" ? "default" : "outline"}
+              onClick={() => onModeChange("replace")}
+            >
+              Substituir
+            </Button>
+          </div>
+        ) : null}
       </CardHeader>
 
       <CardContent className="space-y-6">
@@ -85,8 +93,33 @@ export function ProductStockEditor({
             Crie o produto antes de configurar o estoque.
           </div>
         ) : !hasVariations ? (
-          <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
-            Salve as combinações para gerar os itens.
+          <div className="space-y-4 rounded-2xl bg-card p-4">
+            <div>
+              <p className="font-medium">Estoque do produto</p>
+              <p className="text-sm text-muted-foreground">
+                Como este produto não possui variações, o estoque será salvo diretamente no item padrão.
+              </p>
+            </div>
+
+            <div className="max-w-xs space-y-2">
+              <p className="text-sm font-medium">Quantidade</p>
+              <Input
+                type="number"
+                min="0"
+                value={directStockValue}
+                onChange={(event) => onDirectStockChange(event.target.value)}
+                placeholder="0"
+              />
+              {directSavedItem ? (
+                <p className="text-sm text-muted-foreground">Estoque atual: {directSavedItem.stock}</p>
+              ) : null}
+            </div>
+
+            <div className="flex justify-end">
+              <Button type="button" onClick={onSaveAll} disabled={isSaving}>
+                Salvar
+              </Button>
+            </div>
           </div>
         ) : loadingSavedItems ? (
           <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">

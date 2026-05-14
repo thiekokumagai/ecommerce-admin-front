@@ -32,7 +32,6 @@ import type { ProductImage, ProductItem, ProductResponse } from "@/types/product
 import type { Variation } from "@/types/variation";
 import type { QuickEditMode } from "@/components/products/ProductStockEditor";
 
-// Code Splitting: Carregamento tardio de componentes pesados das abas
 const ProductVariationSelector = lazy(() => import("@/components/products/ProductVariationSelector").then(m => ({ default: m.ProductVariationSelector })));
 const ProductImageManager = lazy(() => import("@/components/products/ProductImageManager").then(m => ({ default: m.ProductImageManager })));
 const ProductStockEditor = lazy(() => import("@/components/products/ProductStockEditor").then(m => ({ default: m.ProductStockEditor })));
@@ -138,6 +137,7 @@ export default function ProductDetailsPage() {
   const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
   const [bulkMode, setBulkMode] = useState<QuickEditMode>("add");
   const [bulkValues, setBulkValues] = useState<Record<string, string>>({});
+  const [directStockValue, setDirectStockValue] = useState("");
 
   const productForm = useForm<ProductDetailsFormValues>({
     resolver: zodResolver(productSchema),
@@ -155,7 +155,11 @@ export default function ProductDetailsPage() {
   const { data: savedItems = [], isLoading: loadingSavedItems, refetch: refetchItems } = useProductItems(productId ?? "");
 
   useEffect(() => {
-    if (!savedItems?.length) return;
+    if (!savedItems?.length) {
+      setBulkValues({});
+      setDirectStockValue("");
+      return;
+    }
 
     setBulkValues(
       savedItems.reduce<Record<string, string>>((acc, item) => {
@@ -163,6 +167,12 @@ export default function ProductDetailsPage() {
         return acc;
       }, {}),
     );
+
+    if (savedItems[0].options.length === 0) {
+      setDirectStockValue(String(savedItems[0].stock));
+    } else {
+      setDirectStockValue("");
+    }
   }, [savedItems]);
 
   const selectedVariations = useMemo(
@@ -196,7 +206,6 @@ export default function ProductDetailsPage() {
     },
   });
 
-  // Data Layer: Uso de Query com pattern Stale-While-Revalidate e cache de 5 minutos
   const productQuery = useQuery({
     queryKey: ["product", id],
     queryFn: () => getProductById(id!),
@@ -289,7 +298,6 @@ export default function ProductDetailsPage() {
     },
   });
 
-  // Mutation para atualizar dados básicos do produto
   const updateProductMutation = useMutation({
     mutationFn: (values: ProductDetailsFormValues) => updateProduct(productId!, values),
     onSuccess: () => {
@@ -410,13 +418,37 @@ export default function ProductDetailsPage() {
     },
   });
 
+  const saveDirectStockMutation = useMutation({
+    mutationFn: async ({ currentProductId, stock }: { currentProductId: string; stock: number }) => {
+      const currentItems = await getProductItems(currentProductId);
+      const directItem = currentItems.find((item) => item.options.length === 0);
+
+      if (directItem) {
+        await updateProductItemsBatch([{ itemId: directItem.id, stock }]);
+        return;
+      }
+
+      await createProductItems(currentProductId, [
+        {
+          sku: `SKU-${currentProductId.slice(0, 8).toUpperCase()}`,
+          stock,
+        },
+      ]);
+    },
+    onSuccess: async () => {
+      await refetchItems();
+      toast({ title: "Estoque salvo" });
+    },
+    onError: () => {
+      toast({ variant: "destructive", title: "Não foi possível salvar o estoque" });
+    },
+  });
+
   useEffect(() => {
     return () => {
       pendingImages.forEach((image) => URL.revokeObjectURL(image.previewUrl));
     };
   }, [pendingImages]);
-
-  // Removido useEffect de upload automático para evitar requisições duplicadas/redundantes
 
   const handlePendingImagesChange = (files: File[]) => {
     setPendingImages((previous) => {
@@ -449,11 +481,10 @@ export default function ProductDetailsPage() {
     const rawValues = productForm.getValues();
     const formValues = {
       ...rawValues,
-      descriptionFormated: rawValues.description?.replace(/<[^>]*>/g, '').trim() ?? "",
+      descriptionFormated: rawValues.description?.replace(/<[^>]*>/g, "").trim() ?? "",
     };
 
     if (!productId) {
-      // Fluxo de Cadastro: Unificado (Produto -> Imagens)
       createProductMutation.mutate(formValues, {
         onSuccess: (product) => {
           if (pendingImages.length > 0) {
@@ -467,11 +498,8 @@ export default function ProductDetailsPage() {
       return;
     }
 
-    // Fluxo de Edição: Salva os detalhes do formulário
     await updateProductMutation.mutateAsync(formValues);
 
-    // Se houver novas fotos selecionadas no editar, envia-as agora
-    // (Fotos já existentes são gerenciadas separadamente via replace/delete)
     if (pendingImages.length > 0 && !uploadImagesMutation.isPending) {
       uploadImagesMutation.mutate({
         currentProductId: productId,
@@ -575,6 +603,23 @@ export default function ProductDetailsPage() {
   };
 
   const handleSaveAllStocks = () => {
+    if (!productId) {
+      toast({ variant: "destructive", title: "Crie o produto antes de salvar o estoque" });
+      return;
+    }
+
+    if (selectedVariations.length === 0) {
+      const stock = Number(directStockValue);
+
+      if (directStockValue === "" || Number.isNaN(stock) || stock < 0) {
+        toast({ variant: "destructive", title: "Informe uma quantidade válida" });
+        return;
+      }
+
+      saveDirectStockMutation.mutate({ currentProductId: productId, stock });
+      return;
+    }
+
     const payload = orderedSavedItems
       .filter((item) => (bulkValues[item.id] ?? "") !== "")
       .map((item) => {
@@ -749,10 +794,12 @@ export default function ProductDetailsPage() {
               hasVariations={selectedVariations.length > 0}
               loadingSavedItems={loadingSavedItems}
               savedItems={orderedSavedItems}
+              directStockValue={directStockValue}
               bulkMode={bulkMode}
               bulkValues={bulkValues}
-              isSaving={updateStockBatchMutation.isPending}
+              isSaving={updateStockBatchMutation.isPending || saveDirectStockMutation.isPending}
               onModeChange={setBulkMode}
+              onDirectStockChange={setDirectStockValue}
               onValueChange={(itemId, value) => {
                 setBulkValues((prev) => ({
                   ...prev,
