@@ -184,7 +184,7 @@ export async function removeProductVariationOption(
   productId: string,
   payload: RemoveProductVariationOptionPayload,
 ): Promise<ProductResponse> {
-  const response = await apiFetch(`/products/${productId}/variations/options`, {
+  const response = await apiFetch(`/products/${productId}/variation-options`, {
     method: "DELETE",
     body: JSON.stringify(payload),
   });
