@@ -33,7 +33,9 @@ export type ProductResponse = {
   costPrice?: number;
   description?: string;
   descriptionFormated?: string;
+  activeOptionIds: string[];
 };
+
 
 export type ProductVariationLinkPayload = {
   variationIds: string[];

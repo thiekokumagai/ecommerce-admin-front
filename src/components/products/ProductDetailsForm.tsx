@@ -4,7 +4,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RichTextEditor } from "@/components/ui/richtexteditor";
-import { NumericFormat } from "react-number-format";
 import type { CategoryList } from "@/types/category";
 
 export type ProductDetailsFormValues = {
@@ -20,23 +19,21 @@ export type ProductDetailsFormValues = {
 type ProductDetailsFormProps = {
   form: UseFormReturn<ProductDetailsFormValues>;
   categories: CategoryList[];
-  onSubmit: (values: ProductDetailsFormValues) => void;
 };
 
 export function ProductDetailsForm({
   form,
   categories,
-  onSubmit,
 }: ProductDetailsFormProps) {
   return (
-    <Card className="rounded-3xl">
+    <Card className="rounded-3xl border bg-card shadow-sm">
       <CardHeader>
         <CardTitle className="text-xl">Dados do produto</CardTitle>
-        <CardDescription>Escolha a categoria e preencha o título. A galeria fica logo abaixo.</CardDescription>
+        <CardDescription>Escolha a categoria e preencha o título.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <div className="space-y-5">
             <div className="grid gap-5 md:grid-cols-2">
               <FormField
                 control={form.control}
@@ -46,7 +43,7 @@ export function ProductDetailsForm({
                     <FormLabel>Categoria</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
-                        <SelectTrigger className="h-12 rounded-2xl">
+                        <SelectTrigger className="h-12 rounded-2xl bg-background">
                           <SelectValue placeholder="Selecione uma categoria" />
                         </SelectTrigger>
                       </FormControl>
@@ -70,7 +67,7 @@ export function ProductDetailsForm({
                   <FormItem>
                     <FormLabel>Título</FormLabel>
                     <FormControl>
-                      <Input className="h-12 rounded-2xl" placeholder="Nome do produto" {...field} />
+                      <Input className="h-12 rounded-2xl bg-background" placeholder="Nome do produto" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -105,18 +102,13 @@ export function ProductDetailsForm({
                     <FormControl>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
-                        <NumericFormat
-                          customInput={Input}
-                          decimalSeparator=","
-                          thousandSeparator="."
-                          decimalScale={2}
-                          fixedDecimalScale
-                          allowNegative={false}
-                          className="h-12 rounded-2xl pl-9"
+                        <Input
+                          className="h-12 rounded-2xl bg-background pl-9"
                           placeholder="0,00"
-                          value={field.value}
-                          onValueChange={(values) => {
-                            field.onChange(values.floatValue);
+                          value={field.value !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(field.value) : ""}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, "");
+                            field.onChange(Number(digits) / 100);
                           }}
                         />
                       </div>
@@ -135,18 +127,13 @@ export function ProductDetailsForm({
                     <FormControl>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
-                        <NumericFormat
-                          customInput={Input}
-                          decimalSeparator=","
-                          thousandSeparator="."
-                          decimalScale={2}
-                          fixedDecimalScale
-                          allowNegative={false}
-                          className="h-12 rounded-2xl pl-9"
+                        <Input
+                          className="h-12 rounded-2xl bg-background pl-9"
                           placeholder="0,00"
-                          value={field.value}
-                          onValueChange={(values) => {
-                            field.onChange(values.floatValue);
+                          value={field.value !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(field.value) : ""}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, "");
+                            field.onChange(Number(digits) / 100);
                           }}
                         />
                       </div>
@@ -165,18 +152,13 @@ export function ProductDetailsForm({
                     <FormControl>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
-                        <NumericFormat
-                          customInput={Input}
-                          decimalSeparator=","
-                          thousandSeparator="."
-                          decimalScale={2}
-                          fixedDecimalScale
-                          allowNegative={false}
-                          className="h-12 rounded-2xl pl-9"
+                        <Input
+                          className="h-12 rounded-2xl bg-background pl-9"
                           placeholder="0,00"
-                          value={field.value}
-                          onValueChange={(values) => {
-                            field.onChange(values.floatValue);
+                          value={field.value !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(field.value) : ""}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, "");
+                            field.onChange(Number(digits) / 100);
                           }}
                         />
                       </div>
@@ -186,7 +168,7 @@ export function ProductDetailsForm({
                 )}
               />
             </div>
-          </form>
+          </div>
         </Form>
       </CardContent>
     </Card>

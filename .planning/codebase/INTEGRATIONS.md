@@ -1,14 +1,14 @@
-# External Integrations
+# Integrações Externas
 
 ## APIs
-- **Admin API**: Accessed via `apiFetch` in `src/services/api.ts`. Base URL defined in `VITE_ADMIN_API` environment variable.
-- **Authentication**: Custom authentication flow with access/refresh tokens handled in `src/services/auth.service.ts`.
+- **Admin API**: Acessada via `apiFetch` em `src/services/api.ts`. URL base definida na variável de ambiente `VITE_ADMIN_API`.
+- **Autenticação**: Fluxo de autenticação customizado com tokens de acesso/atualização gerenciados em `src/services/auth.service.ts`.
 
-## Services
-- **Product Management**: `product.service.ts` for handling product CRUD and image uploads.
-- **Category Management**: `category.service.ts`.
-- **Variation Management**: `variation.service.ts`.
-- **Authentication**: `auth.service.ts` managing login, token refresh, and session persistence.
+## Serviços
+- **Gerenciamento de Produtos**: `product.service.ts` para operações de CRUD e upload de imagens.
+- **Gerenciamento de Categorias**: `category.service.ts`.
+- **Gerenciamento de Variações**: `variation.service.ts`.
+- **Autenticação**: `auth.service.ts` gerenciando login, renovação de token e persistência de sessão.
 
-## Environment Variables
-- `VITE_ADMIN_API`: Base URL for the backend API.
+## Variáveis de Ambiente
+- `VITE_ADMIN_API`: URL base para a API do backend.

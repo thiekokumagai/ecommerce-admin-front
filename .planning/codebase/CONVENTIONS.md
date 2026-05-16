@@ -1,22 +1,22 @@
-# Coding Conventions
+# Convenções de Código
 
-## Language Standards
-- **TypeScript**: Strict mode (judging by tsconfig) is likely enabled.
-- **ESNext**: Using modern JavaScript features (ES2020+).
+## Padrões de Linguagem
+- **TypeScript**: Modo estrito (conforme tsconfig) provavelmente ativado.
+- **ESNext**: Uso de recursos modernos do JavaScript (ES2020+).
 
-## React Patterns
-- **Functional Components**: All components are written as functional components with hooks.
-- **File Naming**: PascalCase for components (`ProductDetailsForm.tsx`), camelCase for hooks (`useProduct.ts`) and utils.
-- **Component Structure**: Imports -> Types/Interfaces -> Component Logic -> Sub-components (if internal).
+## Padrões React
+- **Componentes Funcionais**: Todos os componentes são escritos como componentes funcionais com hooks.
+- **Nomenclatura de Arquivos**: PascalCase para componentes (`ProductDetailsForm.tsx`), camelCase para hooks (`useProduct.ts`) e utilitários.
+- **Estrutura de Componentes**: Imports -> Tipos/Interfaces -> Lógica do Componente -> Subcomponentes (se internos).
 
-## Styling
-- **Utility-first CSS**: Tailwind CSS is the primary styling method.
-- **Conditional Classes**: `clsx` and `tailwind-merge` are used for dynamic styling.
+## Estilização
+- **CSS Utility-first**: Tailwind CSS é o método principal de estilização.
+- **Classes Condicionais**: `clsx` e `tailwind-merge` são usados para estilização dinâmica.
 
-## State Management
-- **React Query**: Used for almost all data-fetching operations.
-- **React Hook Form**: Standardized for form management.
+## Gerenciamento de Estado
+- **React Query**: Usado para quase todas as operações de busca de dados.
+- **React Hook Form**: Padronizado para gerenciamento de formulários.
 
-## Linting & Formatting
-- **ESLint**: Recommended rules for JS, TS, and React Hooks.
-- **Unused Variables**: Currently set to `off` in ESLint, which might be a concern.
+## Linting & Formatação
+- **ESLint**: Regras recomendadas para JS, TS e React Hooks.
+- **Variáveis Não Utilizadas**: Atualmente configurado como `off` no ESLint, o que pode ser uma preocupação.

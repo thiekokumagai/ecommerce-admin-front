@@ -1,18 +1,18 @@
-# Testing Strategy
+# Estratégia de Testes
 
 ## Frameworks
-- **Unit/Integration Testing**: Vitest.
-- **End-to-End Testing**: Playwright.
-- **Component Testing**: React Testing Library.
+- **Testes Unitários/Integração**: Vitest.
+- **Testes End-to-End**: Playwright.
+- **Testes de Componente**: React Testing Library.
 
-## Configuration
-- `vitest.config.ts`: Configured for JSDOM and React testing.
-- `playwright.config.ts`: Standard E2E configuration.
+## Configuração
+- `vitest.config.ts`: Configurado para JSDOM e testes React.
+- `playwright.config.ts`: Configuração padrão de E2E.
 
-## Current State
-- **Coverage**: Likely low, as only `example.test.ts` was found in `src/test`.
-- **Mocks**: Setup for testing found in `src/test/setup.ts`.
+## Estado Atual
+- **Cobertura**: Provavelmente baixa, pois apenas `example.test.ts` foi encontrado em `src/test`.
+- **Mocks**: Configurações para testes encontradas em `src/test/setup.ts`.
 
-## Execution
-- `npm test`: Runs Vitest in one-shot mode.
-- `npm run test:watch`: Runs Vitest in watch mode.
+## Execução
+- `npm test`: Executa o Vitest em modo único.
+- `npm run test:watch`: Executa o Vitest em modo de observação.

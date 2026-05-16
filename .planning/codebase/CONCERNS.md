@@ -1,16 +1,16 @@
-# Codebase Concerns
+# Preocupações com a Base de Código
 
-## Technical Debt
-- **Multiple Lock Files**: Found `bun.lock`, `package-lock.json`, and `pnpm-lock.yaml`. This can lead to dependency inconsistencies. A single package manager should be chosen.
-- **Low Test Coverage**: Minimal testing presence in the codebase. Critical business flows (orders, payments, product creation) should be tested.
-- **ESLint Relaxed Rules**: `@typescript-eslint/no-unused-vars` is set to `off`, which can lead to cluttered code and potential bugs.
+## Dívida Técnica
+- **Múltiplos Arquivos de Lock**: Encontrados `bun.lock`, `package-lock.json` e `pnpm-lock.yaml`. Isso pode levar a inconsistências de dependência. Um único gerenciador de pacotes deve ser escolhido.
+- **Baixa Cobertura de Testes**: Presença mínima de testes na base de código. Fluxos críticos de negócio (pedidos, pagamentos, criação de produtos) devem ser testados.
+- **Regras Relaxadas do ESLint**: `@typescript-eslint/no-unused-vars` está configurado como `off`, o que pode levar a código desordenado e bugs potenciais.
 
-## Architectural Risks
-- **Direct Fetch Usage**: While `apiFetch` provides a wrapper, many components or services might be tightly coupled to this specific implementation.
-- **Large Page Components**: `ProductDetailsPage.tsx` is quite large (~30k bytes), suggesting it might be doing too much and could benefit from further decomposition.
+## Riscos Arquiteturais
+- **Uso Direto de Fetch**: Embora o `apiFetch` forneça um wrapper, muitos componentes ou serviços podem estar fortemente acoplados a esta implementação específica.
+- **Componentes de Página Grandes**: `ProductDetailsPage.tsx` é bastante grande (~30k bytes), sugerindo que pode estar fazendo demais e poderia se beneficiar de uma decomposição adicional.
 
-## Security
-- **Authentication**: Token handling is custom. Ensure refresh token rotation and secure storage patterns are robust.
+## Segurança
+- **Autenticação**: O manuseio de tokens é customizado. Certifique-se de que os padrões de rotação de refresh tokens e armazenamento seguro sejam robustos.
 
 ## UX/UI
-- **Responsiveness**: The admin panel has many complex tables and forms. Ensuring mobile responsiveness for all these pages is a significant task.
+- **Responsividade**: O painel administrativo tem muitas tabelas e formulários complexos. Garantir a responsividade móvel para todas essas páginas é uma tarefa significativa.

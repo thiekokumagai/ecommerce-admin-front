@@ -21,14 +21,8 @@ type ProductStockEditorProps = {
 };
 
 function getNextStock(currentStock: number, value: number, mode: QuickEditMode) {
-  if (mode === "add") {
-    return currentStock + value;
-  }
-
-  if (mode === "subtract") {
-    return Math.max(0, currentStock - value);
-  }
-
+  if (mode === "add") return currentStock + value;
+  if (mode === "subtract") return Math.max(0, currentStock - value);
   return value;
 }
 
@@ -44,16 +38,14 @@ export function ProductStockEditor({
   directStockValue,
   bulkMode,
   bulkValues,
-  isSaving,
   onModeChange,
   onDirectStockChange,
   onValueChange,
-  onSaveAll,
 }: ProductStockEditorProps) {
   const directSavedItem = savedItems[0];
 
   return (
-    <Card className="rounded-3xl border-0 bg-muted/20 shadow-none">
+    <Card className="rounded-3xl border bg-card shadow-sm">
       <CardHeader className="space-y-4">
         <CardTitle className="text-lg">Estoque</CardTitle>
 
@@ -63,6 +55,7 @@ export function ProductStockEditor({
             size="sm"
             variant={bulkMode === "add" ? "default" : "outline"}
             onClick={() => onModeChange("add")}
+            className="rounded-xl"
           >
             Somar
           </Button>
@@ -71,6 +64,7 @@ export function ProductStockEditor({
             size="sm"
             variant={bulkMode === "subtract" ? "default" : "outline"}
             onClick={() => onModeChange("subtract")}
+            className="rounded-xl"
           >
             Subtrair
           </Button>
@@ -79,6 +73,7 @@ export function ProductStockEditor({
             size="sm"
             variant={bulkMode === "replace" ? "default" : "outline"}
             onClick={() => onModeChange("replace")}
+            className="rounded-xl"
           >
             Substituir
           </Button>
@@ -99,36 +94,30 @@ export function ProductStockEditor({
               </p>
             </div>
 
-            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div className="flex flex-col gap-3 md:flex-row md:items-end">
-                <div className="w-full md:w-40 space-y-2">
-                  <p className="text-sm font-medium">Quantidade</p>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={directStockValue}
-                    onChange={(event) => onDirectStockChange(event.target.value)}
-                    placeholder="0"
-                  />
-                  {directSavedItem ? (
-                    <p className="text-sm text-muted-foreground">Atual: {directSavedItem.stock}</p>
-                  ) : null}
-                </div>
-
-                <div className="rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground md:min-w-[220px]">
-                  Resultado previsto:{" "}
-                  <span className="font-medium text-foreground">
-                    {directStockValue === "" || Number.isNaN(Number(directStockValue))
-                      ? directSavedItem?.stock ?? 0
-                      : getNextStock(directSavedItem?.stock ?? 0, Number(directStockValue), bulkMode)}
-                  </span>
-                </div>
+            <div className="flex flex-col gap-4 md:flex-row md:items-end">
+              <div className="w-full md:w-40 space-y-2">
+                <p className="text-sm font-medium">Quantidade</p>
+                {directSavedItem ? (
+                  <p className="text-sm text-muted-foreground">Atual: {directSavedItem.stock}</p>
+                ) : null}
+                <Input
+                  type="number"
+                  min="0"
+                  value={directStockValue}
+                  onChange={(event) => onDirectStockChange(event.target.value)}
+                  placeholder="0"
+                  className="h-10 rounded-xl"
+                />
+                
               </div>
 
-              <div className="flex justify-end md:justify-start">
-                <Button type="button" onClick={onSaveAll} disabled={isSaving}>
-                  Salvar
-                </Button>
+              <div className="flex-1 rounded-xl bg-muted px-4 py-2.5 text-sm text-muted-foreground">
+                Resultado previsto:{" "}
+                <span className="font-bold text-foreground">
+                  {directStockValue === "" || Number.isNaN(Number(directStockValue))
+                    ? directSavedItem?.stock ?? 0
+                    : getNextStock(directSavedItem?.stock ?? 0, Number(directStockValue), bulkMode)}
+                </span>
               </div>
             </div>
           </div>
@@ -138,52 +127,52 @@ export function ProductStockEditor({
           </div>
         ) : savedItems.length === 0 ? (
           <div className="rounded-2xl border border-dashed p-6 text-sm text-muted-foreground">
-            Nenhum item gerado ainda.
+            Nenhum item gerado ainda. Tente selecionar opções de variação acima.
           </div>
         ) : (
-          <>
-            <div className="space-y-3">
-              {savedItems.map((item) => {
-                const rawValue = bulkValues[item.id] ?? "";
-                const parsedValue = Number(rawValue);
-                const previewStock =
-                  rawValue === "" || Number.isNaN(parsedValue)
-                    ? item.stock
-                    : getNextStock(item.stock, parsedValue, bulkMode);
+          <div className="space-y-3">
+            {savedItems.map((item) => {
+              const rawValue = bulkValues[item.id] ?? "";
+              const parsedValue = Number(rawValue);
+              const previewStock =
+                rawValue === "" || Number.isNaN(parsedValue)
+                  ? item.stock
+                  : getNextStock(item.stock, parsedValue, bulkMode);
 
-                return (
-                  <div key={item.id} className="grid gap-3 rounded-2xl bg-card p-4 md:grid-cols-[1fr_160px_220px] md:items-end">
-                    <div>
-                      <p className="font-medium">{renderSavedItemLabel(item)}</p>
-                      <p className="text-sm text-muted-foreground">Atual: {item.stock}</p>
-                    </div>
-
-                    <div>
-                      <p className="mb-2 text-sm font-medium">Quantidade</p>
-                      <Input
-                        type="number"
-                        min="0"
-                        value={rawValue}
-                        onChange={(event) => onValueChange(item.id, event.target.value)}
-                        placeholder="0"
-                      />
-                    </div>
-
-                    <div className="rounded-2xl bg-muted px-4 py-3 text-sm text-muted-foreground">
-                      Resultado previsto:{" "}
-                      <span className="font-medium text-foreground">{previewStock}</span>
-                    </div>
+              return (
+                <div key={item.id} className="grid gap-3 rounded-2xl bg-card p-4 md:grid-cols-[1fr_160px_220px] md:items-end">
+                  <div>
+                    <p className="font-medium">
+                      {renderSavedItemLabel(item)}
+                      {(item as any).isVirtual && (
+                        <span className="ml-2 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary uppercase">
+                          Novo
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Atual: {item.stock}</p>
                   </div>
-                );
-              })}
-            </div>
 
-            <div className="flex justify-end">
-              <Button type="button" onClick={onSaveAll} disabled={isSaving}>
-                Salvar
-              </Button>
-            </div>
-          </>
+                  <div>
+                    <p className="mb-2 text-sm font-medium">Quantidade</p>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={rawValue}
+                      onChange={(event) => onValueChange(item.id, event.target.value)}
+                      placeholder="0"
+                      className="h-10 rounded-xl"
+                    />
+                  </div>
+
+                  <div className="rounded-xl bg-muted px-4 py-2.5 text-sm text-muted-foreground">
+                    Resultado previsto:{" "}
+                    <span className="font-bold text-foreground">{previewStock}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </CardContent>
     </Card>

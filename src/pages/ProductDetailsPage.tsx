@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Package2, Save, Shapes } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 import { useProductItems } from "@/hooks/useProductItems";
 import { useProducts } from "@/hooks/useProducts";
@@ -20,13 +20,15 @@ import {
   removeProductVariationOption,
   replaceProductImage,
   updateProduct,
+  updateProductItem,
   updateProductItemsBatch,
   uploadProductImages,
 } from "@/services/product.service";
 import { ProductDetailsForm, type ProductDetailsFormValues } from "@/components/products/ProductDetailsForm";
 import { PageLoader } from "@/components/common/PageLoader";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import type { ProductImage, ProductItem, ProductResponse } from "@/types/product";
 import type { Variation } from "@/types/variation";
@@ -99,8 +101,11 @@ function hasItemWithOption(item: ProductItem, optionId: string) {
 }
 
 function getSelectedOptionsMap(product: ProductResponse) {
+  const activeIds = new Set(product.activeOptionIds);
   return product.variations.reduce<Record<string, string[]>>((acc, variation) => {
-    acc[variation.variationId] = variation.options.map((option) => option.id);
+    acc[variation.variationId] = variation.options
+      .filter((option) => activeIds.has(option.id))
+      .map((option) => option.id);
     return acc;
   }, {});
 }
@@ -138,6 +143,8 @@ export default function ProductDetailsPage() {
   const [bulkMode, setBulkMode] = useState<QuickEditMode>("add");
   const [bulkValues, setBulkValues] = useState<Record<string, string>>({});
   const [directStockValue, setDirectStockValue] = useState("");
+  const [hasVariations, setHasVariations] = useState(false);
+  const [savingStep, setSavingStep] = useState<string | null>(null);
 
   const productForm = useForm<ProductDetailsFormValues>({
     resolver: zodResolver(productSchema),
@@ -152,7 +159,8 @@ export default function ProductDetailsPage() {
     },
   });
 
-  const { data: savedItems = [], isLoading: loadingSavedItems, refetch: refetchItems } = useProductItems(productId ?? "");
+  const { data: savedItemsData, isLoading: loadingSavedItems, refetch: refetchItems } = useProductItems(productId ?? "");
+  const savedItems = useMemo(() => savedItemsData ?? [], [savedItemsData]);
 
   useEffect(() => {
     if (!savedItems?.length) {
@@ -161,6 +169,27 @@ export default function ProductDetailsPage() {
       return;
     }
 
+    const optionsMap: Record<string, string[]> = {};
+    const variationIdsSet = new Set<string>();
+
+    savedItems.forEach(item => {
+      item.options.forEach(opt => {
+        if (!optionsMap[opt.variationId]) {
+          optionsMap[opt.variationId] = [];
+        }
+        if (!optionsMap[opt.variationId].includes(opt.optionId)) {
+          optionsMap[opt.variationId].push(opt.optionId);
+        }
+        variationIdsSet.add(opt.variationId);
+      });
+    });
+
+    setSelectedOptionsByVariation(optionsMap);
+    setSelectedVariationIds(Array.from(variationIdsSet));
+    
+    const hasAnyVariation = savedItems.some(item => item.options.length > 0);
+    setHasVariations(hasAnyVariation);
+
     setBulkValues(
       savedItems.reduce<Record<string, string>>((acc, item) => {
         acc[item.id] = "";
@@ -168,7 +197,7 @@ export default function ProductDetailsPage() {
       }, {}),
     );
 
-    if (savedItems[0].options.length === 0) {
+    if (!hasAnyVariation && savedItems[0]) {
       setDirectStockValue(String(savedItems[0].stock));
     } else {
       setDirectStockValue("");
@@ -183,10 +212,58 @@ export default function ProductDetailsPage() {
     [selectedVariationIds, variations],
   );
 
-  const orderedSavedItems = useMemo(
-    () => sortProductItemsByVariationOrder(savedItems, selectedVariationIds),
-    [savedItems, selectedVariationIds],
-  );
+  const combinedItems = useMemo(() => {
+    if (!hasVariations) return savedItems;
+
+    const variationsWithSelections = selectedVariationIds
+      .map((variationId) => {
+        const variation = variations.find((v) => v.id === variationId);
+        const optionIds = selectedOptionsByVariation[variationId] ?? [];
+        return variation && optionIds.length > 0 ? { variation, optionIds } : null;
+      })
+      .filter((entry): entry is { variation: Variation; optionIds: string[] } => !!entry);
+
+    if (variationsWithSelections.length === 0) return savedItems;
+
+    const combinations = getOptionCombinations(variationsWithSelections);
+    
+    const existingMap = new Map<string, ProductItem>();
+    savedItems.forEach(item => {
+      const hash = buildOptionHash(item.options.map(o => o.optionId));
+      existingMap.set(hash, item);
+    });
+
+    const results: Array<any> = [];
+
+    combinations.forEach(combo => {
+      const orderedOptionIds = getOrderedOptionIds(combo.optionIds, selectedVariationIds, variations);
+      const hash = buildOptionHash(orderedOptionIds);
+      const existing = existingMap.get(hash);
+
+      if (existing) {
+        results.push(existing);
+      } else {
+        results.push({
+          id: `virtual-${hash}`,
+          isVirtual: true,
+          stock: 0,
+          options: orderedOptionIds.map(optId => {
+             const variation = variations.find(v => v.options.some(o => o.id === optId));
+             const option = variation?.options.find(o => o.id === optId);
+             return {
+               variationId: variation?.id ?? "",
+               optionId: optId,
+               optionValue: option?.value ?? ""
+             };
+          })
+        });
+      }
+    });
+
+    return sortProductItemsByVariationOrder(results as ProductItem[], selectedVariationIds);
+  }, [hasVariations, savedItems, selectedVariationIds, selectedOptionsByVariation, variations]);
+
+  const orderedSavedItems = combinedItems;
 
   const currentProduct = (productsQuery.data ?? []).find((product) => product.id === productId);
 
@@ -220,6 +297,7 @@ export default function ProductDetailsPage() {
       setImages(product.images);
       setSelectedVariationIds(product.variationIds ?? []);
       setSelectedOptionsByVariation(getSelectedOptionsMap(product));
+      setHasVariations((product.variationIds?.length ?? 0) > 0);
       productForm.reset({
         title: product.title,
         description: product.description ?? "",
@@ -236,7 +314,7 @@ export default function ProductDetailsPage() {
     !isNewProduct && (productQuery.isLoading || categoriesQuery.loading || variationsQuery.isLoading);
 
   const linkVariationsMutation = useMutation({
-    mutationFn: async ({ currentProductId, variationIds }: { currentProductId: string; variationIds: string[] }) => {
+    mutationFn: async ({ currentProductId, variationIds, stocks }: { currentProductId: string; variationIds: string[]; stocks?: Record<string, number> }) => {
       const currentProductData = await getProductById(currentProductId);
       const alreadyLinkedVariationIds = currentProductData.variationIds ?? [];
       const variationIdsToLink = variationIds.filter((variationId) => !alreadyLinkedVariationIds.includes(variationId));
@@ -275,10 +353,13 @@ export default function ProductDetailsPage() {
 
       const itemsToCreate = uniqueItemsToCreate
         .filter((combination) => !existingHashes.has(buildOptionHash(combination.optionIds)))
-        .map((combination) => ({
-          options: combination.optionIds,
-          stock: 0,
-        }));
+        .map((combination) => {
+          const hash = buildOptionHash(combination.optionIds);
+          return {
+            options: combination.optionIds,
+            stock: stocks?.[hash] ?? 0,
+          };
+        });
 
       if (itemsToCreate.length > 0) {
         await createProductItems(currentProductId, itemsToCreate);
@@ -287,11 +368,11 @@ export default function ProductDetailsPage() {
       return await getProductById(currentProductId);
     },
     onSuccess: async (product) => {
+      queryClient.invalidateQueries({ queryKey: ["product", productId] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
       setSelectedVariationIds(product.variationIds ?? []);
       setSelectedOptionsByVariation(getSelectedOptionsMap(product));
       await refetchItems();
-      toast({ title: "Combinações salvas" });
     },
     onError: (error: Error) => {
       toast({ variant: "destructive", title: error.message || "Não foi possível vincular as variações" });
@@ -303,7 +384,6 @@ export default function ProductDetailsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["product", id] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast({ title: "Produto atualizado" });
     },
     onError: () => {
       toast({ variant: "destructive", title: "Não foi possível atualizar o produto" });
@@ -327,9 +407,10 @@ export default function ProductDetailsPage() {
         return next;
       });
 
+      queryClient.invalidateQueries({ queryKey: ["product", productId] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
       await refetchItems();
-      toast({ title: "Variação e estoques relacionados removidos" });
+      toast({ title: "Variação removida" });
     },
     onError: () => {
       toast({ variant: "destructive", title: "Não foi possível remover a variação" });
@@ -353,8 +434,10 @@ export default function ProductDetailsPage() {
         return next;
       });
 
+      queryClient.invalidateQueries({ queryKey: ["product", productId] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       await refetchItems();
-      toast({ title: "Opção e estoques relacionados removidos" });
+      toast({ title: "Opção removida" });
     },
     onError: () => {
       toast({ variant: "destructive", title: "Não foi possível remover a opção" });
@@ -368,7 +451,6 @@ export default function ProductDetailsPage() {
       setImages(product.images);
       setPendingImages([]);
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast({ title: "Imagens enviadas com sucesso" });
     },
     onError: () => {
       toast({ variant: "destructive", title: "Não foi possível enviar as imagens" });
@@ -405,13 +487,6 @@ export default function ProductDetailsPage() {
     mutationFn: (items: { itemId: string; stock: number }[]) => updateProductItemsBatch(items),
     onSuccess: async () => {
       await refetchItems();
-      setBulkValues(
-        savedItems.reduce<Record<string, string>>((acc, item) => {
-          acc[item.id] = "";
-          return acc;
-        }, {}),
-      );
-      toast({ title: "Estoque salvo" });
     },
     onError: () => {
       toast({ variant: "destructive", title: "Não foi possível salvar o estoque" });
@@ -419,25 +494,19 @@ export default function ProductDetailsPage() {
   });
 
   const saveDirectStockMutation = useMutation({
-    mutationFn: async ({ currentProductId, stock }: { currentProductId: string; stock: number }) => {
-      const currentItems = await getProductItems(currentProductId);
-      const directItem = currentItems.find((item) => item.options.length === 0);
-
-      if (directItem) {
-        await updateProductItemsBatch([{ itemId: directItem.id, stock }]);
-        return;
+    mutationFn: async ({ currentProductId, stock, itemId }: { currentProductId: string; stock: number; itemId?: string }) => {
+      if (itemId) {
+        await updateProductItem(itemId, { stock });
+      } else {
+        await createProductItems(currentProductId, [
+          {
+            stock,
+          },
+        ]);
       }
-
-      await createProductItems(currentProductId, [
-        {
-          sku: `SKU-${currentProductId.slice(0, 8).toUpperCase()}`,
-          stock,
-        },
-      ]);
     },
     onSuccess: async () => {
       await refetchItems();
-      toast({ title: "Estoque salvo" });
     },
     onError: () => {
       toast({ variant: "destructive", title: "Não foi possível salvar o estoque" });
@@ -470,42 +539,6 @@ export default function ProductDetailsPage() {
       }
       return prev.filter((image) => image.id !== pendingId);
     });
-  };
-
-  const handleSaveProductSection = async () => {
-    const isValid = await productForm.trigger();
-    if (!isValid) {
-      return;
-    }
-
-    const rawValues = productForm.getValues();
-    const formValues = {
-      ...rawValues,
-      descriptionFormated: rawValues.description?.replace(/<[^>]*>/g, "").trim() ?? "",
-    };
-
-    if (!productId) {
-      createProductMutation.mutate(formValues, {
-        onSuccess: (product) => {
-          if (pendingImages.length > 0) {
-            uploadImagesMutation.mutate({
-              currentProductId: product.id,
-              files: pendingImages.map((image) => image.file),
-            });
-          }
-        },
-      });
-      return;
-    }
-
-    await updateProductMutation.mutateAsync(formValues);
-
-    if (pendingImages.length > 0 && !uploadImagesMutation.isPending) {
-      uploadImagesMutation.mutate({
-        currentProductId: productId,
-        files: pendingImages.map((image) => image.file),
-      });
-    }
   };
 
   const handleChangeVariation = (slot: number, variationId: string) => {
@@ -541,14 +574,12 @@ export default function ProductDetailsPage() {
     if (selectedVariationIds.length >= variations.length) {
       return;
     }
-
     setSelectedVariationIds((prev) => [...prev, ""]);
   };
 
   const handleRemoveVariationSlot = (slot: number) => {
     const variationIdToRemove = selectedVariationIds[slot];
     const nextVariationIds = selectedVariationIds.filter((_, index) => index !== slot);
-
     setSelectedVariationIds(nextVariationIds);
 
     if (variationIdToRemove) {
@@ -573,9 +604,7 @@ export default function ProductDetailsPage() {
 
   const handleToggleAllVariationOptions = (variationId: string, checked: boolean) => {
     const variation = variations.find((item) => item.id === variationId);
-    if (!variation) {
-      return;
-    }
+    if (!variation) return;
 
     setSelectedOptionsByVariation((prev) => ({
       ...prev,
@@ -583,242 +612,299 @@ export default function ProductDetailsPage() {
     }));
   };
 
-  const handleSaveVariationLinks = () => {
-    if (!productId) {
-      toast({ variant: "destructive", title: "Crie o produto antes de salvar as variações" });
+  const handleSaveEverything = async () => {
+    const isValid = await productForm.trigger();
+    if (!isValid) {
+      toast({ variant: "destructive", title: "Preencha os campos obrigatórios" });
       return;
     }
 
-    const validVariationIds = selectedVariationIds.filter(Boolean);
+    const rawValues = productForm.getValues();
 
-    if (validVariationIds.length === 0) {
-      toast({ variant: "destructive", title: "Selecione pelo menos uma variação" });
-      return;
-    }
-
-    linkVariationsMutation.mutate({
-      currentProductId: productId,
-      variationIds: validVariationIds,
-    });
-  };
-
-  const handleSaveAllStocks = () => {
-    if (!productId) {
-      toast({ variant: "destructive", title: "Crie o produto antes de salvar o estoque" });
-      return;
-    }
-
-    if (selectedVariations.length === 0) {
-      const value = Number(directStockValue);
-
-      if (directStockValue === "" || Number.isNaN(value) || value < 0) {
-        toast({ variant: "destructive", title: "Informe uma quantidade válida" });
+    // Validações preventivas (Fase 2)
+    if (hasVariations) {
+      const hasAnySelectedOption = Object.values(selectedOptionsByVariation).some(opts => opts.length > 0);
+      if (selectedVariationIds.filter(Boolean).length === 0 || !hasAnySelectedOption) {
+        toast({ variant: "destructive", title: "Configuração de Variação Incompleta", description: "Selecione ao menos uma variação e suas opções." });
         return;
       }
-
-      const currentStock = savedItems.find((item) => item.options.length === 0)?.stock ?? 0;
-      const stock =
-        bulkMode === "add"
-          ? currentStock + value
-          : bulkMode === "subtract"
-            ? Math.max(0, currentStock - value)
-            : value;
-
-      saveDirectStockMutation.mutate({ currentProductId: productId, stock });
-      return;
     }
 
-    const payload = orderedSavedItems
-      .filter((item) => (bulkValues[item.id] ?? "") !== "")
-      .map((item) => {
-        const value = Number(bulkValues[item.id]);
-        const nextStock =
-          bulkMode === "add"
-            ? item.stock + value
-            : bulkMode === "subtract"
-              ? Math.max(0, item.stock - value)
-              : value;
+    const formValues = {
+      ...rawValues,
+      descriptionFormated: rawValues.description?.replace(/<[^>]*>/g, "").trim() ?? "",
+    };
 
-        return {
-          itemId: item.id,
-          stock: nextStock,
-        };
-      });
+    let currentId = productId;
 
-    const hasInvalidValue = payload.some((item) => Number.isNaN(item.stock) || item.stock < 0);
+    try {
+      // 1. Salvar Produto
+      setSavingStep("Salvando informações principais...");
+      if (!currentId) {
+        const product = await createProductMutation.mutateAsync(formValues);
+        currentId = product.id;
+        setProductId(currentId);
+      } else {
+        await updateProductMutation.mutateAsync(formValues);
+      }
 
-    if (hasInvalidValue) {
-      toast({ variant: "destructive", title: "Informe quantidades válidas" });
-      return;
+      // 2. Upload de Imagens
+      if (pendingImages.length > 0) {
+        setSavingStep(`Enviando ${pendingImages.length} imagem(ns)...`);
+        await uploadImagesMutation.mutateAsync({
+          currentProductId: currentId!,
+          files: pendingImages.map((image) => image.file),
+        });
+      }
+
+      // 3. Variações e Estoque
+      if (hasVariations) {
+        setSavingStep("Sincronizando grade de variações...");
+        const validVariationIds = selectedVariationIds.filter(Boolean);
+        if (validVariationIds.length > 0) {
+          const stocksMap: Record<string, number> = {};
+          combinedItems.forEach(item => {
+            if (item.isVirtual) {
+              const hash = buildOptionHash(item.options.map((o: any) => o.optionId));
+              const value = Number(bulkValues[item.id]) || 0;
+              stocksMap[hash] = value;
+            }
+          });
+
+          await linkVariationsMutation.mutateAsync({
+            currentProductId: currentId!,
+            variationIds: validVariationIds,
+            stocks: stocksMap
+          });
+
+          const itemsToUpdate = combinedItems
+            .filter((item) => !item.isVirtual && (bulkValues[item.id] ?? "") !== "")
+            .map((item) => {
+              const value = Number(bulkValues[item.id]);
+              const nextStock = bulkMode === "add" ? item.stock + value : bulkMode === "subtract" ? Math.max(0, item.stock - value) : value;
+              return { itemId: item.id, stock: nextStock };
+            });
+
+          if (itemsToUpdate.length > 0) {
+            setSavingStep("Atualizando quantidades em estoque...");
+            await updateStockBatchMutation.mutateAsync(itemsToUpdate);
+          }
+        }
+      } else {
+        const value = Number(directStockValue);
+        if (!Number.isNaN(value) && directStockValue !== "") {
+          setSavingStep("Atualizando estoque direto...");
+          const directItem = savedItems.find((item) => item.options.length === 0);
+          const currentStock = directItem?.stock ?? 0;
+          const stock = bulkMode === "add" ? currentStock + value : bulkMode === "subtract" ? Math.max(0, currentStock - value) : value;
+          await saveDirectStockMutation.mutateAsync({
+            currentProductId: currentId!,
+            stock,
+            itemId: directItem?.id
+          });
+        }
+      }
+
+      setSavingStep(null);
+      setBulkValues({});
+      setDirectStockValue("");
+      queryClient.invalidateQueries({ queryKey: ["product", currentId] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      await refetchItems();
+      toast({ title: "Tudo salvo com sucesso!" });
+    } catch (error: any) {
+      setSavingStep(null);
+      toast({ variant: "destructive", title: "Erro ao salvar", description: error.message });
     }
-
-    if (payload.length === 0) {
-      toast({ title: "Nenhuma alteração para salvar" });
-      return;
-    }
-
-    updateStockBatchMutation.mutate(payload);
   };
+
+  const isSaving =
+    createProductMutation.isPending ||
+    updateProductMutation.isPending ||
+    uploadImagesMutation.isPending ||
+    linkVariationsMutation.isPending ||
+    updateStockBatchMutation.isPending ||
+    saveDirectStockMutation.isPending;
 
   if (isInitialPageLoading) {
     return <PageLoader message="Carregando produto..." />;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-3xl border bg-card p-6 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-8 pb-20">
+      {/* Header */}
+      <div className="flex flex-col gap-4 rounded-3xl border bg-card p-6 sm:flex-row sm:items-center sm:justify-between shadow-sm">
         <div className="space-y-1">
-          <Button asChild variant="ghost" className="-ml-3 w-fit">
-            <Link to="/produtos">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar para produtos
+          <Button asChild variant="ghost" className="-ml-3 w-fit hover:bg-transparent">
+            <Link to="/produtos" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+              <ArrowLeft className="h-4 w-4" />
+              <span>Voltar para produtos</span>
             </Link>
           </Button>
-          <h1 className="text-2xl font-bold">{isNewProduct ? "Novo produto" : currentProduct?.title ?? "Editar produto"}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {isNewProduct ? "Novo produto" : currentProduct?.title ?? "Editar produto"}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Cadastro do produto com imagens, variações e controle de quantidade em estoque.
+            Gerencie imagens, dados básicos, variações e estoque em um só lugar.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <div className="rounded-2xl bg-muted px-4 py-2 text-sm text-muted-foreground">
-            {images.length} foto(s)
-          </div>
-          <div className="rounded-2xl bg-muted px-4 py-2 text-sm text-muted-foreground">
-            {savedItems.length} SKU(s)
-          </div>
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            className="h-12 rounded-2xl px-8 font-semibold shadow-lg transition-all hover:scale-[1.02]"
+            disabled={isSaving}
+            onClick={() => void handleSaveEverything()}
+          >
+            {isSaving ? (
+              <div className="flex items-center gap-3">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <span>{savingStep || "Salvando..."}</span>
+              </div>
+            ) : (
+              <><Save className="mr-2 h-4 w-4" /> Salvar tudo</>
+            )}
+          </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="produto" className="space-y-6">
-        <TabsList className="h-auto rounded-2xl bg-muted/40 p-1">
-          <TabsTrigger value="produto" className="rounded-xl px-5 py-2 data-[state=active]:bg-background">
-            <Package2 className="mr-2 h-4 w-4" />
-            Produto
-          </TabsTrigger>
-          <TabsTrigger value="variacoes" className="rounded-xl px-5 py-2 data-[state=active]:bg-background">
-            <Shapes className="mr-2 h-4 w-4" />
-            Variações
-          </TabsTrigger>
-          <TabsTrigger value="estoque" className="rounded-xl px-5 py-2 data-[state=active]:bg-background">
-            <Save className="mr-2 h-4 w-4" />
-            Estoque
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="produto" className="space-y-6">
-          <ProductDetailsForm
-            form={productForm}
-            categories={categories}
-            onSubmit={() => void handleSaveProductSection()}
+      <div className="grid gap-8">
+        {/* Images Section */}
+        <Suspense fallback={<PageLoader message="Carregando gestor de imagens..." />}>
+          <ProductImageManager
+            images={images}
+            pendingImages={pendingImages}
+            isUploading={uploadImagesMutation.isPending}
+            isDeletingImage={deleteImageMutation.isPending}
+            isUpdatingImage={replaceImageMutation.isPending}
+            onPendingImagesChange={handlePendingImagesChange}
+            onRemovePendingImage={handleRemovePendingImage}
+            onDeleteImage={(imageId) => {
+              if (!productId) return;
+              deleteImageMutation.mutate({ currentProductId: productId, imageId });
+            }}
+            onReplaceImage={async (imageId, file) => {
+              if (!productId) return;
+              await replaceImageMutation.mutateAsync({ currentProductId: productId, imageId, file });
+            }}
           />
+        </Suspense>
 
-          <Suspense fallback={<PageLoader message="Carregando gestor de imagens..." />}>
-            <ProductImageManager
-              images={images}
-              pendingImages={pendingImages}
-              isUploading={uploadImagesMutation.isPending}
-              isDeletingImage={deleteImageMutation.isPending}
-              isUpdatingImage={replaceImageMutation.isPending}
-              onPendingImagesChange={handlePendingImagesChange}
-              onRemovePendingImage={handleRemovePendingImage}
-              onDeleteImage={(imageId) => {
-                if (!productId) {
-                  return;
-                }
-                deleteImageMutation.mutate({ currentProductId: productId, imageId });
-              }}
-              onReplaceImage={async (imageId, file) => {
-                if (!productId) {
-                  return;
-                }
-                await replaceImageMutation.mutateAsync({ currentProductId: productId, imageId, file });
-              }}
+        {/* Product Details Section */}
+        <ProductDetailsForm
+          form={productForm}
+          categories={categories}
+        />
+
+        {/* Variations Toggle Section */}
+        <div className="rounded-3xl border bg-card p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label className="text-xl font-bold">Variações de Produto</Label>
+              <p className="text-sm text-muted-foreground">
+                Ative se este produto possui tamanhos, cores ou outras opções.
+              </p>
+            </div>
+            <Switch
+              checked={hasVariations}
+              onCheckedChange={setHasVariations}
+              className="scale-125"
             />
-          </Suspense>
-
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              className="rounded-xl px-6"
-              disabled={
-                createProductMutation.isPending ||
-                updateProductMutation.isPending ||
-                productQuery.isFetching ||
-                uploadImagesMutation.isPending
-              }
-              onClick={() => void handleSaveProductSection()}
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {productId ? "Salvar produto" : "Criar produto"}
-            </Button>
           </div>
-        </TabsContent>
 
-        <TabsContent value="variacoes" className="space-y-6">
-          <Suspense fallback={<PageLoader message="Carregando variações..." />}>
-            <ProductVariationSelector
-              variations={variations}
-              selectedVariationIds={selectedVariationIds}
-              selectedOptionsByVariation={selectedOptionsByVariation}
-              onChangeVariation={handleChangeVariation}
-              onAddSlot={handleAddVariationSlot}
-              onRemoveSlot={handleRemoveVariationSlot}
-              onToggleOption={handleToggleVariationOption}
-              onToggleAllOptions={handleToggleAllVariationOptions}
-              onRemoveVariation={(variationId) => {
-                if (!productId) return;
-                removeVariationMutation.mutate({ currentProductId: productId, variationId });
-              }}
-              onRemoveVariationOption={(variationId, optionId) => {
-                if (!productId) return;
-                removeVariationOptionMutation.mutate({ currentProductId: productId, variationId, optionId });
-              }}
-              disabled={
-                !productId ||
-                linkVariationsMutation.isPending ||
-                removeVariationMutation.isPending ||
-                removeVariationOptionMutation.isPending
-              }
-            />
-          </Suspense>
+          <div className="mt-8 space-y-8">
+            {hasVariations ? (
+              <>
+                <Suspense fallback={<PageLoader message="Carregando variações..." />}>
+                  <ProductVariationSelector
+                    variations={variations}
+                    selectedVariationIds={selectedVariationIds}
+                    selectedOptionsByVariation={selectedOptionsByVariation}
+                    onChangeVariation={handleChangeVariation}
+                    onAddSlot={handleAddVariationSlot}
+                    onRemoveSlot={handleRemoveVariationSlot}
+                    onToggleOption={handleToggleVariationOption}
+                    onToggleAllOptions={handleToggleAllVariationOptions}
+                    onRemoveVariation={(variationId) => {
+                      if (!productId) return;
+                      removeVariationMutation.mutate({ currentProductId: productId, variationId });
+                    }}
+                    onRemoveVariationOption={(variationId, optionId) => {
+                      if (!productId) return;
+                      removeVariationOptionMutation.mutate({ currentProductId: productId, variationId, optionId });
+                    }}
+                    disabled={
+                      !productId ||
+                      linkVariationsMutation.isPending ||
+                      removeVariationMutation.isPending ||
+                      removeVariationOptionMutation.isPending
+                    }
+                  />
+                </Suspense>
 
-          <div>
-            <Button
-              type="button"
-              onClick={handleSaveVariationLinks}
-              disabled={!productId || linkVariationsMutation.isPending}
-              className="rounded-xl"
-            >
-              {linkVariationsMutation.isPending ? "Salvando..." : "Salvar combinações"}
-            </Button>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-bold">Grade de Estoque</h3>
+                  <Suspense fallback={<PageLoader message="Carregando editor de estoque..." />}>
+                    <ProductStockEditor
+                      productReady={!!productId}
+                      hasVariations={true}
+                      loadingSavedItems={loadingSavedItems}
+                      savedItems={orderedSavedItems}
+                      directStockValue=""
+                      bulkMode={bulkMode}
+                      bulkValues={bulkValues}
+                      isSaving={isSaving}
+                      onModeChange={setBulkMode}
+                      onDirectStockChange={setDirectStockValue}
+                      onValueChange={(itemId, value) => setBulkValues(prev => ({ ...prev, [itemId]: value }))}
+                      onSaveAll={() => void handleSaveEverything()}
+                    />
+                  </Suspense>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold">Gerenciar Estoque Direto</h3>
+                <Suspense fallback={<PageLoader message="Carregando editor de estoque..." />}>
+                  <ProductStockEditor
+                    productReady={!!productId}
+                    hasVariations={false}
+                    loadingSavedItems={loadingSavedItems}
+                    savedItems={savedItems}
+                    directStockValue={directStockValue}
+                    bulkMode={bulkMode}
+                    bulkValues={{}}
+                    isSaving={isSaving}
+                    onModeChange={setBulkMode}
+                    onDirectStockChange={setDirectStockValue}
+                    onValueChange={() => {}}
+                    onSaveAll={() => void handleSaveEverything()}
+                  />
+                </Suspense>
+              </div>
+            )}
           </div>
-        </TabsContent>
+        </div>
 
-        <TabsContent value="estoque" className="space-y-6">
-          <Suspense fallback={<PageLoader message="Carregando editor de estoque..." />}>
-            <ProductStockEditor
-              productReady={!!productId}
-              hasVariations={selectedVariations.length > 0}
-              loadingSavedItems={loadingSavedItems}
-              savedItems={orderedSavedItems}
-              directStockValue={directStockValue}
-              bulkMode={bulkMode}
-              bulkValues={bulkValues}
-              isSaving={updateStockBatchMutation.isPending || saveDirectStockMutation.isPending}
-              onModeChange={setBulkMode}
-              onDirectStockChange={setDirectStockValue}
-              onValueChange={(itemId, value) => {
-                setBulkValues((prev) => ({
-                  ...prev,
-                  [itemId]: value,
-                }));
-              }}
-              onSaveAll={handleSaveAllStocks}
-            />
-          </Suspense>
-        </TabsContent>
-      </Tabs>
+        {/* Bottom Save Button */}
+        <div className="flex justify-end pt-4">
+          <Button
+            type="button"
+            className="h-14 rounded-2xl px-10 text-lg font-bold shadow-xl transition-all hover:scale-[1.02]"
+            disabled={isSaving}
+            onClick={() => void handleSaveEverything()}
+          >
+            {isSaving ? (
+              <div className="flex items-center gap-3">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <span>{savingStep || "Processando..."}</span>
+              </div>
+            ) : (
+              <><Save className="mr-3 h-5 w-5" /> Finalizar Cadastro</>
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

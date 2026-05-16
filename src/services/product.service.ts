@@ -82,6 +82,7 @@ function normalizeProduct(item: ProductApiResponse): ProductResponse {
     price: item.price ? Number(item.price) : undefined,
     promotionalPrice: item.promotionalPrice ? Number(item.promotionalPrice) : undefined,
     costPrice: item.costPrice ? Number(item.costPrice) : undefined,
+    activeOptionIds: (item.items ?? []).flatMap((i) => (i.options ?? []).map((o) => o.option.id)),
   };
 }
 
@@ -205,10 +206,29 @@ export async function createProductItems(productId: string, items: CreateProduct
   return data.map(normalizeProductItem);
 }
 
-export async function getProductItems(productId: string): Promise<ProductItem[]> {
-  const response = await apiFetch(`/products/${productId}/items`);
+export async function updateProductItemsCollection(productId: string, items: CreateProductItemPayload[]): Promise<ProductItem[]> {
+  const response = await apiFetch(`/products/${productId}/items`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      items,
+    }),
+  });
+
   const data = (await response.json()) as ProductItemApiResponse[];
   return data.map(normalizeProductItem);
+}
+
+export async function getProductItems(productId: string): Promise<ProductItem[]> {
+  try {
+    const response = await apiFetch(`/products/${productId}/items`);
+    const data = (await response.json()) as ProductItemApiResponse[];
+    return data.map(normalizeProductItem);
+  } catch (error: any) {
+    if (error.message?.includes("404")) {
+      return [];
+    }
+    throw error;
+  }
 }
 
 export async function updateProductItem(itemId: string, payload: UpdateProductItemPayload): Promise<ProductItem> {
