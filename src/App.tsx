@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -12,8 +12,7 @@ const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
 const ProductDetailsPage = lazy(() => import("@/pages/ProductDetailsPage"));
 const CategoriesPage = lazy(() => import("@/pages/CategoriesPage"));
 const CouponsPage = lazy(() => import("@/pages/CouponsPage"));
-const DeliveriesPage = lazy(() => import("@/pages/DeliveriesPage"));
-const PaymentsPage = lazy(() => import("@/pages/PaymentsPage"));
+// DeliveriesPage and PaymentsPage removed — content merged into /configuracoes
 const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
 const CashRegisterPage = lazy(() => import("@/pages/CashRegisterPage"));
 const VariationPage = lazy(() => import("@/pages/VariationPage"));
@@ -53,8 +52,8 @@ const App = () => (
                 <Route path="/produtos/:id" element={<ProductDetailsPage />} />
                 <Route path="/categorias" element={<CategoriesPage />} />
                 <Route path="/cupons" element={<CouponsPage />} />
-                <Route path="/entregas" element={<DeliveriesPage />} />
-                <Route path="/pagamentos" element={<PaymentsPage />} />
+                <Route path="/entregas" element={<Navigate to="/configuracoes" replace />} />
+                <Route path="/pagamentos" element={<Navigate to="/configuracoes" replace />} />
                 <Route path="/configuracoes" element={<SettingsPage />} />
                 <Route path="/caixa" element={<CashRegisterPage />} />
                 <Route path="/variacoes" element={<VariationPage />} />
