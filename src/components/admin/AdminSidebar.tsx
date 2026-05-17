@@ -1,28 +1,18 @@
 import { forwardRef } from "react";
 import { NavLink as RouterNavLink, NavLinkProps } from "react-router-dom";
-import {
-  LayoutDashboard,
-  ShoppingBag,
-  Package,
-  FolderTree,
-  Ticket,
-  Truck,
-  CreditCard,
-  Settings,
-  Landmark,
-  SlidersHorizontal,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { dashboardNavItem, navSections } from "@/data/admin-nav";
 
 interface NavLinkCompatProps extends Omit<NavLinkProps, "className"> {
   className?: string;
@@ -47,19 +37,6 @@ const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
 
 NavLink.displayName = "NavLink";
 
-const menuItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Pedidos", url: "/pedidos", icon: ShoppingBag },
-  { title: "Produtos", url: "/produtos", icon: Package },
-  { title: "Variações", url: "/variacoes", icon: SlidersHorizontal },
-  { title: "Categorias", url: "/categorias", icon: FolderTree },
-  { title: "Cupons", url: "/cupons", icon: Ticket },
-  { title: "Entregas", url: "/entregas", icon: Truck },
-  { title: "Pagamentos", url: "/pagamentos", icon: CreditCard },
-  { title: "Configurações", url: "/configuracoes", icon: Settings },
-  { title: "Caixa", url: "/caixa", icon: Landmark },
-];
-
 export function AdminSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
@@ -73,32 +50,56 @@ export function AdminSidebar() {
           </div>
           {!collapsed && (
             <span className="text-sidebar-foreground font-bold text-lg tracking-tight">
-              Pod & Mais
+              Pod &amp; Mais
             </span>
           )}
         </div>
 
+        {/* Dashboard — item solto sem label de seção */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/"}
-                      className="hover:bg-sidebar-accent/60 transition-colors"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-semibold"
-                    >
-                      <item.icon className="mr-2 h-4 w-4 shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to={dashboardNavItem.url}
+                    end
+                    className="hover:bg-sidebar-accent/60 transition-colors"
+                    activeClassName="bg-sidebar-accent text-sidebar-primary font-semibold"
+                  >
+                    <dashboardNavItem.icon className="mr-2 h-4 w-4 shrink-0" />
+                    {!collapsed && <span>{dashboardNavItem.title}</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Seções agrupadas: Catálogo, Vendas, Configuração */}
+        {navSections.map((section) => (
+          <SidebarGroup key={section.label}>
+            <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {section.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        className="hover:bg-sidebar-accent/60 transition-colors"
+                        activeClassName="bg-sidebar-accent text-sidebar-primary font-semibold"
+                      >
+                        <item.icon className="mr-2 h-4 w-4 shrink-0" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
     </Sidebar>
   );
