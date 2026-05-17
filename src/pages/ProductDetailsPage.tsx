@@ -265,7 +265,13 @@ export default function ProductDetailsPage() {
 
   const orderedSavedItems = combinedItems;
 
-  const currentProduct = (productsQuery.data ?? []).find((product) => product.id === productId);
+  const products = Array.isArray(productsQuery.data)
+    ? productsQuery.data
+    : [];
+
+  const currentProduct = products.find(
+    (product) => product.id === productId,
+  );
 
   const createProductMutation = useMutation({
     mutationFn: createProduct,
