@@ -43,7 +43,7 @@ export interface ProductListTableFilters {
 
 interface Category {
   id: string;
-  name: string;
+  title: string;
 }
 
 interface ProductListTableProps {
@@ -81,6 +81,10 @@ export function ProductListTable({
 }: ProductListTableProps) {
   const [sortField, setSortField] = useState<SortField>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const getCategoryName = (categoryId: string) => {
+    return categories.find((category) => category.id === categoryId)?.title ?? "Sem categoria";
+  };
 
   // Client-side sort on current page
   const sorted = [...products].sort((a, b) => {
@@ -207,9 +211,10 @@ export function ProductListTable({
             <SelectItem value="all">Todas as categorias</SelectItem>
             {categories.map((c) => (
               <SelectItem key={c.id} value={c.id}>
-                {c.name}
+                {c.title}
               </SelectItem>
             ))}
+
           </SelectContent>
         </Select>
 
@@ -254,6 +259,7 @@ export function ProductListTable({
                   Preço <ArrowUpDown className="h-3.5 w-3.5" />
                 </button>
               </TableHead>
+              <TableHead>Categoria</TableHead>
               <TableHead>SKU</TableHead>
               <TableHead>Estoque</TableHead>
               <TableHead>Status</TableHead>
@@ -262,16 +268,17 @@ export function ProductListTable({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                   Carregando produtos...
                 </TableCell>
               </TableRow>
             ) : sorted.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                   Nenhum produto encontrado.
                 </TableCell>
               </TableRow>
+
             ) : (
               sorted.map((product) => (
                 <TableRow
@@ -314,6 +321,9 @@ export function ProductListTable({
                       : "—"}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
+                    {getCategoryName(product.categoryId)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
                     {product.primarySku ?? "—"}
                   </TableCell>
                   <TableCell>{product.totalStock}</TableCell>
@@ -329,6 +339,7 @@ export function ProductListTable({
                 </TableRow>
               ))
             )}
+
           </TableBody>
         </Table>
       </div>
