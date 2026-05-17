@@ -3,6 +3,8 @@ import type {
   CreateProductItemPayload,
   CreateProductPayload,
   ProductItem,
+  ProductListMeta,
+  ProductListParams,
   ProductResponse,
   RemoveProductVariationOptionPayload,
   RemoveProductVariationPayload,
@@ -58,6 +60,12 @@ type ProductItemApiResponse = {
 };
 
 function normalizeProduct(item: ProductApiResponse): ProductResponse {
+  const items = item.items as Array<{ id: string; stock: number; sku?: string; options?: unknown[] }> | undefined ?? [];
+  const totalStock = items.reduce((acc, i) => acc + (i.stock ?? 0), 0);
+  const firstWithSku = items.find((i) => i.sku);
+  const primarySku: string | null = firstWithSku?.sku ?? null;
+  const status: "active" | "inactive" = totalStock > 0 ? "active" : "inactive";
+
   return {
     id: item.id,
     title: item.title,
@@ -83,6 +91,9 @@ function normalizeProduct(item: ProductApiResponse): ProductResponse {
     promotionalPrice: item.promotionalPrice ? Number(item.promotionalPrice) : undefined,
     costPrice: item.costPrice ? Number(item.costPrice) : undefined,
     activeOptionIds: (item.items ?? []).flatMap((i) => (i.options ?? []).map((o) => o.option.id)),
+    totalStock,
+    primarySku,
+    status,
   };
 }
 
@@ -99,10 +110,24 @@ function normalizeProductItem(item: ProductItemApiResponse): ProductItem {
   };
 }
 
-export async function getProducts(): Promise<ProductResponse[]> {
-  const response = await apiFetch("/products");
+export async function getProducts(
+  params?: ProductListParams,
+): Promise<{ products: ProductResponse[]; meta: ProductListMeta }> {
+  const limit = params?.limit ?? 30;
+  const page = params?.page ?? 1;
+  const qs = new URLSearchParams();
+  qs.set("page", String(page));
+  qs.set("limit", String(limit));
+  if (params?.search) qs.set("search", params.search);
+  if (params?.categoryId) qs.set("categoryId", params.categoryId);
+
+  const response = await apiFetch(`/products?${qs.toString()}`);
   const data = (await response.json()) as ProductApiResponse[];
-  return data.map(normalizeProduct);
+  const products = data.map(normalizeProduct);
+  return {
+    products,
+    meta: { page, limit, hasNextPage: products.length === limit },
+  };
 }
 
 export async function createProduct(payload: CreateProductPayload): Promise<ProductResponse> {

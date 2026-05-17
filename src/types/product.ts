@@ -20,6 +20,19 @@ export type SavedProductVariation = {
   options: SavedProductVariationOption[];
 };
 
+export type ProductListParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  categoryId?: string;
+};
+
+export type ProductListMeta = {
+  page: number;
+  limit: number;
+  hasNextPage: boolean;
+};
+
 export type ProductResponse = {
   id: string;
   title: string;
@@ -34,6 +47,9 @@ export type ProductResponse = {
   description?: string;
   descriptionFormated?: string;
   activeOptionIds: string[];
+  totalStock: number;
+  primarySku: string | null;
+  status: "active" | "inactive";
 };
 
 

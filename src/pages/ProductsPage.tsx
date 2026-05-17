@@ -1,111 +1,135 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
-import { ProductListCard } from "@/components/products/ProductListCard";
+import { ProductListTable, ProductListTableFilters } from "@/components/products/ProductListTable";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { PageLoader } from "@/components/common/PageLoader";
 import {
-  createProduct,
   deleteProduct,
-  getProductById,
   getProductItems,
-  linkProductVariations,
-  uploadProductImages,
-  createProductItems,
+  updateProductItem,
 } from "@/services/product.service";
-import { buildImageUrl } from "@/utils/image-url";
-import type { ProductResponse } from "@/types/product";
+
+const PAGE_SIZE = 30;
 
 export default function ProductsPage() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const productsQuery = useProducts();
+
+  // Pagination & filter state
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<ProductListTableFilters>({
+    search: "",
+    status: "all",
+    categoryId: "",
+  });
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  // Reset page when filters change
+  const handleFiltersChange = (next: ProductListTableFilters) => {
+    setFilters(next);
+    setPage(1);
+    setSelectedIds([]);
+  };
+
+  const productsQuery = useProducts({
+    page,
+    limit: PAGE_SIZE,
+    search: filters.search || undefined,
+    categoryId: filters.categoryId || undefined,
+  });
   const categoriesQuery = useCategories();
 
-  const products = productsQuery.data ?? [];
+  const rawProducts = productsQuery.data?.products ?? [];
+  const meta = productsQuery.data?.meta;
+
+  // Client-side status filter (API doesn't support it yet)
+  const products =
+    filters.status === "all"
+      ? rawProducts
+      : rawProducts.filter((p) => p.status === filters.status);
+
   const categories = categoriesQuery.data ?? [];
   const isPageLoading = productsQuery.isLoading || categoriesQuery.loading;
 
-  const duplicateMutation = useMutation({
-    mutationFn: async (product: ProductResponse) => {
-      // Requisições Paralelas: Busca o produto e seus itens simultaneamente para ganhar tempo
-      const [fullProduct, items] = await Promise.all([
-        getProductById(product.id),
-        getProductItems(product.id)
-      ]);
-
-      const newProduct = await createProduct({
-        title: `${fullProduct.title} (Cópia)`,
-        categoryId: fullProduct.categoryId,
-        price: fullProduct.price,
-        promotionalPrice: fullProduct.promotionalPrice,
-        costPrice: fullProduct.costPrice,
-      });
-
-      if (fullProduct.variationIds.length > 0) {
-        await linkProductVariations(newProduct.id, fullProduct.variationIds);
+  // ─── Bulk Delete ───────────────────────────────────────────────────────────
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      for (const id of ids) {
+        await deleteProduct(id);
       }
-
-      if (items.length > 0) {
-        await createProductItems(
-          newProduct.id,
-          items.map((item) => ({
-            stock: item.stock,
-            options: item.options.map((option) => option.optionId),
-          })),
-        );
-      }
-
-      if (fullProduct.images.length > 0) {
-        const files = await Promise.all(
-          fullProduct.images.map(async (image, index) => {
-            const response = await fetch(buildImageUrl(image.url));
-            if (!response.ok) {
-              throw new Error("Não foi possível copiar uma das imagens do produto.");
-            }
-            const blob = await response.blob();
-            return new File([blob], `produto-${newProduct.id}-${index + 1}.jpg`, {
-              type: blob.type || "image/jpeg",
-            });
-          }),
-        );
-
-        await uploadProductImages(newProduct.id, files);
-      }
-
-      return newProduct;
     },
-    onSuccess: (product) => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast({ title: "Produto duplicado com sucesso" });
-      navigate(`/produtos/${product.id}`);
-    },
-    onError: (error: Error) => {
-      toast({
-        variant: "destructive",
-        title: error.message || "Não foi possível duplicar o produto",
-      });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (productId: string) => deleteProduct(productId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      toast({ title: "Produto excluído com sucesso" });
+      setSelectedIds([]);
+      toast({ title: "Produtos excluídos com sucesso" });
     },
     onError: (error: Error) => {
       toast({
         variant: "destructive",
-        title: error.message || "Não foi possível excluir o produto",
+        title: error.message || "Erro ao excluir produtos",
       });
     },
   });
 
-  if (isPageLoading) {
+  // ─── Bulk Disable (zera estoque de todos os itens) ─────────────────────────
+  const bulkDisableMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      for (const productId of ids) {
+        const items = await getProductItems(productId);
+        await Promise.all(items.map((item) => updateProductItem(item.id, { stock: 0 })));
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setSelectedIds([]);
+      toast({ title: "Produtos desativados" });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: error.message || "Erro ao desativar produtos",
+      });
+    },
+  });
+
+  // ─── Bulk Enable (set stock=1 no primeiro item) ────────────────────────────
+  const bulkEnableMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      for (const productId of ids) {
+        const items = await getProductItems(productId);
+        if (items.length === 0) {
+          toast({
+            variant: "destructive",
+            title: `Produto sem itens — não é possível ativar automaticamente`,
+          });
+          continue;
+        }
+        await updateProductItem(items[0].id, { stock: 1 });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setSelectedIds([]);
+      toast({ title: "Produtos ativados" });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: error.message || "Erro ao ativar produtos",
+      });
+    },
+  });
+
+  const isBulkPending =
+    bulkDeleteMutation.isPending ||
+    bulkDisableMutation.isPending ||
+    bulkEnableMutation.isPending;
+
+  if (isPageLoading && !productsQuery.data) {
     return <PageLoader message="Carregando produtos..." />;
   }
 
@@ -115,7 +139,7 @@ export default function ProductsPage() {
         <div>
           <h1 className="text-2xl font-bold">Produtos</h1>
           <p className="text-sm text-muted-foreground">
-            Veja os produtos cadastrados e entre em cada um para editar tudo em uma única tela.
+            Gerencie os produtos cadastrados, filtre e aplique ações em massa.
           </p>
         </div>
 
@@ -127,14 +151,24 @@ export default function ProductsPage() {
         </Button>
       </div>
 
-      <ProductListCard
+      <ProductListTable
         products={products}
         categories={categories}
-        isLoading={false}
-        onDuplicate={(product) => duplicateMutation.mutate(product)}
-        onDelete={(product) => deleteMutation.mutate(product.id)}
-        isDuplicating={duplicateMutation.isPending}
-        isDeleting={deleteMutation.isPending}
+        isLoading={productsQuery.isLoading}
+        page={page}
+        hasNextPage={meta?.hasNextPage ?? false}
+        onPageChange={(p) => {
+          setPage(p);
+          setSelectedIds([]);
+        }}
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        selectedIds={selectedIds}
+        onSelectionChange={setSelectedIds}
+        onBulkDelete={(ids) => bulkDeleteMutation.mutate(ids)}
+        onBulkDisable={(ids) => bulkDisableMutation.mutate(ids)}
+        onBulkEnable={(ids) => bulkEnableMutation.mutate(ids)}
+        isBulkPending={isBulkPending}
       />
     </div>
   );
