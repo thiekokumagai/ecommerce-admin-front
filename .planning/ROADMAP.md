@@ -13,7 +13,7 @@
 - Validações preventivas (impedir salvamento se campos críticos faltarem).
 - Tratamento de erros aprimorado.
 
-### Phase 3: Tela de listagem de produtos com menu lateral em seções e ações em massa
+### [CONCLUÍDO] Phase 3: Tela de listagem de produtos com menu lateral em seções e ações em massa
 
 **Goal:** Reorganizar o admin com menu em seções (Catálogo, Vendas, Configuração), página única de configuração com três formulários, e listagem de produtos em tabela com paginação (30/página), filtros e ações em massa.
 
@@ -21,9 +21,9 @@
 **Plans:** 3 plans em 2 waves
 
 Plans:
-- [ ] 03-01 — Menu lateral em seções (`navSections` + `AdminSidebar`)
-- [ ] 03-02 — Página unificada `/configuracoes` (Entregas + Pagamentos + Gerais)
-- [ ] 03-03 — Tabela de produtos + paginação API 30 + bulk actions
+- [x] 03-01 — Menu lateral em seções (`navSections` + `AdminSidebar`)
+- [x] 03-02 — Página unificada `/configuracoes` (Entregas + Pagamentos + Gerais)
+- [x] 03-03 — Tabela de produtos + paginação API 30 + bulk actions
 
 **Wave 1** *(paralelo)*: 03-01, 03-02  
 **Wave 2** *(após menu)*: 03-03
