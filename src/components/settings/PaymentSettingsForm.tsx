@@ -24,10 +24,16 @@ export function PaymentSettingsForm() {
 
   useEffect(() => {
     if (settings) {
+      const cleanVal = (val: string | null | undefined, defaults: string[]) => {
+        if (!val) return "";
+        const trimmed = val.trim();
+        return defaults.some(d => d.toLowerCase() === trimmed.toLowerCase()) ? "" : val;
+      };
+
       setPixEnabled(!!settings.pixEnabled);
       setPixKeyType(settings.pixKeyType || "EMAIL");
-      setPixKey(settings.pixKey || "");
-      setPixHolder(settings.pixHolder || "");
+      setPixKey(cleanVal(settings.pixKey, ["podemais@email.com"]));
+      setPixHolder(cleanVal(settings.pixHolder, ["Pode Mais E-commerce LTDA"]));
 
       setPayOnDeliveryCash(!!settings.payOnDeliveryCash);
       setPayOnDeliveryCardDebit(!!settings.payOnDeliveryCardDebit);

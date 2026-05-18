@@ -40,21 +40,27 @@ export function GeneralSettingsForm() {
 
   useEffect(() => {
     if (settings) {
-      setStoreName(settings.storeName || "");
+      const cleanVal = (val: string | null | undefined, defaults: string[]) => {
+        if (!val) return "";
+        const trimmed = val.trim();
+        return defaults.some(d => d.toLowerCase() === trimmed.toLowerCase()) ? "" : val;
+      };
+
+      setStoreName(cleanVal(settings.storeName, ["Minha Loja", "Pode Mais"]));
       setLogoUrl(settings.logoUrl || null);
       setFaviconUrl(settings.faviconUrl || null);
       setTopHeaderText(settings.topHeaderText || "");
       setBannerUrls(settings.bannerUrls || []);
-      setPhone(settings.phone || "");
-      setInstagram(settings.instagram || "");
+      setPhone(cleanVal(settings.phone, ["(67) 99999-9999", "67999999999", "6799999-9999"]));
+      setInstagram(cleanVal(settings.instagram, ["@podemais.cg"]));
 
       // Endereço
-      setCep(settings.cep || "");
-      setStreet(settings.street || "");
-      setNumber(settings.number || "");
-      setNeighborhood(settings.neighborhood || "");
-      setCity(settings.city || "");
-      setState(settings.state || "");
+      setCep(cleanVal(settings.cep, ["79002-075", "79002075"]));
+      setStreet(cleanVal(settings.street, ["Rua 14 de Julho"]));
+      setNumber(cleanVal(settings.number, ["1234"]));
+      setNeighborhood(cleanVal(settings.neighborhood, ["Centro"]));
+      setCity(cleanVal(settings.city, ["Campo Grande"]));
+      setState(cleanVal(settings.state, ["MS"]));
       setComplement(settings.complement || "");
       setHideAddress(!!settings.hideAddress);
     }
