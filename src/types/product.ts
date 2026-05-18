@@ -50,6 +50,7 @@ export type ProductResponse = {
   totalStock: number;
   primarySku: string | null;
   status: "active" | "inactive";
+  items?: ProductItem[];
 };
 
 

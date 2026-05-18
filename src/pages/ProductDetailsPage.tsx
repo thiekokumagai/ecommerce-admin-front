@@ -852,7 +852,7 @@ export default function ProductDetailsPage() {
                   <h3 className="text-lg font-bold">Grade de Estoque</h3>
                   <Suspense fallback={<PageLoader message="Carregando editor de estoque..." />}>
                     <ProductStockEditor
-                      productReady={!!productId}
+                      productReady={true}
                       hasVariations={true}
                       loadingSavedItems={loadingSavedItems}
                       savedItems={orderedSavedItems}
@@ -873,7 +873,7 @@ export default function ProductDetailsPage() {
                 <h3 className="text-lg font-bold">Gerenciar Estoque Direto</h3>
                 <Suspense fallback={<PageLoader message="Carregando editor de estoque..." />}>
                   <ProductStockEditor
-                    productReady={!!productId}
+                    productReady={true}
                     hasVariations={false}
                     loadingSavedItems={loadingSavedItems}
                     savedItems={savedItems}

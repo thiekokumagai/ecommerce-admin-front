@@ -12,6 +12,8 @@ import {
   deleteProduct,
   getProductItems,
   updateProductItem,
+  updateProduct,
+  duplicateProduct,
 } from "@/services/product.service";
 
 const PAGE_SIZE = 30;
@@ -54,6 +56,40 @@ export default function ProductsPage() {
 
   const categories = categoriesQuery.data ?? [];
   const isPageLoading = productsQuery.isLoading || categoriesQuery.loading;
+
+  // ─── Inline Price Update ──────────────────────────────────────────────────
+  const updateProductMutation = useMutation({
+    mutationFn: async ({ id, price, costPrice }: { id: string; price?: number; costPrice?: number }) => {
+      await updateProduct(id, { price, costPrice });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast({ title: "Preço atualizado com sucesso" });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: error.message || "Erro ao atualizar preço",
+      });
+    },
+  });
+
+  // ─── Duplicate Product ────────────────────────────────────────────────────
+  const duplicateProductMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await duplicateProduct(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast({ title: "Produto duplicado com sucesso" });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: error.message || "Erro ao duplicar produto",
+      });
+    },
+  });
 
   // ─── Bulk Delete ───────────────────────────────────────────────────────────
   const bulkDeleteMutation = useMutation({
@@ -169,6 +205,12 @@ export default function ProductsPage() {
         onBulkDisable={(ids) => bulkDisableMutation.mutate(ids)}
         onBulkEnable={(ids) => bulkEnableMutation.mutate(ids)}
         isBulkPending={isBulkPending}
+        onUpdateProduct={async (id, values) => {
+          await updateProductMutation.mutateAsync({ id, ...values });
+        }}
+        onDuplicateProduct={async (id) => {
+          await duplicateProductMutation.mutateAsync(id);
+        }}
       />
     </div>
   );

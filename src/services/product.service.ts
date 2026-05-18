@@ -94,6 +94,7 @@ function normalizeProduct(item: ProductApiResponse): ProductResponse {
     totalStock,
     primarySku,
     status,
+    items: (item.items as ProductItemApiResponse[] ?? []).map(normalizeProductItem),
   };
 }
 
@@ -276,6 +277,15 @@ export async function updateProduct(
   const response = await apiFetch(`/products/${id}`, {
     method: "PATCH",
     body: JSON.stringify(payload),
+  });
+
+  const data = (await response.json()) as ProductApiResponse;
+  return normalizeProduct(data);
+}
+
+export async function duplicateProduct(id: string): Promise<ProductResponse> {
+  const response = await apiFetch(`/products/${id}/duplicate`, {
+    method: "POST",
   });
 
   const data = (await response.json()) as ProductApiResponse;
