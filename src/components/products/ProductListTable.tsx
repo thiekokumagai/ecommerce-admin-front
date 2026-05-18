@@ -479,10 +479,7 @@ export function ProductListTable({
                     {product.variations.length === 0 ? (
                       <span className="font-semibold text-foreground">{product.totalStock}</span>
                     ) : (
-                      <div className="space-y-1">
-                        <div className="font-semibold text-foreground">
-                          {product.totalStock} <span className="text-xs text-muted-foreground font-normal">no total</span>
-                        </div>
+                      <div className="space-y-1">                        
                         <div className="flex flex-wrap gap-1 text-[11px] text-muted-foreground max-w-[220px]">
                           {product.items?.map((item) => {
                              const optionLabel = item.options.map((o) => o.optionValue).join("/");
