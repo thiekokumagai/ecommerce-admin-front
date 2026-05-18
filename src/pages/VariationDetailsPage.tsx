@@ -263,11 +263,9 @@ export default function VariationDetailsPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {isNewVariation || form.formState.dirtyFields.title ? (
-                  <Button type="submit" disabled={saveMutation.isPending}>
-                    {isNewVariation ? "Criar variação" : "Salvar alterações"}
-                  </Button>
-                ) : null}
+                <Button type="submit" disabled={saveMutation.isPending}>
+                  {isNewVariation ? "Criar variação" : "Salvar alterações"}
+                </Button>
 
                 {!isNewVariation ? (
                   <Button
