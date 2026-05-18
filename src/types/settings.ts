@@ -4,6 +4,15 @@ export interface PaymentRule {
   type: 'discount' | 'charge';
   value: number;
   maxInstallments?: number;
+  parcelaMin?: number;
+  parcelaMax?: number;
+}
+
+export interface InstallmentRule {
+  id: string;
+  parcelaMin: number;
+  parcelaMax: number;
+  juros: number;
 }
 
 export interface StoreSettings {
@@ -26,6 +35,10 @@ export interface StoreSettings {
   complement: string | null;
   hideAddress: boolean;
   
+  deliveryOriginCep: string | null;
+  deliveryOriginNumber: string | null;
+  deliveryRanges: any;
+  
   // Pagamentos
   pixEnabled: boolean;
   pixKeyType: string | null;
@@ -37,6 +50,7 @@ export interface StoreSettings {
   payOnDeliveryCardCredit: boolean;
   
   paymentRules: PaymentRule[];
+  installmentRules?: InstallmentRule[] | null;
   
   createdAt?: string;
   updatedAt?: string;

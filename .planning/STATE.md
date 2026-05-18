@@ -16,12 +16,12 @@ progress:
 
 ## Status
 
-Phase 3 complete — all 3 plans executed (03-01, 03-02, 03-03)
+Phase 6 complete — both plans executed (06-01, 06-02)
 
 ## Current Position
 
-- Phase: 03 — Listagem de produtos com menu lateral em seções e ações em massa
-- Status: ✅ Complete (3/3 plans)
+- Phase: 06 — Configuração de Juros Customizados de Parcelas (Backend & Frontend)
+- Status: ✅ Complete (2/2 plans)
 
 ## Accumulated Context
 
@@ -34,6 +34,10 @@ Phase 3 complete — all 3 plans executed (03-01, 03-02, 03-03)
   - 03-02: `src/components/settings/` (3 forms) + `SettingsPage` unificada + redirects `/entregas`→`/configuracoes`
   - 03-03: `ProductListTable` + `useProducts` com params + `ProductsPage` com bulk actions
 - Phase 4 added: Configurações de Identidade, Endereço, Pagamentos e Descontos
+- Phase 6 added: Configuração de Juros Customizados de Parcelas (Backend & Frontend)
+- Phase 6 executed:
+  - 06-01: Extensão do Schema, DTO e Repositório para Suportar Faixas de Juros (Backend)
+  - 06-02: Formulário com Inputs Editáveis de Faixas de Parcelas e Juros (Frontend) + Instagram bug fix
 
 ### Key Decisions
 
@@ -41,3 +45,10 @@ Phase 3 complete — all 3 plans executed (03-01, 03-02, 03-03)
 - Settings: Entregas/Pagamentos/Gerais em página única `/configuracoes`, rotas antigas redirect
 - Listagem: Tabela com PAGE_SIZE=30, sort client-side, bulk delete/disable/enable
 - Status de produto: inferido de `totalStock > 0` no `normalizeProduct`
+
+## Session Continuity
+
+Last session: 2026-05-17
+Stopped at: Session resumed, proceeding to coordinate settings integration.
+Resume file: Ready for Phase 4 (Configurações de Identidade, Endereço, Pagamentos e Descontos).
+

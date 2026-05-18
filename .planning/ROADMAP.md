@@ -52,3 +52,14 @@ Plans:
 Plans:
 
 - [ ] 05-01: Implementar filtros reativos de placeholders nos formulários de Configurações (Frontend-Only)
+
+### Phase 6: Configuração de Juros Customizados de Parcelas (Backend & Frontend)
+
+**Goal:** Permitir ao lojista configurar juros customizados para cartão de crédito em faixas de parcelas (ex: de 2 a 3 parcelas, de 4 a 5 parcelas) com inputs numéricos totalmente editáveis tanto para os intervalos de parcelas quanto para a taxa de juros correspondente, integrando o backend e o frontend.
+**Depends on:** Phase 4
+**Plans:** 2 planos
+
+Plans:
+
+- [x] 06-01: Extensão do Schema, DTO e Repositório para Suportar Faixas de Juros (Backend)
+- [x] 06-02: Formulário com Inputs Editáveis de Faixas de Parcelas e Juros (Frontend)

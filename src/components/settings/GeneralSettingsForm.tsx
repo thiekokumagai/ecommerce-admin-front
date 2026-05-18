@@ -52,15 +52,15 @@ export function GeneralSettingsForm() {
       setTopHeaderText(settings.topHeaderText || "");
       setBannerUrls(settings.bannerUrls || []);
       setPhone(cleanVal(settings.phone, ["(67) 99999-9999", "67999999999", "6799999-9999"]));
-      setInstagram(cleanVal(settings.instagram, ["@podemais.cg"]));
+      setInstagram(settings.instagram || "");
 
       // Endereço
       setCep(cleanVal(settings.cep, ["79002-075", "79002075"]));
       setStreet(cleanVal(settings.street, ["Rua 14 de Julho"]));
       setNumber(cleanVal(settings.number, ["1234"]));
       setNeighborhood(cleanVal(settings.neighborhood, ["Centro"]));
-      setCity(cleanVal(settings.city, ["Campo Grande"]));
-      setState(cleanVal(settings.state, ["MS"]));
+      setCity(settings.city || "");
+      setState(settings.state || "");
       setComplement(settings.complement || "");
       setHideAddress(!!settings.hideAddress);
     }
@@ -452,11 +452,18 @@ export function GeneralSettingsForm() {
             />
           </div>
 
-          <div className="flex items-center gap-2 pt-2">
+          <div className="flex items-center gap-2 pt-2 pb-4">
             <Switch checked={hideAddress} onCheckedChange={setHideAddress} />
             <Label className="font-normal text-sm cursor-pointer select-none" onClick={() => setHideAddress(!hideAddress)}>
               Ocultar endereço físico na loja pública
             </Label>
+          </div>
+
+          <div className="flex justify-end pt-4 border-t">
+            <Button size="sm" onClick={handleSave} disabled={updateSettingsMutation.isPending}>
+              <Save className="h-4 w-4 mr-1" />
+              {updateSettingsMutation.isPending ? "Salvando..." : "Salvar Configurações"}
+            </Button>
           </div>
         </div>
       </CardContent>

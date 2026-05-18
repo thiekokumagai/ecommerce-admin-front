@@ -176,6 +176,13 @@ export function PaymentSettingsForm() {
               <Switch checked={payOnDeliveryCardCredit} onCheckedChange={setPayOnDeliveryCardCredit} />
             </div>
           </div>
+
+          <div className="flex justify-end pt-6 border-t mt-6">
+            <Button size="sm" onClick={handleSave} disabled={updateSettingsMutation.isPending}>
+              <Save className="h-4 w-4 mr-1" />
+              {updateSettingsMutation.isPending ? "Salvando..." : "Salvar Configurações"}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

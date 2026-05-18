@@ -47,14 +47,36 @@ export function PaymentRulesSettingsForm() {
         if (r.id !== id) return r;
         const updated = { ...r, [key]: val };
         
-        // Se mudar de cartão de crédito para outro, remover parcelamento
-        if (key === "paymentMethod" && val !== "credit") {
-          delete updated.maxInstallments;
+        if (key === "paymentMethod") {
+          if (val === "credit") {
+            updated.type = "charge"; // Juros é sempre um acréscimo (charge)
+            updated.parcelaMin = updated.parcelaMin ?? 2;
+            updated.parcelaMax = updated.parcelaMax ?? 3;
+            delete updated.maxInstallments;
+          } else {
+            delete updated.parcelaMin;
+            delete updated.parcelaMax;
+            delete updated.maxInstallments;
+          }
         }
 
         return updated;
       })
     );
+  };
+
+  const formatPercentVal = (val: number): string => {
+    if (val === 0) return "";
+    return val.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
+  const handlePercentChange = (id: string, rawVal: string) => {
+    const digits = rawVal.replace(/\D/g, "");
+    const num = digits ? Number(digits) / 100 : 0;
+    handleUpdateRule(id, "value", num);
   };
 
   const handleSave = async () => {
@@ -68,6 +90,29 @@ export function PaymentRulesSettingsForm() {
         });
         return;
       }
+
+      if (rule.paymentMethod === "credit") {
+        const min = rule.parcelaMin !== undefined ? rule.parcelaMin : 2;
+        const max = rule.parcelaMax !== undefined ? rule.parcelaMax : 3;
+
+        if (min < 1 || max < 1) {
+          toast({
+            variant: "destructive",
+            title: "Parcelamento inválido",
+            description: "As parcelas mínima e máxima devem ser maiores ou iguais a 1.",
+          });
+          return;
+        }
+
+        if (max < min) {
+          toast({
+            variant: "destructive",
+            title: "Intervalo inválido",
+            description: "A parcela limite máxima não pode ser menor que a mínima.",
+          });
+          return;
+        }
+      }
     }
 
     try {
@@ -77,7 +122,7 @@ export function PaymentRulesSettingsForm() {
 
       toast({
         title: "Regras dinâmicas salvas!",
-        description: "Suas regras de desconto, taxa e parcelas foram salvas no banco com sucesso.",
+        description: "Suas regras de desconto, taxa e parcelas de juros foram salvas com sucesso.",
       });
     } catch (err) {
       toast({
@@ -108,7 +153,7 @@ export function PaymentRulesSettingsForm() {
               Descontos, Taxas e Parcelas
             </h2>
             <p className="text-xs text-muted-foreground">
-              Adicione regras customizadas para cada método de pagamento ativo.
+              Adicione regras de desconto, taxas e juros de parcelas para as formas de pagamento.
             </p>
           </div>
           <div className="flex gap-2">
@@ -135,7 +180,7 @@ export function PaymentRulesSettingsForm() {
               <div className="col-span-3">Forma de Pagamento</div>
               <div className="col-span-3">Ação (Desconto/Taxa)</div>
               <div className="col-span-2">Valor (%)</div>
-              <div className="col-span-3">Parcelamento Máximo</div>
+              <div className="col-span-3">Parcelamento (De / Até)</div>
               <div className="col-span-1 text-right"></div>
             </div>
 
@@ -167,58 +212,72 @@ export function PaymentRulesSettingsForm() {
                   {/* Tipo de Ação */}
                   <div className="col-span-3">
                     <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground mb-1">Ação</Label>
-                    <Select
-                      value={rule.type}
-                      onValueChange={(val: 'discount' | 'charge') => handleUpdateRule(rule.id, "type", val)}
-                    >
-                      <SelectTrigger className="h-9">
-                        <SelectValue placeholder="Selecione..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="discount">Desconto</SelectItem>
-                        <SelectItem value="charge">Acréscimo (Taxa)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {rule.paymentMethod === "credit" ? (
+                      <div className="h-9 flex items-center px-3 bg-muted/20 border rounded-md text-xs text-muted-foreground select-none font-semibold">
+                        Juros (Acréscimo)
+                      </div>
+                    ) : (
+                      <Select
+                        value={rule.type}
+                        onValueChange={(val: 'discount' | 'charge') => handleUpdateRule(rule.id, "type", val)}
+                      >
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="discount">Desconto</SelectItem>
+                          <SelectItem value="charge">Acréscimo (Taxa)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
 
                   {/* Valor (%) */}
                   <div className="col-span-2">
-                    <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground mb-1">Valor (%)</Label>
+                    <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground mb-1">
+                      {rule.paymentMethod === "credit" ? "Juros (%)" : "Valor (%)"}
+                    </Label>
                     <div className="relative">
                       <Input
-                        type="number"
-                        step="0.01"
-                        value={rule.value}
-                        onChange={(e) => handleUpdateRule(rule.id, "value", Number(e.target.value))}
-                        className="h-9 pr-6"
+                        type="text"
+                        inputMode="numeric"
+                        value={formatPercentVal(rule.value)}
+                        onChange={(e) => handlePercentChange(rule.id, e.target.value)}
+                        className="h-9 pr-6 font-semibold"
+                        placeholder="0,00"
                       />
                       <span className="absolute right-2 top-2 text-xs font-semibold text-muted-foreground">%</span>
                     </div>
                   </div>
 
-                  {/* Parcelas (Específico para Cartão de Crédito) */}
+                  {/* Parcelas (De / Até - Específico para Juros de Crédito) */}
                   <div className="col-span-3">
-                    <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground mb-1">Parcelamento Máximo</Label>
+                    <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground mb-1">Parcelamento</Label>
                     {rule.paymentMethod === "credit" ? (
-                      <Select
-                        value={rule.maxInstallments ? String(rule.maxInstallments) : "1"}
-                        onValueChange={(val) => handleUpdateRule(rule.id, "maxInstallments", Number(val))}
-                      >
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder="Parcelas..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">Até 1x (À vista)</SelectItem>
-                          <SelectItem value="2">Até 2x sem juros</SelectItem>
-                          <SelectItem value="3">Até 3x sem juros</SelectItem>
-                          <SelectItem value="4">Até 4x sem juros</SelectItem>
-                          <SelectItem value="5">Até 5x sem juros</SelectItem>
-                          <SelectItem value="6">Até 6x sem juros</SelectItem>
-                          <SelectItem value="8">Até 8x sem juros</SelectItem>
-                          <SelectItem value="10">Até 10x sem juros</SelectItem>
-                          <SelectItem value="12">Até 12x sem juros</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 w-1/2">
+                          <span className="text-[10px] text-muted-foreground font-semibold">De</span>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder="De"
+                            value={rule.parcelaMin === 0 || rule.parcelaMin === undefined ? "" : rule.parcelaMin}
+                            onChange={(e) => handleUpdateRule(rule.id, "parcelaMin", e.target.value === "" ? 0 : Number(e.target.value))}
+                            className="h-9 px-2 text-center font-semibold"
+                          />
+                        </div>
+                        <div className="flex items-center gap-1 w-1/2">
+                          <span className="text-[10px] text-muted-foreground font-semibold">Até</span>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder="Até"
+                            value={rule.parcelaMax === 0 || rule.parcelaMax === undefined ? "" : rule.parcelaMax}
+                            onChange={(e) => handleUpdateRule(rule.id, "parcelaMax", e.target.value === "" ? 0 : Number(e.target.value))}
+                            className="h-9 px-2 text-center font-semibold"
+                          />
+                        </div>
+                      </div>
                     ) : (
                       <div className="h-9 flex items-center px-3 bg-muted/20 border rounded-md text-xs text-muted-foreground select-none">
                         Não aplicável
@@ -242,6 +301,17 @@ export function PaymentRulesSettingsForm() {
             </div>
           </div>
         )}
+
+        <div className="flex justify-end gap-2 pt-6 border-t mt-6">
+          <Button size="sm" variant="outline" onClick={handleAddRule}>
+            <Plus className="h-4 w-4 mr-1" />
+            Nova Configuração
+          </Button>
+          <Button size="sm" onClick={handleSave} disabled={updateSettingsMutation.isPending}>
+            <Save className="h-4 w-4 mr-1" />
+            {updateSettingsMutation.isPending ? "Salvando..." : "Salvar Configurações"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
