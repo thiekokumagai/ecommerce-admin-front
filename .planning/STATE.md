@@ -33,6 +33,7 @@ Phase 3 complete — all 3 plans executed (03-01, 03-02, 03-03)
   - 03-01: `src/data/admin-nav.ts` + `AdminSidebar` refatorado com navSections agrupadas
   - 03-02: `src/components/settings/` (3 forms) + `SettingsPage` unificada + redirects `/entregas`→`/configuracoes`
   - 03-03: `ProductListTable` + `useProducts` com params + `ProductsPage` com bulk actions
+- Phase 4 added: Configurações de Identidade, Endereço, Pagamentos e Descontos
 
 ### Key Decisions
 
