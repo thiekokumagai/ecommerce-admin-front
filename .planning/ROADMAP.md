@@ -9,7 +9,7 @@
 - Sincronização de opções via itens.
 - Itens virtuais na grade de estoque.
 
-### [PENDENTE] Fase 2: Polimento e Validação do Fluxo
+### [CONCLUÍDO] Fase 2: Polimento e Validação do Fluxo
 
 - Feedbacks visuais granulares durante o salvamento (loading states por etapa).
 - Validações preventivas (impedir salvamento se campos críticos faltarem).
@@ -31,7 +31,7 @@ Plans:
 **Wave 1** *(paralelo)*: 03-01, 03-02  
 **Wave 2** *(após menu)*: 03-03
 
-### Phase 4: Configurações de Identidade, Endereço, Pagamentos e Descontos
+### [CONCLUÍDO] Phase 4: Configurações de Identidade, Endereço, Pagamentos e Descontos
 
 **Goal:** Implementar as configurações completas e reais do e-commerce unificando o formulário `/configuracoes` com a API do backend, com upload de logo/favicon/banners (até 7), autopreenchimento de endereço por CEP, ativação do PIX e métodos presenciais, e regras dinâmicas de descontos, taxas e parcelamento.
 **Requirements**: REQ-07
@@ -40,10 +40,10 @@ Plans:
 
 Plans:
 
-- [ ] 04-01: Identidade Visual, Contato e Endereço com Busca de CEP (Frontend)
-- [ ] 04-02: PIX, Pagamentos e Regras Dinâmicas de Descontos e Taxas (Frontend)
+- [x] 04-01: Identidade Visual, Contato e Endereço com Busca de CEP (Frontend)
+- [x] 04-02: PIX, Pagamentos e Regras Dinâmicas de Descontos e Taxas (Frontend)
 
-### Phase 5: Filtro de Valores Mockados
+### [CONCLUÍDO] Phase 5: Filtro de Valores Mockados
 
 **Goal:** Filtrar em tempo de execução os valores de testes e placeholders padrões (como "Minha Loja", "Rua 14 de Julho", "podemais@email.com", etc.) no carregamento dos formulários de configurações, mantendo os campos de texto completamente limpos e prontos para o onboarding se não houver configurações reais salvas.
 **Depends on:** Phase 4
@@ -51,9 +51,9 @@ Plans:
 
 Plans:
 
-- [ ] 05-01: Implementar filtros reativos de placeholders nos formulários de Configurações (Frontend-Only)
+- [x] 05-01: Implementar filtros reativos de placeholders nos formulários de Configurações (Frontend-Only)
 
-### Phase 6: Configuração de Juros Customizados de Parcelas (Backend & Frontend)
+### [CONCLUÍDO] Phase 6: Configuração de Juros Customizados de Parcelas (Backend & Frontend)
 
 **Goal:** Permitir ao lojista configurar juros customizados para cartão de crédito em faixas de parcelas (ex: de 2 a 3 parcelas, de 4 a 5 parcelas) com inputs numéricos totalmente editáveis tanto para os intervalos de parcelas quanto para a taxa de juros correspondente, integrando o backend e o frontend.
 **Depends on:** Phase 4
