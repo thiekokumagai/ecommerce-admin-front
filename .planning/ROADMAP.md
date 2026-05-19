@@ -63,3 +63,15 @@ Plans:
 
 - [x] 06-01: Extensão do Schema, DTO e Repositório para Suportar Faixas de Juros (Backend)
 - [x] 06-02: Formulário com Inputs Editáveis de Faixas de Parcelas e Juros (Frontend)
+
+### Phase 7: Gestão e Listagem de Pedidos (Orders Portal)
+
+**Goal:** Implementar o painel de gerenciamento de vendas com listagem reativa agrupada cronologicamente por datas (Hoje, datas anteriores), filtros avançados, e gaveta lateral de detalhamento do pedido fiel ao design de alta fidelidade e suporte ao fluxo de cancelamento.
+**Depends on:** Phase 3
+**Plans:** 2 planos
+
+Plans:
+
+- [ ] 07-02: Tela de Listagem de Pedidos Agrupada por Data (Frontend)
+- [ ] 07-03: Drawer de Detalhes do Pedido e Ação de Cancelamento (Frontend)
+
