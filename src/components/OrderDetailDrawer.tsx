@@ -1,5 +1,5 @@
 import { useOrderDetails, useCancelOrder } from "@/hooks/useOrders";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
@@ -99,8 +99,10 @@ CEP: ${order.cep}`;
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full sm:max-w-md md:max-w-lg overflow-y-auto bg-slate-50/98 backdrop-blur-md p-6 border-l border-slate-200 shadow-2xl flex flex-col justify-between">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent hideCloseButton className="w-full sm:max-w-md md:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-y-auto bg-white p-6 border border-slate-200 shadow-2xl flex flex-col justify-between rounded-2xl">
+        {/* Adiciona DialogTitle escondido ou visível para acessibilidade */}
+        <DialogTitle className="sr-only">Detalhes do Pedido</DialogTitle>
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-full gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-violet-600" />
@@ -330,7 +332,7 @@ CEP: ${order.cep}`;
             <p className="text-sm font-medium">Pedido não encontrado.</p>
           </div>
         )}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
