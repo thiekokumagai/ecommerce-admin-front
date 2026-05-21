@@ -1,8 +1,11 @@
-import { useOrderDetails, useCancelOrder } from "@/hooks/useOrders";
+import { useOrderDetails, useCancelOrder, useReceiveOrder, useRevertReceiveOrder } from "@/hooks/useOrders";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import { buildImageUrl } from "@/utils/image-url";
 import { 
   ArrowLeft, 
   Send, 
@@ -18,7 +21,7 @@ import {
   Check, 
   Loader2 
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { OrderStatus } from "@/types/order";
 
 interface OrderDetailDrawerProps {
@@ -48,6 +51,96 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
   
   const { data: order, isLoading } = useOrderDetails(orderId ?? "");
   const cancelMutation = useCancelOrder();
+  const receiveMutation = useReceiveOrder();
+  const revertReceiveMutation = useRevertReceiveOrder();
+
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [surcharge, setSurcharge] = useState(0);
+  const [totalReceived, setTotalReceived] = useState(0);
+
+  useEffect(() => {
+    if (order) {
+      setPaymentMethod(order.paymentMethod || "");
+      setDiscount(order.discount || 0);
+      setSurcharge(order.surcharge || 0);
+      setTotalReceived(order.totalReceived > 0 ? order.totalReceived : (order.totalOrder || 0));
+    }
+  }, [order]);
+
+  const handleTotalChange = (newTotal: number) => {
+    setTotalReceived(newTotal);
+    if (!order) return;
+    const baseTotal = order.itemsTotal + order.freight;
+    if (newTotal > baseTotal) {
+      setSurcharge(newTotal - baseTotal);
+      setDiscount(0);
+    } else if (newTotal < baseTotal) {
+      setDiscount(baseTotal - newTotal);
+      setSurcharge(0);
+    } else {
+      setDiscount(0);
+      setSurcharge(0);
+    }
+  };
+
+  const handleDiscountChange = (val: number) => {
+    setDiscount(val);
+    if (!order) return;
+    const baseTotal = order.itemsTotal + order.freight;
+    setTotalReceived(baseTotal + surcharge - val);
+  };
+
+  const handleSurchargeChange = (val: number) => {
+    setSurcharge(val);
+    if (!order) return;
+    const baseTotal = order.itemsTotal + order.freight;
+    setTotalReceived(baseTotal + val - discount);
+  };
+
+  const handleReceiveOrder = async () => {
+    if (!orderId) return;
+    try {
+      await receiveMutation.mutateAsync({
+        id: orderId,
+        payload: {
+          paymentMethod,
+          discount,
+          surcharge,
+          totalReceived,
+        }
+      });
+      toast({
+        title: "Sucesso",
+        description: "Pagamento recebido e pedido atualizado.",
+      });
+      onClose();
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Ocorreu um erro ao processar o recebimento.",
+      });
+    }
+  };
+
+  const handleRevertReceiveOrder = async () => {
+    if (!orderId) return;
+    try {
+      await revertReceiveMutation.mutateAsync(orderId);
+      toast({
+        title: "Sucesso",
+        description: "Recebimento revertido.",
+      });
+      onClose();
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Ocorreu um erro ao reverter o recebimento.",
+      });
+    }
+  };
 
   const handleCopyAddress = () => {
     if (!order) return;
@@ -192,30 +285,37 @@ CEP: ${order.cep}`;
                 <div className="text-xs uppercase tracking-wider text-slate-400 font-bold">Itens do Pedido</div>
                 <div className="space-y-3 bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm max-h-[220px] overflow-y-auto">
                   {order.items.map((item) => (
-                    <div key={item.id} className="flex items-center gap-3">
-                      {/* Image Thumbnail with Circular quantity badge overlay */}
-                      <div className="relative shrink-0 w-11 h-11 bg-slate-100 border border-slate-200/80 rounded-lg overflow-hidden flex items-center justify-center">
-                        <div className="absolute -top-1.5 -left-1.5 w-5 h-5 bg-violet-600 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-md z-10">
+                    <div key={item.id} className="flex items-center gap-3 relative">
+                      {/* Product Image */}
+                      <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 border border-slate-200/50">
+                        {item.imageUrl ? (
+                          <img
+                            src={buildImageUrl(item.imageUrl)}
+                            alt={item.productName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                            <span className="text-[10px] text-slate-400 font-medium text-center leading-none px-1">Sem foto</span>
+                          </div>
+                        )}
+                        {/* Quantity Badge */}
+                        <div className="absolute -top-1.5 -left-1.5 min-w-[35px] h-[35px] rounded-full bg-blue-600 text-white flex items-center justify-center text-[15px] font-bold px-1 shadow-sm z-10">
                           {item.quantity}
                         </div>
-                        {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.productName} className="object-cover w-full h-full" />
-                        ) : (
-                          <span className="text-[10px] text-slate-400 font-semibold font-mono">P+</span>
-                        )}
                       </div>
-                      
-                      {/* Name with line connector to price */}
-                      <div className="flex-1 flex items-baseline justify-between min-w-0">
-                        <div className="truncate pr-1">
-                          <span className="text-xs font-bold text-slate-700 leading-tight">{item.productName}</span>
+
+                      {/* Product Name and Price */}
+                      <div className="flex-1 flex items-center justify-between min-w-0">
+                        <div className="truncate pr-2 max-w-[60%]">
+                          <span className="text-sm font-bold text-slate-700 leading-tight">{item.productName}</span>
                           {item.variation && (
-                            <span className="block text-[10px] text-slate-400 font-medium truncate mt-0.5">({item.variation})</span>
+                            <span className="block text-xs text-slate-400 font-medium truncate mt-0.5">({item.variation})</span>
                           )}
                         </div>
-                        <div className="flex-1 border-b border-dashed border-slate-200 mx-2 mb-1" />
-                        <span className="text-xs font-bold text-slate-700 shrink-0">
-                          R$ {item.price.toFixed(2)}
+                        <div className="flex-1 border-b border-dashed border-slate-200 mx-2" />
+                        <span className="text-sm font-bold text-slate-700 shrink-0">
+                          R$ {(item.price * item.quantity).toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -225,27 +325,62 @@ CEP: ${order.cep}`;
 
               {/* Financial values summary calculations */}
               <div className="space-y-2.5 bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm text-sm font-medium">
-                <div className="flex justify-between text-slate-500">
+                <div className="flex justify-between text-slate-500 items-center">
                   <span>Total dos itens ({order.items.length})</span>
                   <span>R$ {order.itemsTotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-slate-500">
+                <div className="flex justify-between text-slate-500 items-center">
                   <span>Frete</span>
                   <span>R$ {order.freight.toFixed(2)}</span>
                 </div>
-                {order.discount > 0 && (
-                  <div className="flex justify-between text-rose-600">
-                    <span>Desconto</span>
-                    <span>-R$ {order.discount.toFixed(2)}</span>
+                <div className="flex justify-between text-slate-500 items-center">
+                  <span>Desconto</span>
+                  <div className="relative w-32">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                    <Input
+                      className="h-8 text-right bg-background pl-8 pr-3 text-sm rounded-lg"
+                      value={discount !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(discount) : ""}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "");
+                        handleDiscountChange(Number(digits) / 100);
+                      }}
+                      disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
+                    />
                   </div>
-                )}
-                <div className="flex justify-between font-bold text-slate-800 border-t border-slate-100 pt-2.5">
-                  <span>Total pedido</span>
-                  <span>R$ {order.totalOrder.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between font-bold text-emerald-600 bg-emerald-50/50 p-2 rounded-lg mt-1">
+                <div className="flex justify-between text-slate-500 items-center">
+                  <span>Acréscimo</span>
+                  <div className="relative w-32">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                    <Input
+                      className="h-8 text-right bg-background pl-8 pr-3 text-sm rounded-lg"
+                      value={surcharge !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(surcharge) : ""}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "");
+                        handleSurchargeChange(Number(digits) / 100);
+                      }}
+                      disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-between font-bold text-slate-800 border-t border-slate-100 pt-2.5 items-center">
+                  <span>Total final</span>
+                  <span>R$ {((order.itemsTotal || 0) + (order.freight || 0) + (surcharge || 0) - (discount || 0)).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-emerald-600 bg-emerald-50/50 p-2 rounded-lg mt-1 items-center">
                   <span>Total recebido</span>
-                  <span>R$ {order.totalReceived.toFixed(2)}</span>
+                  <div className="relative w-32">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-emerald-600">R$</span>
+                    <Input
+                      className="h-8 text-right bg-white pl-8 pr-3 font-bold text-emerald-700 border-emerald-200 focus-visible:ring-emerald-500 rounded-lg text-sm"
+                      value={totalReceived !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalReceived) : ""}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "");
+                        handleTotalChange(Number(digits) / 100);
+                      }}
+                      disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -255,9 +390,22 @@ CEP: ${order.cep}`;
                   <span>Pagamento</span>
                   <span className="text-slate-800 font-bold">{order.paymentType}</span>
                 </div>
-                <div className="flex justify-between text-slate-500">
+                <div className="flex justify-between text-slate-500 items-center">
                   <span>Forma de pagamento</span>
-                  <span className="text-slate-800 font-bold">{paymentLabels[order.paymentMethod] || order.paymentMethod}</span>
+                  <Select 
+                    value={paymentMethod} 
+                    onValueChange={setPaymentMethod} 
+                    disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
+                  >
+                    <SelectTrigger className="w-40 h-8 text-xs font-bold rounded-lg border-slate-200 bg-slate-50">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.keys(paymentLabels).map(k => (
+                        <SelectItem key={k} value={k}>{paymentLabels[k]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 {order.pixKey && (
                   <div className="flex justify-between text-slate-500">
@@ -302,19 +450,53 @@ CEP: ${order.cep}`;
             {/* Footer Buttons aligned side-by-side */}
             <div className="flex items-center gap-3 pt-6 border-t border-slate-200/80 bg-slate-50/98 mt-6">
               {order.status !== "CANCELLED" && order.status !== "COMPLETED" ? (
+                <>
+                  <Button 
+                    variant="default"
+                    className="flex-1 h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-emerald-100"
+                    disabled={receiveMutation.isPending}
+                    onClick={handleReceiveOrder}
+                  >
+                    {receiveMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <span>Processando...</span>
+                      </>
+                    ) : (
+                      <span>Receber Pagamento</span>
+                    )}
+                  </Button>
+                  <Button 
+                    variant="destructive"
+                    className="flex-1 h-11 bg-rose-600 hover:bg-rose-700 font-bold rounded-xl transition-all shadow-md hover:shadow-rose-100"
+                    disabled={cancelMutation.isPending}
+                    onClick={handleCancelOrder}
+                  >
+                    {cancelMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <span>Cancelando...</span>
+                      </>
+                    ) : (
+                      <span>Cancelar Pedido</span>
+                    )}
+                  </Button>
+                </>
+              ) : null}
+              {order.status === "COMPLETED" ? (
                 <Button 
                   variant="destructive"
                   className="flex-1 h-11 bg-rose-600 hover:bg-rose-700 font-bold rounded-xl transition-all shadow-md hover:shadow-rose-100"
-                  disabled={cancelMutation.isPending}
-                  onClick={handleCancelOrder}
+                  disabled={revertReceiveMutation.isPending}
+                  onClick={handleRevertReceiveOrder}
                 >
-                  {cancelMutation.isPending ? (
+                  {revertReceiveMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      <span>Cancelando...</span>
+                      <span>Processando...</span>
                     </>
                   ) : (
-                    <span>Cancelar Pedido</span>
+                    <span>Cancelar Recebimento</span>
                   )}
                 </Button>
               ) : null}

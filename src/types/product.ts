@@ -38,6 +38,7 @@ export type ProductResponse = {
   title: string;
   categoryId: string;
   images: ProductImage[];
+  imageUrl?: string | null;
   variationIds: string[];
   variations: SavedProductVariation[];
   itemsCount: number;

@@ -17,7 +17,8 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Search, ShoppingBag, ArrowRight, Loader2, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, ArrowRight, Loader2, Calendar, ShoppingBag, X } from "lucide-react";
 import OrderDetailDrawer from "@/components/OrderDetailDrawer";
 import { OrderStatus } from "@/types/order";
 
@@ -39,9 +40,31 @@ const paymentLabels: Record<string, string> = {
 export default function OrdersPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("ALL");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
-  const { data: orders = [], isLoading } = useOrders(search, status);
+  const hasFilters = search !== "" || status !== "ALL" || startDate !== "" || endDate !== "";
+
+  const handleClearFilters = () => {
+    setSearch("");
+    setStatus("ALL");
+    setStartDate("");
+    setEndDate("");
+  };
+
+  const getValidDateString = (dateStr: string) => {
+    if (!dateStr) return undefined;
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? undefined : d.toISOString();
+  };
+
+  const { data: orders = [], isLoading } = useOrders(
+    search, 
+    status, 
+    getValidDateString(startDate), 
+    getValidDateString(endDate)
+  );
 
   // Group orders chronologically by date
   const groupOrdersByDate = (orderList: typeof orders) => {
@@ -83,7 +106,6 @@ export default function OrdersPage() {
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
-            <ShoppingBag className="h-7 w-7 text-violet-600" />
             <span>Pedidos</span>
           </h1>
           <p className="text-sm text-slate-500 font-medium">Gerencie suas vendas e acompanhe os status de entrega em tempo real.</p>
@@ -120,6 +142,35 @@ export default function OrdersPage() {
             </SelectContent>
           </Select>
         </div>
+
+        {/* Date Filters */}
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Input 
+            type="date" 
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="h-11 border-slate-200 focus-visible:ring-violet-600 rounded-xl font-medium text-slate-600"
+          />
+          <span className="text-slate-400 font-medium">até</span>
+          <Input 
+            type="date" 
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="h-11 border-slate-200 focus-visible:ring-violet-600 rounded-xl font-medium text-slate-600"
+          />
+        </div>
+
+        {hasFilters && (
+          <Button 
+            variant="ghost" 
+            onClick={handleClearFilters} 
+            className="h-11 px-3 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-xl transition-colors sm:ml-auto"
+            title="Limpar Filtros"
+          >
+            <X className="h-4 w-4 mr-2" />
+            Limpar
+          </Button>
+        )}
       </div>
 
       {/* Main Panel */}
@@ -157,7 +208,7 @@ export default function OrdersPage() {
                   {/* Cabeçalho do Grupo (Data) */}
                   <TableRow className="bg-slate-50/40 hover:bg-slate-50/40 border-b border-slate-200/80">
                     <TableCell colSpan={6} className="py-2.5 px-4">
-                      <div className="flex items-center gap-2 text-slate-500 font-bold text-xs uppercase tracking-wider">
+                      <div className="flex items-center gap-2 text-slate-500 font-bold text-md uppercase tracking-wider">
                         <Calendar className="h-3.5 w-3.5" />
                         <span>{date}</span>
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mx-1" />
@@ -170,22 +221,22 @@ export default function OrdersPage() {
                     <TableRow 
                       key={order.id} 
                       onClick={() => setSelectedOrderId(order.id)}
-                      className="group cursor-pointer hover:bg-violet-50/40 transition-colors"
+                      className="group cursor-pointer hover:bg-violet-50/40 transition-colors text-md"
                     >
                       <TableCell className="font-mono font-bold text-slate-400">#{order.orderNumber}</TableCell>
                       <TableCell>
-                        <div className="font-bold text-slate-700">{order.customerName}</div>
-                        <div className="text-xs text-slate-400 font-medium">
+                        <div className="font-bold  text-slate-700">{order.customerName}</div>
+                        <div className="text-md text-slate-400 font-medium">
                           {new Date(order.createdAt).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={`${statusConfig[order.status].bg} shadow-none font-bold rounded-full text-[10px] px-2.5 py-0.5 border-0`}>
+                        <Badge className={`${statusConfig[order.status].bg} shadow-none font-bold rounded-full text-[12px] px-2.5 py-0.5 border-0`}>
                           {statusConfig[order.status].label}
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        <Badge variant="outline" className="border-slate-200 text-slate-500 font-bold px-2 py-0.5 rounded-md text-[10px]">
+                        <Badge variant="outline" className="border-slate-200 text-slate-500 font-bold px-2 py-0.5 rounded-md text-[12px]">
                           {paymentLabels[order.paymentMethod] || order.paymentMethod}
                         </Badge>
                       </TableCell>

@@ -9,7 +9,7 @@ export interface OrderItem {
   price: number;
   quantity: number;
   variation: string | null;
-  imageUrl: string | null;
+  imageUrl?: string;
 }
 
 export interface Order {
@@ -20,6 +20,7 @@ export interface Order {
   itemsTotal: number;
   freight: number;
   discount: number;
+  surcharge: number;
   totalOrder: number;
   totalReceived: number;
   paymentType: string;
