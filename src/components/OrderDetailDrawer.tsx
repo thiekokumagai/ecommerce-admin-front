@@ -1,4 +1,4 @@
-import { useOrderDetails, useCancelOrder, useReceiveOrder, useRevertReceiveOrder } from "@/hooks/useOrders";
+import { useOrderDetails, useCancelOrder, useReceiveOrder, useRevertReceiveOrder, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,11 +53,15 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
   const cancelMutation = useCancelOrder();
   const receiveMutation = useReceiveOrder();
   const revertReceiveMutation = useRevertReceiveOrder();
+  const updateStatusMutation = useUpdateOrderStatus();
 
   const [paymentMethod, setPaymentMethod] = useState("");
   const [discount, setDiscount] = useState(0);
   const [surcharge, setSurcharge] = useState(0);
   const [totalReceived, setTotalReceived] = useState(0);
+  const [installments, setInstallments] = useState<number>(1);
+  const [copiedName, setCopiedName] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
 
   useEffect(() => {
     if (order) {
@@ -65,6 +69,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
       setDiscount(order.discount || 0);
       setSurcharge(order.surcharge || 0);
       setTotalReceived(order.totalReceived > 0 ? order.totalReceived : (order.totalOrder || 0));
+      setInstallments(order.installments || 1);
     }
   }, [order]);
 
@@ -108,6 +113,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
           discount,
           surcharge,
           totalReceived,
+          installments,
         }
       });
       toast({
@@ -144,10 +150,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
 
   const handleCopyAddress = () => {
     if (!order) return;
-    const addressStr = `${order.street}, ${order.number}
-${order.neighborhood} - ${order.complement ?? ""}
-${order.city} - ${order.state}
-CEP: ${order.cep}`;
+    const addressStr = `${order.street}, ${order.number}`;
     
     navigator.clipboard.writeText(addressStr);
     setCopied(true);
@@ -157,6 +160,22 @@ CEP: ${order.cep}`;
     });
     
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyName = () => {
+    if (!order) return;
+    navigator.clipboard.writeText(order.customerName);
+    setCopiedName(true);
+    toast({ title: "Nome copiado!" });
+    setTimeout(() => setCopiedName(false), 2000);
+  };
+
+  const handleCopyPhone = () => {
+    if (!order) return;
+    navigator.clipboard.writeText(order.customerPhone);
+    setCopiedPhone(true);
+    toast({ title: "Telefone copiado!" });
+    setTimeout(() => setCopiedPhone(false), 2000);
   };
 
   const handleCancelOrder = async () => {
@@ -193,8 +212,7 @@ CEP: ${order.cep}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent hideCloseButton className="w-full sm:max-w-md md:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-y-auto bg-white p-6 border border-slate-200 shadow-2xl flex flex-col justify-between rounded-2xl">
-        {/* Adiciona DialogTitle escondido ou visível para acessibilidade */}
+      <DialogContent hideCloseButton className="w-full sm:max-w-md md:max-w-xl lg:max-w-2xl h-[90vh] overflow-hidden bg-white p-0 border border-slate-200 shadow-2xl flex flex-col rounded-2xl">
         <DialogTitle className="sr-only">Detalhes do Pedido</DialogTitle>
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-full gap-3">
@@ -202,9 +220,9 @@ CEP: ${order.cep}`;
             <p className="text-sm text-slate-500 font-medium animate-pulse">Carregando detalhes do pedido...</p>
           </div>
         ) : order ? (
-          <div className="flex-1 flex flex-col justify-between h-full">
+          <div className="flex flex-col h-full">
             {/* Main scrollable body */}
-            <div className="space-y-6">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Header with back button and fast action icons */}
               <div className="flex items-center justify-between border-b border-slate-200/80 pb-4">
                 <button 
@@ -252,9 +270,21 @@ CEP: ${order.cep}`;
               <div className="bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xl font-bold text-slate-800 tracking-tight">Pedido #{order.orderNumber}</span>
-                  <Badge className={`${statusConfig[order.status].bg} ${statusConfig[order.status].text} hover:${statusConfig[order.status].bg} border-0 px-2.5 py-0.5 font-medium rounded-full`}>
-                    {statusConfig[order.status].label}
-                  </Badge>
+                  <Select 
+                    value={order.status} 
+                    onValueChange={(val) => updateStatusMutation.mutate({ id: order.id, payload: { status: val as OrderStatus } })}
+                  >
+                    <SelectTrigger className={`w-32 h-7 text-xs font-bold rounded-full border-0 focus:ring-0 ${statusConfig[order.status].bg} ${statusConfig[order.status].text}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PENDING">Pendente</SelectItem>
+                      <SelectItem value="CONFIRMED">Separado</SelectItem>
+                      <SelectItem value="DISPATCHED">Enviado</SelectItem>
+                      <SelectItem value="COMPLETED">Entregue</SelectItem>
+                      <SelectItem value="CANCELLED">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="text-xs text-slate-500 font-medium">
                   {formattedDate(order.createdAt)}
@@ -267,14 +297,24 @@ CEP: ${order.cep}`;
                       <User className="h-3.5 w-3.5" />
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-slate-700">{order.customerName}</div>
-                      <a 
-                        href={`tel:${order.customerPhone}`}
-                        className="text-xs text-slate-500 hover:text-violet-600 flex items-center gap-1 mt-0.5 font-medium"
-                      >
-                        <Phone className="h-3 w-3" />
-                        <span>{order.customerPhone}</span>
-                      </a>
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm font-bold text-slate-700">{order.customerName}</div>
+                        <button onClick={handleCopyName} className="text-slate-400 hover:text-violet-600 transition-colors" title="Copiar Nome">
+                          {copiedName ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <a 
+                          href={`tel:${order.customerPhone}`}
+                          className="text-xs text-slate-500 hover:text-violet-600 flex items-center gap-1 font-medium"
+                        >
+                          <Phone className="h-3 w-3" />
+                          <span>{order.customerPhone}</span>
+                        </a>
+                        <button onClick={handleCopyPhone} className="text-slate-400 hover:text-violet-600 transition-colors" title="Copiar Telefone">
+                          {copiedPhone ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -365,7 +405,7 @@ CEP: ${order.cep}`;
                 </div>
                 <div className="flex justify-between font-bold text-slate-800 border-t border-slate-100 pt-2.5 items-center">
                   <span>Total final</span>
-                  <span>R$ {((order.itemsTotal || 0) + (order.freight || 0) + (surcharge || 0) - (discount || 0)).toFixed(2)}</span>
+                  <span>R$ {((order.itemsTotal || 0) + (order.freight || 0)).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-emerald-600 bg-emerald-50/50 p-2 rounded-lg mt-1 items-center">
                   <span>Total recebido</span>
@@ -407,7 +447,28 @@ CEP: ${order.cep}`;
                     </SelectContent>
                   </Select>
                 </div>
-                {order.pixKey && (
+                {paymentMethod === "Cartão de Crédito" && (
+                  <div className="flex justify-between text-slate-500 items-center">
+                    <span>Parcelas</span>
+                    <Select 
+                      value={installments.toString()} 
+                      onValueChange={(val) => setInstallments(Number(val))} 
+                      disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
+                    >
+                      <SelectTrigger className="w-40 h-8 text-xs font-bold rounded-lg border-slate-200 bg-slate-50">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[...Array(12)].map((_, i) => (
+                          <SelectItem key={i + 1} value={(i + 1).toString()}>
+                            {i + 1}x
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {order.pixKey && !(order.paymentType.toLowerCase().includes("na entrega") && paymentMethod !== "PIX") && (
                   <div className="flex justify-between text-slate-500">
                     <span>Chave PIX</span>
                     <span className="text-slate-800 font-mono text-xs">{order.pixKey}</span>
@@ -448,7 +509,7 @@ CEP: ${order.cep}`;
             </div>
 
             {/* Footer Buttons aligned side-by-side */}
-            <div className="flex items-center gap-3 pt-6 border-t border-slate-200/80 bg-slate-50/98 mt-6">
+            <div className="flex items-center gap-3 p-6 border-t border-slate-200/80 bg-slate-50 shrink-0">
               {order.status !== "CANCELLED" && order.status !== "COMPLETED" ? (
                 <>
                   <Button 

@@ -1,5 +1,5 @@
 import { apiFetch } from "./api";
-import { Order } from "@/types/order";
+import { Order, OrderStatus, PaymentStatus } from "@/types/order";
 
 export async function getOrders(search?: string, status?: string, startDate?: string, endDate?: string): Promise<Order[]> {
   const params = new URLSearchParams();
@@ -30,6 +30,7 @@ export async function receiveOrder(id: string, payload: {
   discount?: number;
   surcharge?: number;
   totalReceived: number;
+  installments?: number;
 }): Promise<Order> {
   const response = await apiFetch(`/orders/${id}/receive`, {
     method: "PATCH",
@@ -42,6 +43,18 @@ export async function receiveOrder(id: string, payload: {
 export async function revertReceiveOrder(id: string): Promise<Order> {
   const response = await apiFetch(`/orders/${id}/revert-receive`, {
     method: "POST",
+  });
+  return response.json();
+}
+
+export async function updateOrderStatus(id: string, payload: {
+  status?: OrderStatus;
+  paymentStatus?: PaymentStatus;
+}): Promise<Order> {
+  const response = await apiFetch(`/orders/${id}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
   return response.json();
 }

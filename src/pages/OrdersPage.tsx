@@ -1,5 +1,5 @@
 import { useState, Fragment } from "react";
-import { useOrders } from "@/hooks/useOrders";
+import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { Input } from "@/components/ui/input";
 import { 
   Select, 
@@ -20,14 +20,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Search, ArrowRight, Loader2, Calendar, ShoppingBag, X } from "lucide-react";
 import OrderDetailDrawer from "@/components/OrderDetailDrawer";
-import { OrderStatus } from "@/types/order";
+import { OrderStatus, PaymentStatus } from "@/types/order";
 
 const statusConfig: Record<OrderStatus, { label: string; bg: string; text: string }> = {
   PENDING: { label: "Pendente", bg: "bg-amber-100/80 text-amber-700", text: "text-amber-700" },
-  CONFIRMED: { label: "Confirmado", bg: "bg-blue-100/80 text-blue-700", text: "text-blue-700" },
-  DISPATCHED: { label: "Despachado", bg: "bg-purple-100/80 text-purple-700", text: "text-purple-700" },
+  CONFIRMED: { label: "Separado", bg: "bg-blue-100/80 text-blue-700", text: "text-blue-700" },
+  DISPATCHED: { label: "Enviado", bg: "bg-purple-100/80 text-purple-700", text: "text-purple-700" },
   COMPLETED: { label: "Entregue", bg: "bg-emerald-100/80 text-emerald-700", text: "text-emerald-700" },
   CANCELLED: { label: "Cancelado", bg: "bg-rose-100/80 text-rose-700", text: "text-rose-700" },
+};
+
+const paymentStatusConfig: Record<PaymentStatus, { label: string; bg: string; text: string }> = {
+  PENDING: { label: "Pendente", bg: "bg-amber-100/80 text-amber-700", text: "text-amber-700" },
+  PAID: { label: "Pago", bg: "bg-emerald-100/80 text-emerald-700", text: "text-emerald-700" },
 };
 
 const paymentLabels: Record<string, string> = {
@@ -40,15 +45,17 @@ const paymentLabels: Record<string, string> = {
 export default function OrdersPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("ALL");
+  const [paymentStatus, setPaymentStatus] = useState("ALL");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
-  const hasFilters = search !== "" || status !== "ALL" || startDate !== "" || endDate !== "";
+  const hasFilters = search !== "" || status !== "ALL" || paymentStatus !== "ALL" || startDate !== "" || endDate !== "";
 
   const handleClearFilters = () => {
     setSearch("");
     setStatus("ALL");
+    setPaymentStatus("ALL");
     setStartDate("");
     setEndDate("");
   };
@@ -65,6 +72,16 @@ export default function OrdersPage() {
     getValidDateString(startDate), 
     getValidDateString(endDate)
   );
+
+  const updateStatusMutation = useUpdateOrderStatus();
+
+  const handleUpdateStatus = (id: string, newStatus: OrderStatus) => {
+    updateStatusMutation.mutate({ id, payload: { status: newStatus } });
+  };
+
+  const handleUpdatePaymentStatus = (id: string, newPaymentStatus: PaymentStatus) => {
+    updateStatusMutation.mutate({ id, payload: { paymentStatus: newPaymentStatus } });
+  };
 
   // Group orders chronologically by date
   const groupOrdersByDate = (orderList: typeof orders) => {
@@ -98,7 +115,15 @@ export default function OrdersPage() {
     return groups;
   };
 
-  const groupedOrders = groupOrdersByDate(orders);
+  const filteredOrders = orders.filter((order) => {
+    if (paymentStatus !== "ALL") {
+      const orderPaymentStatus = order.paymentStatus || "PENDING";
+      if (orderPaymentStatus !== paymentStatus) return false;
+    }
+    return true;
+  });
+
+  const groupedOrders = groupOrdersByDate(filteredOrders);
 
   return (
     <div className="space-y-6">
@@ -130,15 +155,29 @@ export default function OrdersPage() {
         <div className="w-full sm:w-48">
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className="h-11 border-slate-200 focus:ring-violet-600 rounded-xl font-semibold text-slate-700">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder="Status de Entrega" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               <SelectItem value="ALL" className="font-semibold rounded-md">Todos</SelectItem>
               <SelectItem value="PENDING" className="font-semibold rounded-md">Pendente</SelectItem>
-              <SelectItem value="CONFIRMED" className="font-semibold rounded-md">Confirmado</SelectItem>
-              <SelectItem value="DISPATCHED" className="font-semibold rounded-md">Despachado</SelectItem>
+              <SelectItem value="CONFIRMED" className="font-semibold rounded-md">Separado</SelectItem>
+              <SelectItem value="DISPATCHED" className="font-semibold rounded-md">Enviado</SelectItem>
               <SelectItem value="COMPLETED" className="font-semibold rounded-md">Entregue</SelectItem>
               <SelectItem value="CANCELLED" className="font-semibold rounded-md">Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Payment Status Dropdown */}
+        <div className="w-full sm:w-48">
+          <Select value={paymentStatus} onValueChange={setPaymentStatus}>
+            <SelectTrigger className="h-11 border-slate-200 focus:ring-violet-600 rounded-xl font-semibold text-slate-700">
+              <SelectValue placeholder="Status de Pagamento" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="ALL" className="font-semibold rounded-md">Todos</SelectItem>
+              <SelectItem value="PENDING" className="font-semibold rounded-md">Pendente</SelectItem>
+              <SelectItem value="PAID" className="font-semibold rounded-md">Pago</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -196,8 +235,8 @@ export default function OrdersPage() {
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[100px] font-bold text-slate-600">Pedido</TableHead>
                 <TableHead className="font-bold text-slate-600">Cliente</TableHead>
-                <TableHead className="font-bold text-slate-600">Status</TableHead>
-                <TableHead className="font-bold text-slate-600 hidden sm:table-cell">Pagamento</TableHead>
+                <TableHead className="font-bold text-slate-600">Pagamento</TableHead>
+                <TableHead className="font-bold text-slate-600">Entrega</TableHead>
                 <TableHead className="text-right font-bold text-slate-600">Total</TableHead>
                 <TableHead className="w-[50px]"></TableHead>
               </TableRow>
@@ -231,14 +270,48 @@ export default function OrdersPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={`${statusConfig[order.status].bg} shadow-none font-bold rounded-full text-[12px] px-2.5 py-0.5 border-0`}>
-                          {statusConfig[order.status].label}
-                        </Badge>
+                        <div className="flex flex-col gap-1 items-start" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center gap-2">
+                            <Badge className={`${paymentStatusConfig[order.paymentStatus || 'PENDING'].bg} shadow-none font-bold rounded-full text-[12px] px-2.5 py-0.5 border-0`}>
+                              {paymentStatusConfig[order.paymentStatus || 'PENDING'].label}
+                            </Badge>
+                            <Select 
+                              value={order.paymentStatus || 'PENDING'} 
+                              onValueChange={(val) => handleUpdatePaymentStatus(order.id, val as PaymentStatus)}
+                            >
+                              <SelectTrigger className="h-6 w-6 p-0 border-0 bg-transparent focus:ring-0 shadow-none">
+                                <ArrowRight className="h-3 w-3 rotate-90 text-slate-400" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="PENDING">Pendente</SelectItem>
+                                <SelectItem value="PAID">Pago</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <span className="text-[11px] text-slate-400 font-medium">{paymentLabels[order.paymentMethod] || order.paymentMethod}</span>
+                        </div>
                       </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        <Badge variant="outline" className="border-slate-200 text-slate-500 font-bold px-2 py-0.5 rounded-md text-[12px]">
-                          {paymentLabels[order.paymentMethod] || order.paymentMethod}
-                        </Badge>
+                      <TableCell>
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <Badge className={`${statusConfig[order.status].bg} shadow-none font-bold rounded-full text-[12px] px-2.5 py-0.5 border-0`}>
+                            {statusConfig[order.status].label}
+                          </Badge>
+                          <Select 
+                            value={order.status} 
+                            onValueChange={(val) => handleUpdateStatus(order.id, val as OrderStatus)}
+                          >
+                            <SelectTrigger className="h-6 w-6 p-0 border-0 bg-transparent focus:ring-0 shadow-none">
+                              <ArrowRight className="h-3 w-3 rotate-90 text-slate-400" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="PENDING">Pendente</SelectItem>
+                              <SelectItem value="CONFIRMED">Separado</SelectItem>
+                              <SelectItem value="DISPATCHED">Enviado</SelectItem>
+                              <SelectItem value="COMPLETED">Entregue</SelectItem>
+                              <SelectItem value="CANCELLED">Cancelado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </TableCell>
                       <TableCell className="text-right font-extrabold text-slate-800">
                         R$ {order.totalOrder.toFixed(2)}

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getOrders, getOrderById, cancelOrder, receiveOrder, revertReceiveOrder } from "@/services/order.service";
+import { getOrders, getOrderById, cancelOrder, receiveOrder, revertReceiveOrder, updateOrderStatus } from "@/services/order.service";
+import { OrderStatus, PaymentStatus } from "@/types/order";
 
 export function useOrders(search?: string, status?: string, startDate?: string, endDate?: string) {
   return useQuery({
@@ -47,6 +48,19 @@ export function useRevertReceiveOrder() {
   return useMutation({
     mutationFn: (id: string) => revertReceiveOrder(id),
     onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["orders", id] });
+    },
+  });
+}
+
+export function useUpdateOrderStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: { status?: OrderStatus; paymentStatus?: PaymentStatus } }) => 
+      updateOrderStatus(id, payload),
+    onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["orders", id] });
     },

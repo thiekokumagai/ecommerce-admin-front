@@ -1,4 +1,5 @@
 export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'DISPATCHED' | 'COMPLETED' | 'CANCELLED';
+export type PaymentStatus = 'PENDING' | 'PAID';
 
 export interface OrderItem {
   id: string;
@@ -34,6 +35,8 @@ export interface Order {
   cep: string;
   complement: string | null;
   status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  installments?: number;
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];
