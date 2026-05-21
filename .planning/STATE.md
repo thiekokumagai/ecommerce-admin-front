@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Simplificação do Cadastro de Produtos
 status: milestone_complete
-last_updated: "2026-05-19T22:56:00.000Z"
+last_updated: "2026-05-21T23:38:00.000Z"
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 11
-  completed_plans: 11
+  total_phases: 11
+  completed_phases: 11
+  total_plans: 14
+  completed_plans: 14
   percent: 100
 ---
 
@@ -16,28 +16,23 @@ progress:
 
 ## Status
 
-Milestone 1 complete — all 8 phases successfully executed and validated!
+Milestone 1 complete — all 11 phases successfully executed and validated!
 
 ## Current Position
 
-- Phase: 08 — Integração Dinâmica de Pedidos e Estoque (Dynamic Orders & Stock Integration)
-- Status: ✅ Complete (11/11 plans)
+- Phase: 11 — Paginação e Refinamentos de Fluxo Financeiro (Pedidos)
+- Status: ✅ Complete (14/14 plans)
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
 - Phase 3 added: Tela de listagem de produtos com menu lateral em seções e ações em massa
-- Phase 3 planned: 03-01 menu, 03-02 config unificada, 03-03 listagem tabela
-- Phase 3 executed:
-  - 03-01: `src/data/admin-nav.ts` + `AdminSidebar` refatorado com navSections agrupadas
-  - 03-02: `src/components/settings/` (3 forms) + `SettingsPage` unificada + redirects `/entregas`→`/configuracoes`
-  - 03-03: `ProductListTable` + `useProducts` com params + `ProductsPage` com bulk actions
 - Phase 4 added: Configurações de Identidade, Endereço, Pagamentos e Descontos
 - Phase 6 added: Configuração de Juros Customizados de Parcelas (Backend & Frontend)
-- Phase 6 executed:
-  - 06-01: Extensão do Schema, DTO e Repositório para Suportar Faixas de Juros (Backend)
-  - 06-02: Formulário com Inputs Editáveis de Faixas de Parcelas e Juros (Frontend) + Instagram bug fix
+- Phase 9 added: Melhorias no Checkout e Pedidos
+- Phase 10 added: Ajustes UI na Listagem e Modal de Pedidos
+- Phase 11 added: Paginação e Refinamentos de Fluxo Financeiro
 
 ### Key Decisions
 
@@ -45,10 +40,13 @@ Milestone 1 complete — all 8 phases successfully executed and validated!
 - Settings: Entregas/Pagamentos/Gerais em página única `/configuracoes`, rotas antigas redirect
 - Listagem: Tabela com PAGE_SIZE=30, sort client-side, bulk delete/disable/enable
 - Status de produto: inferido de `totalStock > 0` no `normalizeProduct`
+- Paginação Pedidos: Paginação real server-side com exibição de metadados ricos e rodapé numérico interativo na UI.
+- Auditoria Financeira: Exibição informativa sem inputs quando pago, fluxo condicional restrito "Cancelar Recebimento" -> "Cancelar Pedido".
 
 ## Session Continuity
 
-Last session: 2026-05-19
-Stopped at: Session resumed, verified complete implementation of all 8 phases across frontend and backend.
+Last session: 2026-05-21
+Stopped at: Session resumed, verified complete implementation of all 11 phases across frontend and backend.
 Resume file: Ready for the next milestone cycle.
+
 

@@ -85,3 +85,34 @@ Plans:
 
 - [x] 08-01: Associação de Pedidos a Produtos Reais, Validação e Atualização Dinâmica de Estoque (Backend & Frontend)
 
+### [CONCLUÍDO] Phase 9: Melhorias no Checkout e Pedidos
+
+**Goal:** Dividir o ciclo de vida do pedido entre entrega e pagamento no backend e disponibilizar os novos gatilhos operacionais no painel.
+**Depends on:** Phase 8
+**Plans:** 1 plano
+
+Plans:
+
+- [x] 09-01: Melhorias no Checkout e Pedidos (Backend)
+
+### [CONCLUÍDO] Phase 10: Ajustes UI na Listagem e Modal de Pedidos
+
+**Goal:** Integrar o dropdown de alteração logística na gaveta de detalhamento, fixar o rodapé com as ações e recalibrar a matemática de exibição dos totais.
+**Depends on:** Phase 9
+**Plans:** 1 plano
+
+Plans:
+
+- [x] 10-01: Ajustes UI na Listagem e Modal de Pedidos (Frontend)
+
+### [CONCLUÍDO] Phase 11: Paginação e Refinamentos de Fluxo Financeiro
+
+**Goal:** Adicionar paginação nativa na listagem de pedidos, ocultar inputs financeiros sob recebimento e estruturar o fluxo de cancelamento seguro de vendas.
+**Depends on:** Phase 10
+**Plans:** 1 plano
+
+Plans:
+
+- [x] 11-01: Paginação e Refinamentos de Fluxo Financeiro (Backend & Frontend)
+
+

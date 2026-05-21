@@ -63,7 +63,10 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
   const [copiedName, setCopiedName] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
 
+  const isPaid = order ? (order.paymentStatus === "PAID" || order.status === "COMPLETED" || order.status === "CANCELLED") : false;
+
   useEffect(() => {
+
     if (order) {
       setPaymentMethod(order.paymentMethod || "");
       setDiscount(order.discount || 0);
@@ -375,33 +378,41 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                 </div>
                 <div className="flex justify-between text-slate-500 items-center">
                   <span>Desconto</span>
-                  <div className="relative w-32">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
-                    <Input
-                      className="h-8 text-right bg-background pl-8 pr-3 text-sm rounded-lg"
-                      value={discount !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(discount) : ""}
-                      onChange={(e) => {
-                        const digits = e.target.value.replace(/\D/g, "");
-                        handleDiscountChange(Number(digits) / 100);
-                      }}
-                      disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
-                    />
-                  </div>
+                  {isPaid ? (
+                    <span className="font-semibold text-slate-700 pr-1">R$ {discount.toFixed(2)}</span>
+                  ) : (
+                    <div className="relative w-32">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                      <Input
+                        className="h-8 text-right bg-background pl-8 pr-3 text-sm rounded-lg font-medium"
+                        value={discount !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(discount) : ""}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, "");
+                          handleDiscountChange(Number(digits) / 100);
+                        }}
+                        disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="flex justify-between text-slate-500 items-center">
                   <span>Acréscimo</span>
-                  <div className="relative w-32">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
-                    <Input
-                      className="h-8 text-right bg-background pl-8 pr-3 text-sm rounded-lg"
-                      value={surcharge !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(surcharge) : ""}
-                      onChange={(e) => {
-                        const digits = e.target.value.replace(/\D/g, "");
-                        handleSurchargeChange(Number(digits) / 100);
-                      }}
-                      disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
-                    />
-                  </div>
+                  {isPaid ? (
+                    <span className="font-semibold text-slate-700 pr-1">R$ {surcharge.toFixed(2)}</span>
+                  ) : (
+                    <div className="relative w-32">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                      <Input
+                        className="h-8 text-right bg-background pl-8 pr-3 text-sm rounded-lg"
+                        value={surcharge !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(surcharge) : ""}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, "");
+                          handleSurchargeChange(Number(digits) / 100);
+                        }}
+                        disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="flex justify-between font-bold text-slate-800 border-t border-slate-100 pt-2.5 items-center">
                   <span>Total final</span>
@@ -409,20 +420,25 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                 </div>
                 <div className="flex justify-between font-bold text-emerald-600 bg-emerald-50/50 p-2 rounded-lg mt-1 items-center">
                   <span>Total recebido</span>
-                  <div className="relative w-32">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-emerald-600">R$</span>
-                    <Input
-                      className="h-8 text-right bg-white pl-8 pr-3 font-bold text-emerald-700 border-emerald-200 focus-visible:ring-emerald-500 rounded-lg text-sm"
-                      value={totalReceived !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalReceived) : ""}
-                      onChange={(e) => {
-                        const digits = e.target.value.replace(/\D/g, "");
-                        handleTotalChange(Number(digits) / 100);
-                      }}
-                      disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
-                    />
-                  </div>
+                  {isPaid ? (
+                    <span className="font-bold text-emerald-700 pr-1">R$ {totalReceived.toFixed(2)}</span>
+                  ) : (
+                    <div className="relative w-32">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-emerald-600">R$</span>
+                      <Input
+                        className="h-8 text-right bg-white pl-8 pr-3 font-bold text-emerald-700 border-emerald-200 focus-visible:ring-emerald-500 rounded-lg text-sm"
+                        value={totalReceived !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(totalReceived) : ""}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, "");
+                          handleTotalChange(Number(digits) / 100);
+                        }}
+                        disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
+
 
               {/* Payment Section */}
               <div className="space-y-2.5 bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm text-sm font-medium">
@@ -510,65 +526,67 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
 
             {/* Footer Buttons aligned side-by-side */}
             <div className="flex items-center gap-3 p-6 border-t border-slate-200/80 bg-slate-50 shrink-0">
-              {order.status !== "CANCELLED" && order.status !== "COMPLETED" ? (
-                <>
+              {order.status !== "CANCELLED" ? (
+                order.paymentStatus === "PAID" ? (
                   <Button 
-                    variant="default"
-                    className="flex-1 h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-emerald-100"
-                    disabled={receiveMutation.isPending}
-                    onClick={handleReceiveOrder}
+                    variant="destructive"
+                    className="flex-1 h-11 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-rose-100"
+                    disabled={revertReceiveMutation.isPending}
+                    onClick={handleRevertReceiveOrder}
                   >
-                    {receiveMutation.isPending ? (
+                    {revertReceiveMutation.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         <span>Processando...</span>
                       </>
                     ) : (
-                      <span>Receber Pagamento</span>
+                      <span>Cancelar Recebimento</span>
                     )}
                   </Button>
-                  <Button 
-                    variant="destructive"
-                    className="flex-1 h-11 bg-rose-600 hover:bg-rose-700 font-bold rounded-xl transition-all shadow-md hover:shadow-rose-100"
-                    disabled={cancelMutation.isPending}
-                    onClick={handleCancelOrder}
-                  >
-                    {cancelMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span>Cancelando...</span>
-                      </>
-                    ) : (
-                      <span>Cancelar Pedido</span>
-                    )}
-                  </Button>
-                </>
-              ) : null}
-              {order.status === "COMPLETED" ? (
-                <Button 
-                  variant="destructive"
-                  className="flex-1 h-11 bg-rose-600 hover:bg-rose-700 font-bold rounded-xl transition-all shadow-md hover:shadow-rose-100"
-                  disabled={revertReceiveMutation.isPending}
-                  onClick={handleRevertReceiveOrder}
-                >
-                  {revertReceiveMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      <span>Processando...</span>
-                    </>
-                  ) : (
-                    <span>Cancelar Recebimento</span>
-                  )}
-                </Button>
+                ) : (
+                  <>
+                    <Button 
+                      variant="default"
+                      className="flex-1 h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-emerald-100"
+                      disabled={receiveMutation.isPending}
+                      onClick={handleReceiveOrder}
+                    >
+                      {receiveMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <span>Processando...</span>
+                        </>
+                      ) : (
+                        <span>Receber Pagamento</span>
+                      )}
+                    </Button>
+                    <Button 
+                      variant="destructive"
+                      className="flex-1 h-11 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-all shadow-md hover:shadow-rose-100"
+                      disabled={cancelMutation.isPending}
+                      onClick={handleCancelOrder}
+                    >
+                      {cancelMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <span>Cancelando...</span>
+                        </>
+                      ) : (
+                        <span>Cancelar Pedido</span>
+                      )}
+                    </Button>
+                  </>
+                )
               ) : null}
               <Button 
                 variant="outline" 
                 onClick={onClose}
-                className="flex-1 h-11 border-slate-300 text-slate-600 font-bold rounded-xl hover:bg-slate-100/80 transition-all"
+                className="flex-1 h-11 border border-slate-300 text-slate-600 font-bold rounded-xl hover:bg-slate-100 hover:text-slate-800 transition-all"
               >
                 Voltar
               </Button>
             </div>
+
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-slate-400">

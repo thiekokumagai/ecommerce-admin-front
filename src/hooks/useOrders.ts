@@ -2,12 +2,22 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getOrders, getOrderById, cancelOrder, receiveOrder, revertReceiveOrder, updateOrderStatus } from "@/services/order.service";
 import { OrderStatus, PaymentStatus } from "@/types/order";
 
-export function useOrders(search?: string, status?: string, startDate?: string, endDate?: string) {
+export function useOrders(
+  search?: string, 
+  status?: string, 
+  startDate?: string, 
+  endDate?: string,
+  page?: number,
+  limit?: number,
+  paymentStatus?: string
+) {
   return useQuery({
-    queryKey: ["orders", { search, status, startDate, endDate }],
-    queryFn: () => getOrders(search, status, startDate, endDate),
+    queryKey: ["orders", { search, status, startDate, endDate, page, limit, paymentStatus }],
+    queryFn: () => getOrders(search, status, startDate, endDate, page, limit, paymentStatus),
   });
 }
+
+
 
 export function useOrderDetails(id: string) {
   return useQuery({

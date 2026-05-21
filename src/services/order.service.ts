@@ -1,17 +1,40 @@
 import { apiFetch } from "./api";
 import { Order, OrderStatus, PaymentStatus } from "@/types/order";
 
-export async function getOrders(search?: string, status?: string, startDate?: string, endDate?: string): Promise<Order[]> {
+export interface PaginatedOrdersResponse {
+  data: Order[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export async function getOrders(
+  search?: string, 
+  status?: string, 
+  startDate?: string, 
+  endDate?: string,
+  page?: number,
+  limit?: number,
+  paymentStatus?: string
+): Promise<PaginatedOrdersResponse> {
   const params = new URLSearchParams();
   if (search) params.append("search", search);
   if (status && status !== "ALL") params.append("status", status);
   if (startDate) params.append("startDate", startDate);
   if (endDate) params.append("endDate", endDate);
+  if (page) params.append("page", page.toString());
+  if (limit) params.append("limit", limit.toString());
+  if (paymentStatus && paymentStatus !== "ALL") params.append("paymentStatus", paymentStatus);
+
 
   const query = params.toString() ? `?${params.toString()}` : "";
   const response = await apiFetch(`/orders${query}`);
   return response.json();
 }
+
 
 export async function getOrderById(id: string): Promise<Order> {
   const response = await apiFetch(`/orders/${id}`);
