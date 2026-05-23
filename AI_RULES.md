@@ -35,3 +35,9 @@
 - Keep components small and focused; extract reusable pieces instead of creating very large page files.
 - Prefer existing project patterns and imports (such as `@/` aliases) when adding new code.
 - Reuse existing providers already configured in the app, including query, tooltip, and toast providers.
+
+## Regras de Idioma e Planejamento (.planning)
+
+1. **Idioma Obrigatório**: Todos os documentos de planejamento na pasta `.planning/` (incluindo `ROADMAP.md`, `STATE.md`, `implementation_plan.md`, `task.md`, `walkthrough.md`, planos de fase, históricos e arquivos de contexto) devem ser escritos exclusivamente em **Português Brasileiro (pt-BR)**.
+2. **Criação e Atualizações**: Qualquer novo arquivo de planejamento ou alteração em arquivos existentes criada por assistentes de IA deve seguir essa diretriz de idioma estritamente.
+3. **Comentários de Código**: Prefira escrever novos comentários de código explicativos e mensagens de commit em Português Brasileiro (pt-BR), mantendo coerência com a documentação do projeto.

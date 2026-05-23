@@ -1,4 +1,5 @@
 import { useOrderDetails, useCancelOrder, useReceiveOrder, useRevertReceiveOrder, useUpdateOrderStatus } from "@/hooks/useOrders";
+import { useSettings } from "@/hooks/useSettings";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
   const [copied, setCopied] = useState(false);
   
   const { data: order, isLoading } = useOrderDetails(orderId ?? "");
+  const { data: settings } = useSettings();
   const cancelMutation = useCancelOrder();
   const receiveMutation = useReceiveOrder();
   const revertReceiveMutation = useRevertReceiveOrder();
@@ -106,6 +108,66 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
     setTotalReceived(baseTotal + val - discount);
   };
 
+  // Regras de parcelamento / cartão vigentes
+  const creditRules = settings?.paymentRules?.filter(r => r.paymentMethod === "credit" && r.type === "charge") || [];
+  const maxInstallments = creditRules.length > 0 
+    ? Math.max(...creditRules.map(r => r.parcelaMax || 12)) 
+    : 12;
+
+  const activeRule = creditRules.find(r => installments >= (r.parcelaMin || 0) && installments <= (r.parcelaMax || 99));
+  const interestPercentage = activeRule ? activeRule.value : 0;
+  const estimatedCardFee = activeRule ? (totalReceived * (activeRule.value / 100)) : 0;
+
+  const debitRule = settings?.paymentRules?.find(r => r.paymentMethod === "debit" && r.type === "charge");
+  const debitFeePercentage = debitRule ? debitRule.value : 0;
+  const estimatedDebitFee = debitRule ? (totalReceived * (debitRule.value / 100)) : 0;
+
+  const calculatedFee = paymentMethod === "Cartão de Crédito"
+    ? estimatedCardFee
+    : (paymentMethod === "Cartão de Débito" ? estimatedDebitFee : 0);
+
+  const handlePaymentMethodChange = (method: string) => {
+    setPaymentMethod(method);
+    if (!order || isPaid) return;
+
+    const baseTotal = order.itemsTotal + order.freight;
+    let newDiscount = 0;
+    let newSurcharge = 0;
+
+    if (method === "PIX") {
+      const pixRule = settings?.paymentRules?.find(r => r.paymentMethod === "pix" && r.type === "discount");
+      if (pixRule && typeof pixRule.value === "number") {
+        newDiscount = Math.round((baseTotal * (pixRule.value / 100)) * 100) / 100;
+      }
+    } else if (method === "Cartão de Crédito") {
+      const activeRule = creditRules.find(r => installments >= (r.parcelaMin || 0) && installments <= (r.parcelaMax || 99));
+      if (activeRule && typeof activeRule.value === "number") {
+        newSurcharge = Math.round((baseTotal * (activeRule.value / 100)) * 100) / 100;
+      }
+    }
+
+    setDiscount(newDiscount);
+    setSurcharge(newSurcharge);
+    setTotalReceived(Math.round((baseTotal + newSurcharge - newDiscount) * 100) / 100);
+  };
+
+  const handleInstallmentsChange = (inst: number) => {
+    setInstallments(inst);
+    if (!order || isPaid) return;
+
+    const baseTotal = order.itemsTotal + order.freight;
+    let newSurcharge = 0;
+
+    const activeRule = creditRules.find(r => inst >= (r.parcelaMin || 0) && inst <= (r.parcelaMax || 99));
+    if (activeRule && typeof activeRule.value === "number") {
+      newSurcharge = Math.round((baseTotal * (activeRule.value / 100)) * 100) / 100;
+    }
+
+    setSurcharge(newSurcharge);
+    setDiscount(0);
+    setTotalReceived(Math.round((baseTotal + newSurcharge) * 100) / 100);
+  };
+
   const handleReceiveOrder = async () => {
     if (!orderId) return;
     try {
@@ -116,7 +178,8 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
           discount,
           surcharge,
           totalReceived,
-          installments,
+          installments: paymentMethod === "Cartão de Crédito" ? installments : 1,
+          cardFee: calculatedFee,
         }
       });
       toast({
@@ -376,6 +439,18 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                   <span>Frete</span>
                   <span>R$ {order.freight.toFixed(2)}</span>
                 </div>
+                {paymentMethod === "Cartão de Crédito" && surcharge > 0 && (
+                  <div className="flex justify-between text-violet-600 font-bold items-center bg-violet-50/30 px-1 py-0.5 rounded">
+                    <span>Taxas ({installments}x)</span>
+                    <span>R$ {surcharge.toFixed(2)}</span>
+                  </div>
+                )}
+                {paymentMethod === "PIX" && discount > 0 && (
+                  <div className="flex justify-between text-emerald-600 font-bold items-center bg-emerald-50/30 px-1 py-0.5 rounded">
+                    <span>Desconto PIX</span>
+                    <span>- R$ {discount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-slate-500 items-center">
                   <span>Desconto</span>
                   {isPaid ? (
@@ -416,7 +491,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                 </div>
                 <div className="flex justify-between font-bold text-slate-800 border-t border-slate-100 pt-2.5 items-center">
                   <span>Total final</span>
-                  <span>R$ {((order.itemsTotal || 0) + (order.freight || 0)).toFixed(2)}</span>
+                  <span>R$ {((order.itemsTotal || 0) + (order.freight || 0) + surcharge - discount).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-emerald-600 bg-emerald-50/50 p-2 rounded-lg mt-1 items-center">
                   <span>Total recebido</span>
@@ -450,7 +525,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                   <span>Forma de pagamento</span>
                   <Select 
                     value={paymentMethod} 
-                    onValueChange={setPaymentMethod} 
+                    onValueChange={handlePaymentMethodChange} 
                     disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
                   >
                     <SelectTrigger className="w-40 h-8 text-xs font-bold rounded-lg border-slate-200 bg-slate-50">
@@ -464,28 +539,58 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                   </Select>
                 </div>
                 {paymentMethod === "Cartão de Crédito" && (
-                  <div className="flex justify-between text-slate-500 items-center">
-                    <span>Parcelas</span>
-                    <Select 
-                      value={installments.toString()} 
-                      onValueChange={(val) => setInstallments(Number(val))} 
-                      disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
-                    >
-                      <SelectTrigger className="w-40 h-8 text-xs font-bold rounded-lg border-slate-200 bg-slate-50">
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[...Array(12)].map((_, i) => (
-                          <SelectItem key={i + 1} value={(i + 1).toString()}>
-                            {i + 1}x
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="flex flex-col gap-1.5 border-t border-slate-100 pt-2">
+                    <div className="flex justify-between text-slate-500 items-center">
+                      <span>Parcelas</span>
+                      <Select 
+                        value={installments.toString()} 
+                        onValueChange={(val) => handleInstallmentsChange(Number(val))} 
+                        disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
+                      >
+                        <SelectTrigger className="w-40 h-8 text-xs font-bold rounded-lg border-slate-200 bg-slate-50">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[...Array(maxInstallments)].map((_, i) => (
+                            <SelectItem key={i + 1} value={(i + 1).toString()}>
+                              {i + 1}x
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {!isPaid && activeRule && (
+                      <div className="text-right text-[11px] text-violet-600 font-bold bg-violet-50/70 px-2.5 py-1 rounded-md mt-0.5 border border-violet-100/50">
+                        Taxa estimada (Juros): R$ {estimatedCardFee.toFixed(2)} ({interestPercentage.toFixed(2)}%)
+                      </div>
+                    )}
+                  </div>
+                )}
+                {paymentMethod === "Cartão de Débito" && !isPaid && debitRule && (
+                  <div className="text-right text-[11px] text-violet-600 font-bold bg-violet-50/70 px-2.5 py-1 rounded-md mt-0.5 border border-violet-100/50">
+                    Taxa estimada (Débito): R$ {estimatedDebitFee.toFixed(2)} ({debitFeePercentage.toFixed(2)}%)
+                  </div>
+                )}
+                {isPaid && order.installments && order.paymentMethod === "Cartão de Crédito" && (
+                  <div className="flex justify-between text-slate-500 border-t border-slate-100 pt-2">
+                    <span>Parcelas pagas</span>
+                    <span className="text-slate-800 font-bold">{order.installments}x</span>
+                  </div>
+                )}
+                {isPaid && order.cardFee !== undefined && order.cardFee > 0 && (
+                  <div className="flex flex-col gap-1 border-t border-slate-100 pt-2">
+                    <div className="flex justify-between text-slate-500">
+                      <span>Taxa de Cartão Retida</span>
+                      <span className="text-rose-600 font-bold">R$ {order.cardFee.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-500 font-semibold text-xs border-t border-dashed border-slate-100 pt-1">
+                      <span>Receita Líquida</span>
+                      <span className="text-emerald-600 font-bold">R$ {(order.totalReceived - order.cardFee).toFixed(2)}</span>
+                    </div>
                   </div>
                 )}
                 {order.pixKey && !(order.paymentType.toLowerCase().includes("na entrega") && paymentMethod !== "PIX") && (
-                  <div className="flex justify-between text-slate-500">
+                  <div className="flex justify-between text-slate-500 border-t border-slate-100 pt-2">
                     <span>Chave PIX</span>
                     <span className="text-slate-800 font-mono text-xs">{order.pixKey}</span>
                   </div>

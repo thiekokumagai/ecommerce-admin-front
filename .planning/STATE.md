@@ -3,50 +3,50 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Simplificação do Cadastro de Produtos
 status: milestone_complete
-stopped_at: Phase 12 context gathered
+stopped_at: Contexto da Fase 12 coletado
 last_updated: "2026-05-23T02:08:36.292Z"
 progress:
-  total_phases: 2
+  total_phases: 13
   completed_phases: 0
   total_plans: 1
   completed_plans: 0
   percent: 0
 ---
 
-# STATE
+# Estado do Projeto
 
-## Status
+## Status do Marco (Milestone Status)
 
-Milestone 1 complete — all 11 phases successfully executed and validated!
+Marco 1 concluído — todas as 11 fases executadas e validadas com sucesso!
 
-## Current Position
+## Posição Atual
 
-- Phase: 11 — Paginação e Refinamentos de Fluxo Financeiro (Pedidos)
-- Status: ✅ Complete (14/14 plans)
+- **Fase**: 13 — Parcelamento e Taxas de Cartão de Crédito no Caixa e Pedidos
+- **Status**: ✅ Concluído (Fase 13 finalizada com sucesso absoluto)
 
-## Accumulated Context
+## Contexto Acumulado
 
-### Roadmap Evolution
+### Evolução do Cronograma (Roadmap)
 
-- Phase 3 added: Tela de listagem de produtos com menu lateral em seções e ações em massa
-- Phase 4 added: Configurações de Identidade, Endereço, Pagamentos e Descontos
-- Phase 6 added: Configuração de Juros Customizados de Parcelas (Backend & Frontend)
-- Phase 9 added: Melhorias no Checkout e Pedidos
-- Phase 10 added: Ajustes UI na Listagem e Modal de Pedidos
-- Phase 11 added: Paginação e Refinamentos de Fluxo Financeiro
-- Phase 12 added: Pedidos pagos irem para o caixa admin e api
+- Fase 3 adicionada: Tela de listagem de produtos com menu lateral em seções e ações em massa
+- Fase 4 adicionada: Configurações de Identidade, Endereço, Pagamentos e Descontos
+- Fase 6 adicionada: Configuração de Juros Customizados de Parcelas (Backend & Frontend)
+- Fase 9 adicionada: Melhorias no Checkout e Pedidos
+- Fase 10 adicionada: Ajustes UI na Listagem e Modal de Pedidos
+- Fase 11 adicionada: Paginação e Refinamentos de Fluxo Financeiro
+- Fase 12 adicionada: Pedidos pagos irem para o caixa admin e api
 
-### Key Decisions
+### Decisões Principais
 
-- Menu lateral: Dashboard solto + 3 seções (Catálogo, Vendas, Configuração) via `navSections[]`
-- Settings: Entregas/Pagamentos/Gerais em página única `/configuracoes`, rotas antigas redirect
-- Listagem: Tabela com PAGE_SIZE=30, sort client-side, bulk delete/disable/enable
-- Status de produto: inferido de `totalStock > 0` no `normalizeProduct`
-- Paginação Pedidos: Paginação real server-side com exibição de metadados ricos e rodapé numérico interativo na UI.
-- Auditoria Financeira: Exibição informativa sem inputs quando pago, fluxo condicional restrito "Cancelar Recebimento" -> "Cancelar Pedido".
+- **Menu lateral**: Dashboard solto + 3 seções (Catálogo, Vendas, Configuração) gerenciados por `navSections[]`
+- **Configurações**: Entregas/Pagamentos/Gerais unificados em uma página única `/configuracoes`, com redirecionamento das rotas antigas.
+- **Listagem**: Tabela de produtos com tamanho de página de 30 itens (`PAGE_SIZE=30`), ordenação no cliente (client-side) e ações em massa (exclusão, ativação e desativação).
+- **Status de produto**: Status inferido dinamicamente se `totalStock > 0` na função `normalizeProduct`.
+- **Paginação de Pedidos**: Paginação real server-side com exibição de metadados ricos e rodapé numérico interativo na interface (UI).
+- **Auditoria Financeira**: Exibição meramente informativa e sem campos de input quando o pedido já estiver pago, com o fluxo condicional seguro: "Cancelar Recebimento" -> "Cancelar Pedido".
 
-## Session Continuity
+## Continuidade da Sessão (Session Continuity)
 
-Last session: 2026-05-23T02:08:36.279Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-pedidos-pagos-irem-para-o-caixa-admin-e-api/12-CONTEXT.md
+- **Última sessão**: 23/05/2026
+- **Ponto de parada**: Contexto da Fase 13 coletado
+- **Arquivo de resumo**: `.planning/phases/13-parcelamento-cartao-de-credito-no-pedido-e-no-caixa/13-01-PLAN.md`

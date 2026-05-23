@@ -24,6 +24,7 @@ export interface Order {
   surcharge: number;
   totalOrder: number;
   totalReceived: number;
+  cardFee?: number;
   paymentType: string;
   paymentMethod: string;
   pixKey: string | null;

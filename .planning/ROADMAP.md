@@ -1,128 +1,149 @@
-# ROADMAP
+# Cronograma (Roadmap)
 
-## Milestone 1: Simplificação do Cadastro de Produtos
+## Marco 1 (Milestone 1): Simplificação do Cadastro de Produtos
 
 ### [CONCLUÍDO] Fase 1: Interface de Página Única e Salvamento Unificado
 
 - Reorganização do layout (Imagens -> Dados -> Variações).
-- Implementação de handleSaveEverything.
+- Implementação de `handleSaveEverything`.
 - Sincronização de opções via itens.
 - Itens virtuais na grade de estoque.
 
+---
+
 ### [CONCLUÍDO] Fase 2: Polimento e Validação do Fluxo
 
-- Feedbacks visuais granulares durante o salvamento (loading states por etapa).
-- Validações preventivas (impedir salvamento se campos críticos faltarem).
+- Feedbacks visuais granulares durante o salvamento (estados de carregamento por etapa).
+- Validações preventivas (impedir salvamento se campos críticos estiverem faltando).
 - Tratamento de erros aprimorado.
 
-### [CONCLUÍDO] Phase 3: Tela de listagem de produtos com menu lateral em seções e ações em massa
+---
 
-**Goal:** Reorganizar o admin com menu em seções (Catálogo, Vendas, Configuração), página única de configuração com três formulários, e listagem de produtos em tabela com paginação (30/página), filtros e ações em massa.
+### [CONCLUÍDO] Fase 3: Tela de Listagem de Produtos com Menu Lateral em Seções e Ações em Massa
 
-**Depends on:** Fases 1–2 do cadastro (concluída / pendente polimento)
-**Plans:** 3 plans em 2 waves
+**Objetivo:** Reorganizar o painel administrativo com menu em seções (Catálogo, Vendas, Configuração), página única de configuração com três formulários, e listagem de produtos em tabela com paginação (30/página), filtros e ações em massa.
+**Depende de:** Fases 1–2 do cadastro (concluída / pendente de polimento)
+**Planos:** 3 planos em 2 ondas (waves)
 
-Plans:
-
+Planos:
 - [x] 03-01 — Menu lateral em seções (`navSections` + `AdminSidebar`)
 - [x] 03-02 — Página unificada `/configuracoes` (Entregas + Pagamentos + Gerais)
-- [x] 03-03 — Tabela de produtos + paginação API 30 + bulk actions
+- [x] 03-03 — Tabela de produtos + paginação API 30 + ações em massa (bulk actions)
 
-**Wave 1** *(paralelo)*: 03-01, 03-02  
-**Wave 2** *(após menu)*: 03-03
+**Onda 1 (Wave 1)** *(paralelo)*: 03-01, 03-02  
+**Onda 2 (Wave 2)** *(após o menu)*: 03-03
 
-### [CONCLUÍDO] Phase 4: Configurações de Identidade, Endereço, Pagamentos e Descontos
+---
 
-**Goal:** Implementar as configurações completas e reais do e-commerce unificando o formulário `/configuracoes` com a API do backend, com upload de logo/favicon/banners (até 7), autopreenchimento de endereço por CEP, ativação do PIX e métodos presenciais, e regras dinâmicas de descontos, taxas e parcelamento.
-**Requirements**: REQ-07
-**Depends on:** Phase 3
-**Plans:** 2 planos
+### [CONCLUÍDO] Fase 4: Configurações de Identidade, Endereço, Pagamentos e Descontos
 
-Plans:
+**Objetivo:** Implementar as configurações completas e reais do e-commerce unificando o formulário `/configuracoes` com a API do backend, com upload de logo/favicon/banners (até 7), autopreenchimento de endereço por CEP, ativação do PIX e métodos presenciais, e regras dinâmicas de descontos, taxas e parcelamento.
+**Requisitos**: REQ-07
+**Depende de:** Fase 3
+**Planos:** 2 planos
 
+Planos:
 - [x] 04-01: Identidade Visual, Contato e Endereço com Busca de CEP (Frontend)
 - [x] 04-02: PIX, Pagamentos e Regras Dinâmicas de Descontos e Taxas (Frontend)
 
-### [CONCLUÍDO] Phase 5: Filtro de Valores Mockados
+---
 
-**Goal:** Filtrar em tempo de execução os valores de testes e placeholders padrões (como "Minha Loja", "Rua 14 de Julho", "podemais@email.com", etc.) no carregamento dos formulários de configurações, mantendo os campos de texto completamente limpos e prontos para o onboarding se não houver configurações reais salvas.
-**Depends on:** Phase 4
-**Plans:** 1 plano
+### [CONCLUÍDO] Fase 5: Filtro de Valores Mockados
 
-Plans:
+**Objetivo:** Filtrar em tempo de execução os valores de testes e placeholders padrões (como "Minha Loja", "Rua 14 de Julho", "podemais@email.com", etc.) no carregamento dos formulários de configurações, mantendo os campos de texto completamente limpos e prontos para o onboarding se não houver configurações reais salvas.
+**Depende de:** Fase 4
+**Planos:** 1 plano
 
-- [x] 05-01: Implementar filtros reativos de placeholders nos formulários de Configurações (Frontend-Only)
+Planos:
+- [x] 05-01: Implementar filtros reativos de placeholders nos formulários de Configurações (Apenas Frontend)
 
-### [CONCLUÍDO] Phase 6: Configuração de Juros Customizados de Parcelas (Backend & Frontend)
+---
 
-**Goal:** Permitir ao lojista configurar juros customizados para cartão de crédito em faixas de parcelas (ex: de 2 a 3 parcelas, de 4 a 5 parcelas) com inputs numéricos totalmente editáveis tanto para os intervalos de parcelas quanto para a taxa de juros correspondente, integrando o backend e o frontend.
-**Depends on:** Phase 4
-**Plans:** 2 planos
+### [CONCLUÍDO] Fase 6: Configuração de Juros Customizados de Parcelas (Backend & Frontend)
 
-Plans:
+**Objetivo:** Permitir ao lojista configurar juros customizados para cartão de crédito em faixas de parcelas (ex: de 2 a 3 parcelas, de 4 a 5 parcelas) com inputs numéricos totalmente editáveis tanto para os intervalos de parcelas quanto para a taxa de juros correspondente, integrando o backend e o frontend.
+**Depende de:** Fase 4
+**Planos:** 2 planos
 
+Planos:
 - [x] 06-01: Extensão do Schema, DTO e Repositório para Suportar Faixas de Juros (Backend)
 - [x] 06-02: Formulário com Inputs Editáveis de Faixas de Parcelas e Juros (Frontend)
 
-### [CONCLUÍDO] Phase 7: Gestão e Listagem de Pedidos (Orders Portal)
+---
 
-**Goal:** Implementar o painel de gerenciamento de vendas com listagem reativa agrupada cronologicamente por datas (Hoje, datas anteriores), filtros avançados, e gaveta lateral de detalhamento do pedido fiel ao design de alta fidelidade e suporte ao fluxo de cancelamento.
-**Depends on:** Phase 3
-**Plans:** 2 planos
+### [CONCLUÍDO] Fase 7: Gestão e Listagem de Pedidos (Portal de Pedidos)
 
-Plans:
+**Objetivo:** Implementar o painel de gerenciamento de vendas com listagem reativa agrupada cronologicamente por datas (Hoje, datas anteriores), filtros avançados, e gaveta lateral de detalhamento do pedido fiel ao design de alta fidelidade e suporte ao fluxo de cancelamento.
+**Depende de:** Fase 3
+**Planos:** 2 planos
 
+Planos:
 - [x] 07-02: Tela de Listagem de Pedidos Agrupada por Data (Frontend)
 - [x] 07-03: Drawer de Detalhes do Pedido e Ação de Cancelamento (Frontend)
 
-### Phase 8: Integração Dinâmica de Pedidos e Estoque (Dynamic Orders & Stock Integration)
+---
 
-**Goal:** Interligar pedidos aos produtos e variações reais do banco de dados (remover mock no use case), decrementando o estoque do produto/variação quando o pedido for confirmado/criado e revertendo a baixa em caso de cancelamento.
-**Depends on:** Phase 7
-**Plans:** 1 plano
+### [CONCLUÍDO] Fase 8: Integração Dinâmica de Pedidos e Estoque (Integração Dinâmica de Pedidos & Estoque)
 
-Plans:
+**Objetivo:** Interligar pedidos aos produtos e variações reais do banco de dados (remover mock no use case), decrementando o estoque do produto/variação quando o pedido for confirmado/criado e revertendo a baixa em caso de cancelamento.
+**Depende de:** Fase 7
+**Planos:** 1 plano
 
+Planos:
 - [x] 08-01: Associação de Pedidos a Produtos Reais, Validação e Atualização Dinâmica de Estoque (Backend & Frontend)
 
-### [CONCLUÍDO] Phase 9: Melhorias no Checkout e Pedidos
+---
 
-**Goal:** Dividir o ciclo de vida do pedido entre entrega e pagamento no backend e disponibilizar os novos gatilhos operacionais no painel.
-**Depends on:** Phase 8
-**Plans:** 1 plano
+### [CONCLUÍDO] Fase 9: Melhorias no Checkout e Pedidos
 
-Plans:
+**Objetivo:** Dividir o ciclo de vida do pedido entre entrega e pagamento no backend e disponibilizar os novos gatilhos operacionais no painel.
+**Depende de:** Fase 8
+**Planos:** 1 plano
 
+Planos:
 - [x] 09-01: Melhorias no Checkout e Pedidos (Backend)
 
-### [CONCLUÍDO] Phase 10: Ajustes UI na Listagem e Modal de Pedidos
+---
 
-**Goal:** Integrar o dropdown de alteração logística na gaveta de detalhamento, fixar o rodapé com as ações e recalibrar a matemática de exibição dos totais.
-**Depends on:** Phase 9
-**Plans:** 1 plano
+### [CONCLUÍDO] Fase 10: Ajustes UI na Listagem e Modal de Pedidos
 
-Plans:
+**Objetivo:** Integrar o dropdown de alteração logística na gaveta de detalhamento, fixar o rodapé com as ações e recalibrar a matemática de exibição dos totais.
+**Depende de:** Fase 9
+**Planos:** 1 plano
 
+Planos:
 - [x] 10-01: Ajustes UI na Listagem e Modal de Pedidos (Frontend)
 
-### [CONCLUÍDO] Phase 11: Paginação e Refinamentos de Fluxo Financeiro
+---
 
-**Goal:** Adicionar paginação nativa na listagem de pedidos, ocultar inputs financeiros sob recebimento e estruturar o fluxo de cancelamento seguro de vendas.
-**Depends on:** Phase 10
-**Plans:** 1 plano
+### [CONCLUÍDO] Fase 11: Paginação e Refinamentos de Fluxo Financeiro
 
-Plans:
+**Objetivo:** Adicionar paginação nativa na listagem de pedidos, ocultar inputs financeiros sob recebimento e estruturar o fluxo de cancelamento seguro de vendas.
+**Depende de:** Fase 10
+**Planos:** 1 plano
 
+Planos:
 - [x] 11-01: Paginação e Refinamentos de Fluxo Financeiro (Backend & Frontend)
 
+---
 
+### Fase 12: Pedidos pagos irem para o caixa admin e api
 
-### Phase 12: Pedidos pagos irem para o caixa admin e api
+**Objetivo:** [A ser planejado]
+**Requisitos**: TBD
+**Depende de:** Fase 11
+**Planos:** 0 planos
 
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 11
-**Plans:** 0 plans
+Planos:
+- [ ] TBD (execute o comando `/gsd-plan-phase 12` para detalhar)
 
-Plans:
-- [ ] TBD (run /gsd-plan-phase 12 to break down)
+---
+
+### Fase 13: Parcelamento e Taxas de Cartão de Crédito no Caixa e Pedidos
+
+**Objetivo:** Implementar a lógica de parcelamento dinâmico de cartão de crédito integrado às configurações do lojista, calculando os juros e taxas descontados por pedido e consolidando os totais Bruto, Taxas e Líquido no resumo do caixa.
+**Depende de:** Fase 12
+**Planos:** 1 plano
+
+Planos:
+- [ ] 13-01: Implementação de Parcelamento, Taxas de Cartão e Consolidação Financeira (Backend & Frontend)
