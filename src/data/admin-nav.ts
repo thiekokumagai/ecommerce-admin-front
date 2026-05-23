@@ -29,7 +29,13 @@ export const navSections = [
     label: "Vendas",
     items: [
       { title: "Pedidos", url: "/pedidos", icon: ShoppingBag },
-      { title: "Caixa", url: "/caixa", icon: Landmark },
+    ],
+  },
+  {
+    label: "Financeiro",
+    items: [
+      { title: "Caixa Atual", url: "/financeiro/atual", icon: Landmark },
+      { title: "Histórico de Caixas", url: "/caixa", icon: FolderTree },
     ],
   },
   {

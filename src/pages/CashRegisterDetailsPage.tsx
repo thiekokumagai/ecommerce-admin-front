@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/table";
 import { cashRegisterService } from "@/services/cash-register.service";
 
-export default function CashRegisterDetailsPage() {
-  const { id } = useParams();
+export default function CashRegisterDetailsPage({ currentId }: { currentId?: string }) {
+  const { id: paramId } = useParams();
+  const id = currentId || paramId;
 
   const { data, isLoading } = useQuery({
     queryKey: ["cash-register-summary", id],
