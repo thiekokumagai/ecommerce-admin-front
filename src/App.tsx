@@ -14,7 +14,8 @@ const CategoriesPage = lazy(() => import("@/pages/CategoriesPage"));
 const CouponsPage = lazy(() => import("@/pages/CouponsPage"));
 // DeliveriesPage and PaymentsPage removed — content merged into /configuracoes
 const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
-const CashRegisterPage = lazy(() => import("@/pages/CashRegisterPage"));
+const CashRegistersPage = lazy(() => import("@/pages/CashRegistersPage"));
+const CashRegisterDetailsPage = lazy(() => import("@/pages/CashRegisterDetailsPage"));
 const VariationPage = lazy(() => import("@/pages/VariationPage"));
 const VariationDetailsPage = lazy(() => import("@/pages/VariationDetailsPage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
@@ -55,7 +56,8 @@ const App = () => (
                 <Route path="/entregas" element={<Navigate to="/configuracoes" replace />} />
                 <Route path="/pagamentos" element={<Navigate to="/configuracoes" replace />} />
                 <Route path="/configuracoes" element={<SettingsPage />} />
-                <Route path="/caixa" element={<CashRegisterPage />} />
+                <Route path="/caixa" element={<CashRegistersPage />} />
+                <Route path="/caixa/:id" element={<CashRegisterDetailsPage />} />
                 <Route path="/variacoes" element={<VariationPage />} />
                 <Route path="/variacoes/:id" element={<VariationDetailsPage />} />
               </Route>
