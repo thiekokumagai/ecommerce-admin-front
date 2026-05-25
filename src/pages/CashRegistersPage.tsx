@@ -97,7 +97,7 @@ export default function CashRegistersPage() {
   if (isLoading) return <div className="p-8">Carregando caixas...</div>;
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Caixas</h1>
         <Button
