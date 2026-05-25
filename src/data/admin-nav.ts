@@ -7,6 +7,7 @@ import {
   ShoppingBag,
   Landmark,
   Settings,
+  Receipt,
 } from "lucide-react";
 
 export const dashboardNavItem = {
@@ -35,6 +36,7 @@ export const navSections = [
     label: "Financeiro",
     items: [
       { title: "Caixa Atual", url: "/financeiro/atual", icon: Landmark },
+      { title: "Contas Fixas", url: "/financeiro/custos-fixos", icon: Receipt },
       { title: "Histórico de Caixas", url: "/caixa", icon: FolderTree },
     ],
   },

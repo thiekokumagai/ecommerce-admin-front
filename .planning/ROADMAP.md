@@ -26,6 +26,7 @@
 **Planos:** 3 planos em 2 ondas (waves)
 
 Planos:
+
 - [x] 03-01 — Menu lateral em seções (`navSections` + `AdminSidebar`)
 - [x] 03-02 — Página unificada `/configuracoes` (Entregas + Pagamentos + Gerais)
 - [x] 03-03 — Tabela de produtos + paginação API 30 + ações em massa (bulk actions)
@@ -43,6 +44,7 @@ Planos:
 **Planos:** 2 planos
 
 Planos:
+
 - [x] 04-01: Identidade Visual, Contato e Endereço com Busca de CEP (Frontend)
 - [x] 04-02: PIX, Pagamentos e Regras Dinâmicas de Descontos e Taxas (Frontend)
 
@@ -55,6 +57,7 @@ Planos:
 **Planos:** 1 plano
 
 Planos:
+
 - [x] 05-01: Implementar filtros reativos de placeholders nos formulários de Configurações (Apenas Frontend)
 
 ---
@@ -66,6 +69,7 @@ Planos:
 **Planos:** 2 planos
 
 Planos:
+
 - [x] 06-01: Extensão do Schema, DTO e Repositório para Suportar Faixas de Juros (Backend)
 - [x] 06-02: Formulário com Inputs Editáveis de Faixas de Parcelas e Juros (Frontend)
 
@@ -78,6 +82,7 @@ Planos:
 **Planos:** 2 planos
 
 Planos:
+
 - [x] 07-02: Tela de Listagem de Pedidos Agrupada por Data (Frontend)
 - [x] 07-03: Drawer de Detalhes do Pedido e Ação de Cancelamento (Frontend)
 
@@ -90,6 +95,7 @@ Planos:
 **Planos:** 1 plano
 
 Planos:
+
 - [x] 08-01: Associação de Pedidos a Produtos Reais, Validação e Atualização Dinâmica de Estoque (Backend & Frontend)
 
 ---
@@ -101,6 +107,7 @@ Planos:
 **Planos:** 1 plano
 
 Planos:
+
 - [x] 09-01: Melhorias no Checkout e Pedidos (Backend)
 
 ---
@@ -112,6 +119,7 @@ Planos:
 **Planos:** 1 plano
 
 Planos:
+
 - [x] 10-01: Ajustes UI na Listagem e Modal de Pedidos (Frontend)
 
 ---
@@ -123,6 +131,7 @@ Planos:
 **Planos:** 1 plano
 
 Planos:
+
 - [x] 11-01: Paginação e Refinamentos de Fluxo Financeiro (Backend & Frontend)
 
 ---
@@ -135,6 +144,7 @@ Planos:
 **Planos:** 0 planos
 
 Planos:
+
 - [ ] TBD (execute o comando `/gsd-plan-phase 12` para detalhar)
 
 ### Phase 14: Configurar taxas de debito/credito com repasse opcional ao cliente
@@ -145,6 +155,7 @@ Planos:
 **Plans:** 0 plans
 
 Plans:
+
 - [ ] TBD (run /gsd-plan-phase 14 to break down)
 
 ---
@@ -156,7 +167,19 @@ Plans:
 **Planos:** 1 plano
 
 Planos:
+
 - [ ] 13-01: Implementação de Parcelamento, Taxas de Cartão e Consolidação Financeira (Backend & Frontend)
+
+### Phase 16: Contas fixas
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 15
+**Plans:** 0 plans
+
+Plans:
+
+- [ ] TBD (run /gsd-plan-phase 16 to break down)
 
 ---
 
@@ -168,4 +191,5 @@ Planos:
 **Planos:** 1 plano
 
 Planos:
+
 - [x] 15-01: Módulo de Cupom no Backend e Frontend

@@ -35,6 +35,7 @@ Marco 1 concluído — todas as 11 fases executadas e validadas com sucesso!
 - Fase 10 adicionada: Ajustes UI na Listagem e Modal de Pedidos
 - Fase 11 adicionada: Paginação e Refinamentos de Fluxo Financeiro
 - Fase 12 adicionada: Pedidos pagos irem para o caixa admin e api
+- Fase 16 adicionada: Contas fixas
 
 ### Decisões Principais
 
