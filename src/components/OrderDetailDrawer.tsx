@@ -58,8 +58,11 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
   const updateStatusMutation = useUpdateOrderStatus();
 
   const [paymentMethod, setPaymentMethod] = useState("");
-  const [discount, setDiscount] = useState(0);
+  const [localStatus, setLocalStatus] = useState<OrderStatus | "">("");
+  const [manualDiscount, setManualDiscount] = useState(0);
+  const [pixDiscount, setPixDiscount] = useState(0);
   const [surcharge, setSurcharge] = useState(0);
+  const [cardSurcharge, setCardSurcharge] = useState(0);
   const [totalReceived, setTotalReceived] = useState(0);
   const [installments, setInstallments] = useState<number>(1);
   const [copiedName, setCopiedName] = useState(false);
@@ -68,44 +71,90 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
   const isPaid = order ? (order.paymentStatus === "PAID" || order.status === "COMPLETED" || order.status === "CANCELLED") : false;
 
   useEffect(() => {
-
     if (order) {
       setPaymentMethod(order.paymentMethod || "");
-      setDiscount(order.discount || 0);
-      setSurcharge(order.surcharge || 0);
-      setTotalReceived(order.totalReceived > 0 ? order.totalReceived : (order.totalOrder || 0));
       setInstallments(order.installments || 1);
+      setLocalStatus(order.status);
+
+      const isCurrentlyPaid = order.paymentStatus === "PAID" || order.status === "COMPLETED" || order.status === "CANCELLED";
+
+      if (isCurrentlyPaid) {
+        setManualDiscount(order.discount || 0);
+        setPixDiscount(order.pixDiscount || 0);
+        setSurcharge(order.surcharge || 0);
+        setCardSurcharge(order.cardSurcharge || 0);
+        setTotalReceived(order.totalReceived > 0 ? order.totalReceived : (order.totalOrder || 0));
+      } else {
+        setManualDiscount(0);
+        setSurcharge(0);
+        const method = order.paymentMethod || "";
+        const baseTotal = order.itemsTotal + order.freight;
+        let initialPixDiscount = 0;
+        let initialCardSurcharge = 0;
+        let inst = order.installments || 1;
+
+        if (method === "PIX") {
+          const pixRule = settings?.paymentRules?.find((r: any) => r.paymentMethod === "pix" && r.type === "discount");
+          if (pixRule && typeof pixRule.value === "number") {
+            initialPixDiscount = Math.round((baseTotal * (pixRule.value / 100)) * 100) / 100;
+          }
+        } else if (method === "Cartão de Crédito") {
+          const creditRules = settings?.paymentRules?.filter((r: any) => r.paymentMethod === "credit" && r.type === "charge") || [];
+          const activeRule = creditRules.find((r: any) => inst >= (r.parcelaMin || 0) && inst <= (r.parcelaMax || 99));
+          if (activeRule && typeof activeRule.value === "number" && activeRule.passedToCustomer !== false) {
+            initialCardSurcharge = Math.round((baseTotal * (activeRule.value / 100)) * 100) / 100;
+          }
+        }
+
+        setPixDiscount(initialPixDiscount);
+        setCardSurcharge(initialCardSurcharge);
+        setTotalReceived(Math.round((baseTotal + initialCardSurcharge - initialPixDiscount) * 100) / 100);
+      }
     }
-  }, [order]);
+  }, [order, settings]);
+
+  const handleStatusChange = async (val: string) => {
+    if (!order) return;
+    const newStatus = val as OrderStatus;
+    setLocalStatus(newStatus);
+    try {
+      await updateStatusMutation.mutateAsync({ id: order.id, payload: { status: newStatus } });
+      toast({ title: "Status atualizado com sucesso!" });
+    } catch (e) {
+      setLocalStatus(order.status);
+      toast({ title: "Erro ao atualizar status", variant: "destructive" });
+    }
+  };
 
   const handleTotalChange = (newTotal: number) => {
     setTotalReceived(newTotal);
     if (!order) return;
     const baseTotal = order.itemsTotal + order.freight;
-    if (newTotal > baseTotal) {
-      setSurcharge(newTotal - baseTotal);
-      setDiscount(0);
-    } else if (newTotal < baseTotal) {
-      setDiscount(baseTotal - newTotal);
+    const baseCalculated = baseTotal - pixDiscount + cardSurcharge;
+    if (newTotal > baseCalculated) {
+      setSurcharge(newTotal - baseCalculated);
+      setManualDiscount(0);
+    } else if (newTotal < baseCalculated) {
+      setManualDiscount(baseCalculated - newTotal);
       setSurcharge(0);
     } else {
-      setDiscount(0);
+      setManualDiscount(0);
       setSurcharge(0);
     }
   };
 
   const handleDiscountChange = (val: number) => {
-    setDiscount(val);
+    setManualDiscount(val);
     if (!order) return;
     const baseTotal = order.itemsTotal + order.freight;
-    setTotalReceived(baseTotal + surcharge - val);
+    setTotalReceived(baseTotal + surcharge + cardSurcharge - val - pixDiscount);
   };
 
   const handleSurchargeChange = (val: number) => {
     setSurcharge(val);
     if (!order) return;
     const baseTotal = order.itemsTotal + order.freight;
-    setTotalReceived(baseTotal + val - discount);
+    setTotalReceived(baseTotal + val + cardSurcharge - manualDiscount - pixDiscount);
   };
 
   // Regras de parcelamento / cartão vigentes
@@ -132,7 +181,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
 
     const baseTotal = order.itemsTotal + order.freight;
     let newDiscount = 0;
-    let newSurcharge = 0;
+    let newCardSurcharge = 0;
 
     if (method === "PIX") {
       const pixRule = settings?.paymentRules?.find(r => r.paymentMethod === "pix" && r.type === "discount");
@@ -141,14 +190,18 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
       }
     } else if (method === "Cartão de Crédito") {
       const activeRule = creditRules.find(r => installments >= (r.parcelaMin || 0) && installments <= (r.parcelaMax || 99));
-      if (activeRule && typeof activeRule.value === "number") {
-        newSurcharge = Math.round((baseTotal * (activeRule.value / 100)) * 100) / 100;
+      if (activeRule && typeof activeRule.value === "number" && activeRule.passedToCustomer !== false) {
+        newCardSurcharge = Math.round((baseTotal * (activeRule.value / 100)) * 100) / 100;
+      }
+    } else if (method === "Cartão de Débito") {
+      if (debitRule && typeof debitRule.value === "number" && debitRule.passedToCustomer !== false) {
+        newCardSurcharge = Math.round((baseTotal * (debitRule.value / 100)) * 100) / 100;
       }
     }
 
-    setDiscount(newDiscount);
-    setSurcharge(newSurcharge);
-    setTotalReceived(Math.round((baseTotal + newSurcharge - newDiscount) * 100) / 100);
+    setPixDiscount(newDiscount);
+    setCardSurcharge(newCardSurcharge);
+    setTotalReceived(Math.round((baseTotal + surcharge + newCardSurcharge - newDiscount - manualDiscount) * 100) / 100);
   };
 
   const handleInstallmentsChange = (inst: number) => {
@@ -156,27 +209,31 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
     if (!order || isPaid) return;
 
     const baseTotal = order.itemsTotal + order.freight;
-    let newSurcharge = 0;
+    let newCardSurcharge = 0;
 
     const activeRule = creditRules.find(r => inst >= (r.parcelaMin || 0) && inst <= (r.parcelaMax || 99));
-    if (activeRule && typeof activeRule.value === "number") {
-      newSurcharge = Math.round((baseTotal * (activeRule.value / 100)) * 100) / 100;
+    if (activeRule && typeof activeRule.value === "number" && activeRule.passedToCustomer !== false) {
+      newCardSurcharge = Math.round((baseTotal * (activeRule.value / 100)) * 100) / 100;
     }
 
-    setSurcharge(newSurcharge);
-    setDiscount(0);
-    setTotalReceived(Math.round((baseTotal + newSurcharge) * 100) / 100);
+    setCardSurcharge(newCardSurcharge);
+    setTotalReceived(Math.round((baseTotal + surcharge + newCardSurcharge - pixDiscount - manualDiscount) * 100) / 100);
   };
 
   const handleReceiveOrder = async () => {
     if (!orderId) return;
     try {
+      const derivedPaymentType = paymentMethod === "PIX" ? "Online" : "Na Entrega";
+
       await receiveMutation.mutateAsync({
         id: orderId,
         payload: {
           paymentMethod,
-          discount,
+          paymentType: derivedPaymentType,
+          discount: manualDiscount,
+          pixDiscount,
           surcharge,
+          cardSurcharge,
           totalReceived,
           installments: paymentMethod === "Cartão de Crédito" ? installments : 1,
           cardFee: calculatedFee,
@@ -337,8 +394,8 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                 <div className="flex items-center justify-between">
                   <span className="text-xl font-bold text-slate-800 tracking-tight">Pedido #{order.orderNumber}</span>
                   <Select 
-                    value={order.status} 
-                    onValueChange={(val) => updateStatusMutation.mutate({ id: order.id, payload: { status: val as OrderStatus } })}
+                    value={localStatus || order.status} 
+                    onValueChange={handleStatusChange}
                   >
                     <SelectTrigger className={`w-32 h-7 text-xs font-bold rounded-full border-0 focus:ring-0 ${statusConfig[order.status].bg} ${statusConfig[order.status].text}`}>
                       <SelectValue />
@@ -439,28 +496,34 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                   <span>Frete</span>
                   <span>R$ {order.freight.toFixed(2)}</span>
                 </div>
-                {paymentMethod === "Cartão de Crédito" && surcharge > 0 && (
+                {paymentMethod === "Cartão de Crédito" && cardSurcharge > 0 && (
                   <div className="flex justify-between text-violet-600 font-bold items-center bg-violet-50/30 px-1 py-0.5 rounded">
-                    <span>Taxas ({installments}x)</span>
-                    <span>R$ {surcharge.toFixed(2)}</span>
+                    <span>Juros Crédito ({installments}x)</span>
+                    <span>R$ {cardSurcharge.toFixed(2)}</span>
                   </div>
                 )}
-                {paymentMethod === "PIX" && discount > 0 && (
+                {paymentMethod === "Cartão de Débito" && cardSurcharge > 0 && (
+                  <div className="flex justify-between text-violet-600 font-bold items-center bg-violet-50/30 px-1 py-0.5 rounded">
+                    <span>Taxa Débito</span>
+                    <span>R$ {cardSurcharge.toFixed(2)}</span>
+                  </div>
+                )}
+                {paymentMethod === "PIX" && pixDiscount > 0 && (
                   <div className="flex justify-between text-emerald-600 font-bold items-center bg-emerald-50/30 px-1 py-0.5 rounded">
                     <span>Desconto PIX</span>
-                    <span>- R$ {discount.toFixed(2)}</span>
+                    <span>- R$ {pixDiscount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-slate-500 items-center">
-                  <span>Desconto</span>
+                  <span>Desconto Recebimento</span>
                   {isPaid ? (
-                    <span className="font-semibold text-slate-700 pr-1">R$ {discount.toFixed(2)}</span>
+                    <span className="font-semibold text-slate-700 pr-1">R$ {manualDiscount.toFixed(2)}</span>
                   ) : (
                     <div className="relative w-32">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
                       <Input
                         className="h-8 text-right bg-background pl-8 pr-3 text-sm rounded-lg font-medium"
-                        value={discount !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(discount) : ""}
+                        value={manualDiscount !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(manualDiscount) : ""}
                         onChange={(e) => {
                           const digits = e.target.value.replace(/\D/g, "");
                           handleDiscountChange(Number(digits) / 100);
@@ -471,7 +534,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                   )}
                 </div>
                 <div className="flex justify-between text-slate-500 items-center">
-                  <span>Acréscimo</span>
+                  <span>Acréscimo Recebimento</span>
                   {isPaid ? (
                     <span className="font-semibold text-slate-700 pr-1">R$ {surcharge.toFixed(2)}</span>
                   ) : (
@@ -491,7 +554,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                 </div>
                 <div className="flex justify-between font-bold text-slate-800 border-t border-slate-100 pt-2.5 items-center">
                   <span>Total final</span>
-                  <span>R$ {((order.itemsTotal || 0) + (order.freight || 0) + surcharge - discount).toFixed(2)}</span>
+                  <span>R$ {((order.itemsTotal || 0) + (order.freight || 0) + surcharge + cardSurcharge - manualDiscount - pixDiscount).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-emerald-600 bg-emerald-50/50 p-2 rounded-lg mt-1 items-center">
                   <span>Total recebido</span>
@@ -519,26 +582,32 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
               <div className="space-y-2.5 bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm text-sm font-medium">
                 <div className="flex justify-between text-slate-500">
                   <span>Pagamento</span>
-                  <span className="text-slate-800 font-bold">{order.paymentType}</span>
+                  <span className="text-slate-800 font-bold">
+                    {isPaid ? order.paymentType : (paymentMethod === "PIX" ? "Online" : "Na Entrega")}
+                  </span>
                 </div>
                 <div className="flex justify-between text-slate-500 items-center">
                   <span>Forma de pagamento</span>
-                  <Select 
-                    value={paymentMethod} 
-                    onValueChange={handlePaymentMethodChange} 
-                    disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
-                  >
-                    <SelectTrigger className="w-40 h-8 text-xs font-bold rounded-lg border-slate-200 bg-slate-50">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.keys(paymentLabels).map(k => (
-                        <SelectItem key={k} value={k}>{paymentLabels[k]}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {isPaid ? (
+                    <span className="font-bold text-slate-800">{paymentMethod || "-"}</span>
+                  ) : (
+                    <Select 
+                      value={paymentMethod} 
+                      onValueChange={handlePaymentMethodChange} 
+                      disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
+                    >
+                      <SelectTrigger className="w-40 h-8 text-xs font-bold rounded-lg border-slate-200 bg-slate-50">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.keys(paymentLabels).map(k => (
+                          <SelectItem key={k} value={k}>{paymentLabels[k]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
-                {paymentMethod === "Cartão de Crédito" && (
+                {paymentMethod === "Cartão de Crédito" && !isPaid && (
                   <div className="flex flex-col gap-1.5 border-t border-slate-100 pt-2">
                     <div className="flex justify-between text-slate-500 items-center">
                       <span>Parcelas</span>
@@ -559,7 +628,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                         </SelectContent>
                       </Select>
                     </div>
-                    {!isPaid && activeRule && (
+                    {activeRule && (
                       <div className="text-right text-[11px] text-violet-600 font-bold bg-violet-50/70 px-2.5 py-1 rounded-md mt-0.5 border border-violet-100/50">
                         Taxa estimada (Juros): R$ {estimatedCardFee.toFixed(2)} ({interestPercentage.toFixed(2)}%)
                       </div>

@@ -6,6 +6,7 @@ export interface PaymentRule {
   maxInstallments?: number;
   parcelaMin?: number;
   parcelaMax?: number;
+  passedToCustomer?: boolean;
 }
 
 export interface InstallmentRule {

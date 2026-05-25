@@ -50,8 +50,11 @@ export async function cancelOrder(id: string): Promise<Order> {
 
 export async function receiveOrder(id: string, payload: {
   paymentMethod?: string;
+  paymentType?: string;
   discount?: number;
+  pixDiscount?: number;
   surcharge?: number;
+  cardSurcharge?: number;
   totalReceived: number;
   installments?: number;
 }): Promise<Order> {

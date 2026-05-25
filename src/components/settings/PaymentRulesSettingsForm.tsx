@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2, Percent, Settings, Save } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 export function PaymentRulesSettingsForm() {
   const { data: settings, isLoading } = useSettings();
@@ -27,6 +28,7 @@ export function PaymentRulesSettingsForm() {
       paymentMethod: "pix",
       type: "discount",
       value: 0,
+      passedToCustomer: true,
     };
     setRules((prev) => [...prev, newRule]);
     toast({ title: "Nova regra adicionada!" });
@@ -52,12 +54,21 @@ export function PaymentRulesSettingsForm() {
             updated.type = "charge"; // Juros é sempre um acréscimo (charge)
             updated.parcelaMin = updated.parcelaMin ?? 2;
             updated.parcelaMax = updated.parcelaMax ?? 3;
+            updated.passedToCustomer = updated.passedToCustomer ?? true;
             delete updated.maxInstallments;
           } else {
             delete updated.parcelaMin;
             delete updated.parcelaMax;
             delete updated.maxInstallments;
           }
+        }
+
+        if (key === "type") {
+           if (val === "charge") {
+             updated.passedToCustomer = updated.passedToCustomer ?? true;
+           } else {
+             delete updated.passedToCustomer;
+           }
         }
 
         return updated;
@@ -178,14 +189,24 @@ export function PaymentRulesSettingsForm() {
           <div className="space-y-4">
             <div className="hidden sm:grid sm:grid-cols-12 gap-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider pb-2 border-b">
               <div className="col-span-3">Forma de Pagamento</div>
-              <div className="col-span-3">Ação (Desconto/Taxa)</div>
-              <div className="col-span-2">Valor (%)</div>
+              <div className="col-span-2">Ação (Desc/Taxa)</div>
+              <div className="col-span-1">Valor (%)</div>
               <div className="col-span-3">Parcelamento (De / Até)</div>
+              <div className="col-span-2 text-center">Repassar Cliente?</div>
               <div className="col-span-1 text-right"></div>
             </div>
 
             <div className="space-y-3">
-              {rules.map((rule) => (
+              {[...rules].sort((a, b) => {
+                const methodOrder: Record<string, number> = { pix: 1, cash: 2, debit: 3, credit: 4 };
+                const orderA = methodOrder[a.paymentMethod] || 99;
+                const orderB = methodOrder[b.paymentMethod] || 99;
+                if (orderA !== orderB) return orderA - orderB;
+                if (a.paymentMethod === "credit" && b.paymentMethod === "credit") {
+                  return (a.parcelaMin || 0) - (b.parcelaMin || 0);
+                }
+                return 0;
+              }).map((rule) => (
                 <div
                   key={rule.id}
                   className="grid grid-cols-1 sm:grid-cols-12 gap-3 p-3 rounded-lg border bg-muted/40 sm:bg-transparent sm:p-0 sm:border-none sm:rounded-none items-center"
@@ -210,11 +231,11 @@ export function PaymentRulesSettingsForm() {
                   </div>
 
                   {/* Tipo de Ação */}
-                  <div className="col-span-3">
+                  <div className="col-span-2">
                     <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground mb-1">Ação</Label>
                     {rule.paymentMethod === "credit" ? (
                       <div className="h-9 flex items-center px-3 bg-muted/20 border rounded-md text-xs text-muted-foreground select-none font-semibold">
-                        Juros (Acréscimo)
+                        Juros
                       </div>
                     ) : (
                       <Select
@@ -226,14 +247,14 @@ export function PaymentRulesSettingsForm() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="discount">Desconto</SelectItem>
-                          <SelectItem value="charge">Acréscimo (Taxa)</SelectItem>
+                          <SelectItem value="charge">Taxa</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
                   </div>
 
                   {/* Valor (%) */}
-                  <div className="col-span-2">
+                  <div className="col-span-1">
                     <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground mb-1">
                       {rule.paymentMethod === "credit" ? "Juros (%)" : "Valor (%)"}
                     </Label>
@@ -282,6 +303,21 @@ export function PaymentRulesSettingsForm() {
                       <div className="h-9 flex items-center px-3 bg-muted/20 border rounded-md text-xs text-muted-foreground select-none">
                         Não aplicável
                       </div>
+                    )}
+                  </div>
+
+                  {/* Repassar para o cliente? */}
+                  <div className="col-span-2 flex flex-col justify-center sm:items-center">
+                    <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground mb-1">Repassar Cliente?</Label>
+                    {rule.type === "charge" ? (
+                      <div className="h-9 flex items-center">
+                        <Switch
+                          checked={rule.passedToCustomer !== false}
+                          onCheckedChange={(checked) => handleUpdateRule(rule.id, "passedToCustomer", checked)}
+                        />
+                      </div>
+                    ) : (
+                       <span className="text-xs text-muted-foreground opacity-50">-</span>
                     )}
                   </div>
 

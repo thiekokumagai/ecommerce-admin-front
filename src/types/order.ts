@@ -21,9 +21,11 @@ export interface Order {
   itemsTotal: number;
   freight: number;
   discount: number;
-  surcharge: number;
+  pixDiscount: number;
   totalOrder: number;
   totalReceived: number;
+  surcharge: number;
+  cardSurcharge: number;
   cardFee?: number;
   paymentType: string;
   paymentMethod: string;
