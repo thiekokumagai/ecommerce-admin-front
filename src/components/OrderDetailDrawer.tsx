@@ -70,6 +70,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
 
   const isPaid = order ? (order.paymentStatus === "PAID" || order.status === "COMPLETED" || order.status === "CANCELLED") : false;
 
+
   useEffect(() => {
     if (order) {
       setPaymentMethod(order.paymentMethod || "");
@@ -85,7 +86,13 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
         setCardSurcharge(order.cardSurcharge || 0);
         setTotalReceived(order.totalReceived > 0 ? order.totalReceived : (order.totalOrder || 0));
       } else {
-        setManualDiscount(0);
+        let initialDiscount = order.discount || 0;
+        
+        if (order.coupon && order.coupon.type === 'FREE_SHIPPING' && initialDiscount === 0) {
+          initialDiscount = order.freight;
+        }
+
+        setManualDiscount(initialDiscount);
         setSurcharge(0);
         const method = order.paymentMethod || "";
         const baseTotal = order.itemsTotal + order.freight;
@@ -108,7 +115,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
 
         setPixDiscount(initialPixDiscount);
         setCardSurcharge(initialCardSurcharge);
-        setTotalReceived(Math.round((baseTotal + initialCardSurcharge - initialPixDiscount) * 100) / 100);
+        setTotalReceived(Math.round((baseTotal + initialCardSurcharge - initialPixDiscount - initialDiscount) * 100) / 100);
       }
     }
   }, [order, settings]);
@@ -496,6 +503,12 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                   <span>Frete</span>
                   <span>R$ {order.freight.toFixed(2)}</span>
                 </div>
+                {order.coupon && (
+                  <div className="flex justify-between text-violet-600 font-bold items-center bg-violet-50/30 px-1 py-0.5 rounded border border-violet-100">
+                    <span>Cupom Aplicado</span>
+                    <span className="bg-violet-600 text-white px-2 py-0.5 rounded text-[10px] uppercase">{order.coupon.title}</span>
+                  </div>
+                )}
                 {paymentMethod === "Cartão de Crédito" && cardSurcharge > 0 && (
                   <div className="flex justify-between text-violet-600 font-bold items-center bg-violet-50/30 px-1 py-0.5 rounded">
                     <span>Juros Crédito ({installments}x)</span>

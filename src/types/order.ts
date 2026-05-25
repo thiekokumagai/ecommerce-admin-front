@@ -40,6 +40,11 @@ export interface Order {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   installments?: number;
+  couponId?: string | null;
+  coupon?: {
+    title: string;
+    type: string;
+  };
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];
