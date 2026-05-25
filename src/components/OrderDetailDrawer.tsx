@@ -99,17 +99,20 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
         let initialPixDiscount = 0;
         let initialCardSurcharge = 0;
         let inst = order.installments || 1;
+        const amountForFee = baseTotal - initialDiscount;
+        const productDiscount = (order.coupon?.type === 'FREE_SHIPPING') ? 0 : initialDiscount;
+        const baseForPix = Math.max(0, order.itemsTotal - productDiscount);
 
         if (method === "PIX") {
           const pixRule = settings?.paymentRules?.find((r: any) => r.paymentMethod === "pix" && r.type === "discount");
           if (pixRule && typeof pixRule.value === "number") {
-            initialPixDiscount = Math.round((baseTotal * (pixRule.value / 100)) * 100) / 100;
+            initialPixDiscount = Math.round((baseForPix * (pixRule.value / 100)) * 100) / 100;
           }
         } else if (method === "Cartão de Crédito") {
           const creditRules = settings?.paymentRules?.filter((r: any) => r.paymentMethod === "credit" && r.type === "charge") || [];
           const activeRule = creditRules.find((r: any) => inst >= (r.parcelaMin || 0) && inst <= (r.parcelaMax || 99));
           if (activeRule && typeof activeRule.value === "number" && activeRule.passedToCustomer !== false) {
-            initialCardSurcharge = Math.round((baseTotal * (activeRule.value / 100)) * 100) / 100;
+            initialCardSurcharge = Math.round((amountForFee * (activeRule.value / 100)) * 100) / 100;
           }
         }
 
@@ -154,7 +157,32 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
     setManualDiscount(val);
     if (!order) return;
     const baseTotal = order.itemsTotal + order.freight;
-    setTotalReceived(baseTotal + surcharge + cardSurcharge - val - pixDiscount);
+    const amountForFee = baseTotal - val;
+    const productDiscount = (order.coupon?.type === 'FREE_SHIPPING') ? 0 : val;
+    const baseForPix = Math.max(0, order.itemsTotal - productDiscount);
+    
+    let newPixDiscount = 0;
+    let newCardSurcharge = 0;
+
+    if (paymentMethod === "PIX") {
+      const pixRule = settings?.paymentRules?.find((r: any) => r.paymentMethod === "pix" && r.type === "discount");
+      if (pixRule && typeof pixRule.value === "number") {
+        newPixDiscount = Math.round((baseForPix * (pixRule.value / 100)) * 100) / 100;
+      }
+    } else if (paymentMethod === "Cartão de Crédito") {
+      const activeRule = creditRules.find((r: any) => installments >= (r.parcelaMin || 0) && installments <= (r.parcelaMax || 99));
+      if (activeRule && typeof activeRule.value === "number" && activeRule.passedToCustomer !== false) {
+        newCardSurcharge = Math.round((amountForFee * (activeRule.value / 100)) * 100) / 100;
+      }
+    } else if (paymentMethod === "Cartão de Débito") {
+      if (debitRule && typeof debitRule.value === "number" && debitRule.passedToCustomer !== false) {
+        newCardSurcharge = Math.round((amountForFee * (debitRule.value / 100)) * 100) / 100;
+      }
+    }
+
+    setPixDiscount(newPixDiscount);
+    setCardSurcharge(newCardSurcharge);
+    setTotalReceived(Math.round((baseTotal + surcharge + newCardSurcharge - val - newPixDiscount) * 100) / 100);
   };
 
   const handleSurchargeChange = (val: number) => {
@@ -189,20 +217,23 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
     const baseTotal = order.itemsTotal + order.freight;
     let newDiscount = 0;
     let newCardSurcharge = 0;
+    const amountForFee = baseTotal - manualDiscount;
+    const productDiscount = (order.coupon?.type === 'FREE_SHIPPING') ? 0 : manualDiscount;
+    const baseForPix = Math.max(0, order.itemsTotal - productDiscount);
 
     if (method === "PIX") {
-      const pixRule = settings?.paymentRules?.find(r => r.paymentMethod === "pix" && r.type === "discount");
+      const pixRule = settings?.paymentRules?.find((r: any) => r.paymentMethod === "pix" && r.type === "discount");
       if (pixRule && typeof pixRule.value === "number") {
-        newDiscount = Math.round((baseTotal * (pixRule.value / 100)) * 100) / 100;
+        newDiscount = Math.round((baseForPix * (pixRule.value / 100)) * 100) / 100;
       }
     } else if (method === "Cartão de Crédito") {
-      const activeRule = creditRules.find(r => installments >= (r.parcelaMin || 0) && installments <= (r.parcelaMax || 99));
+      const activeRule = creditRules.find((r: any) => installments >= (r.parcelaMin || 0) && installments <= (r.parcelaMax || 99));
       if (activeRule && typeof activeRule.value === "number" && activeRule.passedToCustomer !== false) {
-        newCardSurcharge = Math.round((baseTotal * (activeRule.value / 100)) * 100) / 100;
+        newCardSurcharge = Math.round((amountForFee * (activeRule.value / 100)) * 100) / 100;
       }
     } else if (method === "Cartão de Débito") {
       if (debitRule && typeof debitRule.value === "number" && debitRule.passedToCustomer !== false) {
-        newCardSurcharge = Math.round((baseTotal * (debitRule.value / 100)) * 100) / 100;
+        newCardSurcharge = Math.round((amountForFee * (debitRule.value / 100)) * 100) / 100;
       }
     }
 
@@ -217,10 +248,11 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
 
     const baseTotal = order.itemsTotal + order.freight;
     let newCardSurcharge = 0;
+    const amountForFee = baseTotal - manualDiscount;
 
-    const activeRule = creditRules.find(r => inst >= (r.parcelaMin || 0) && inst <= (r.parcelaMax || 99));
+    const activeRule = creditRules.find((r: any) => inst >= (r.parcelaMin || 0) && inst <= (r.parcelaMax || 99));
     if (activeRule && typeof activeRule.value === "number" && activeRule.passedToCustomer !== false) {
-      newCardSurcharge = Math.round((baseTotal * (activeRule.value / 100)) * 100) / 100;
+      newCardSurcharge = Math.round((amountForFee * (activeRule.value / 100)) * 100) / 100;
     }
 
     setCardSurcharge(newCardSurcharge);
