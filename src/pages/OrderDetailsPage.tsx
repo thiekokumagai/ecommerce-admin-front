@@ -262,12 +262,49 @@ export default function OrderDetailsPage() {
                 <span>Frete</span>
                 <span>R$ {order.freight.toFixed(2)}</span>
               </div>
-              {order.discount > 0 && (
+              {order.couponDiscount ? (
+                <div className="flex justify-between text-rose-600">
+                  <span>Desconto Cupom</span>
+                  <span>-R$ {order.couponDiscount.toFixed(2)}</span>
+                </div>
+              ) : null}
+              {order.couponFreightDiscount ? (
+                <div className="flex justify-between text-rose-600">
+                  <span>Desconto Frete (Cupom)</span>
+                  <span>-R$ {order.couponFreightDiscount.toFixed(2)}</span>
+                </div>
+              ) : null}
+              {order.paymentDiscount ? (
+                <div className="flex justify-between text-rose-600">
+                  <span>Desconto Pagamento</span>
+                  <span>-R$ {order.paymentDiscount.toFixed(2)}</span>
+                </div>
+              ) : null}
+              {order.receiptDiscount ? (
+                <div className="flex justify-between text-rose-600">
+                  <span>Desconto Recebimento</span>
+                  <span>-R$ {order.receiptDiscount.toFixed(2)}</span>
+                </div>
+              ) : null}
+              {(order.discount > 0 && !order.couponDiscount && !order.couponFreightDiscount && !order.paymentDiscount && !order.receiptDiscount) ? (
                 <div className="flex justify-between text-rose-600">
                   <span>Desconto</span>
                   <span>-R$ {order.discount.toFixed(2)}</span>
                 </div>
-              )}
+              ) : null}
+              
+              {order.installmentSurcharge ? (
+                <div className="flex justify-between text-slate-500">
+                  <span>Acréscimo Parcelamento</span>
+                  <span>+R$ {order.installmentSurcharge.toFixed(2)}</span>
+                </div>
+              ) : null}
+              {order.receiptSurcharge ? (
+                <div className="flex justify-between text-slate-500">
+                  <span>Acréscimo Recebimento</span>
+                  <span>+R$ {order.receiptSurcharge.toFixed(2)}</span>
+                </div>
+              ) : null}
               <div className="flex justify-between font-bold text-slate-800 border-t border-slate-100 pt-3 text-base">
                 <span>Total do pedido</span>
                 <span>R$ {order.totalOrder.toFixed(2)}</span>

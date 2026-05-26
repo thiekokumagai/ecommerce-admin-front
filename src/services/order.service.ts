@@ -55,8 +55,15 @@ export async function receiveOrder(id: string, payload: {
   pixDiscount?: number;
   surcharge?: number;
   cardSurcharge?: number;
+  paymentDiscount?: number;
+  installmentSurcharge?: number;
+  couponDiscount?: number;
+  couponFreightDiscount?: number;
+  receiptDiscount?: number;
+  receiptSurcharge?: number;
   totalReceived: number;
   installments?: number;
+  cardFee?: number;
 }): Promise<Order> {
   const response = await apiFetch(`/orders/${id}/receive`, {
     method: "PATCH",

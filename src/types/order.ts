@@ -27,6 +27,16 @@ export interface Order {
   surcharge: number;
   cardSurcharge: number;
   cardFee?: number;
+  
+  paymentDiscount?: number;
+  installmentSurcharge?: number;
+  couponDiscount?: number;
+  couponFreightDiscount?: number;
+  receiptDiscount?: number;
+  receiptSurcharge?: number;
+  
+  appliedTaxRule?: any;
+  appliedCouponRule?: any;
   paymentType: string;
   paymentMethod: string;
   pixKey: string | null;
