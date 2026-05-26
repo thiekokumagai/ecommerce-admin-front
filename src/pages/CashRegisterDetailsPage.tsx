@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Landmark, Plus, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { ArrowLeft, Landmark, Plus, ArrowUpRight, ArrowDownRight, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -77,10 +78,34 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
     },
   });
 
+  const deleteTxMutation = useMutation({
+    mutationFn: (txId: string) => fixedCostService.deleteTransaction(txId),
+    onSuccess: () => {
+      toast({
+        title: "Movimentação excluída",
+        description: "A movimentação manual foi removida com sucesso.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["cash-register-summary", id] });
+    },
+    onError: (err: any) => {
+      toast({
+        title: "Erro ao excluir",
+        description: err?.message || "Ocorreu um erro ao remover a movimentação.",
+        variant: "destructive",
+      });
+    },
+  });
+
   if (isLoading) return <div className="p-8">Carregando relatório...</div>;
   if (!data) return <div className="p-8">Caixa não encontrado.</div>;
 
   const { cashRegister, summary, orders, transactions = [] } = data;
+
+  const handleDeleteTx = (txId: string) => {
+    if (confirm("Tem certeza que deseja excluir esta movimentação? Essa ação não pode ser desfeita e os valores retornarão ao caixa.")) {
+      deleteTxMutation.mutate(txId);
+    }
+  };
 
   const handleTxSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,135 +213,158 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
         </Card>
       </div>
 
-      {/* Grid Operacional: Tabela de Pedidos + Resumo por Método */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* Tabela de Pedidos */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-4 border-b bg-slate-50/50">
-            <h3 className="font-bold text-slate-700">Pedidos Incluídos neste Caixa</h3>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50/30">
-                <TableHead className="w-24">Nº Pedido</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Data Pagamento</TableHead>
-                <TableHead>Método</TableHead>
-                <TableHead className="text-right">Bruto</TableHead>
-                <TableHead className="text-right text-rose-700">Taxa</TableHead>
-                <TableHead className="text-right text-emerald-700">Líquido</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((order: any) => (
-                <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors">
-                  <TableCell className="font-bold text-slate-900">#{order.orderNumber}</TableCell>
-                  <TableCell className="font-medium text-slate-700">{order.customerName}</TableCell>
-                  <TableCell className="text-slate-500 text-xs">
-                    {order.paymentDate
-                      ? format(new Date(order.paymentDate), "dd/MM/yyyy HH:mm")
-                      : "-"}
-                  </TableCell>
-                  <TableCell className="font-bold text-slate-600 text-xs">
-                    {order.paymentMethod || "-"}
-                    {order.paymentMethod === "Cartão de Crédito" && order.installments && (
-                      <span className="text-slate-400 font-normal text-[11px] ml-1">({order.installments}x)</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right font-medium text-slate-800">
-                    {currencyFormatter.format(order.totalReceived)}
-                  </TableCell>
-                  <TableCell className="text-right font-semibold text-rose-500">
-                    {order.cardFee ? currencyFormatter.format(order.cardFee) : "—"}
-                  </TableCell>
-                  <TableCell className="text-right font-black text-emerald-600">
-                    {currencyFormatter.format(order.totalReceived - (order.cardFee || 0))}
-                  </TableCell>
-                </TableRow>
-              ))}
-              {orders.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    Nenhum pedido pago neste período.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+      <Tabs defaultValue="pedidos" className="w-full">
+        <TabsList className="mb-6 bg-slate-100 p-1">
+          <TabsTrigger value="pedidos" className="font-semibold">Pedidos Recebidos</TabsTrigger>
+          <TabsTrigger value="movimentacoes" className="font-semibold">Movimentações Manuais</TabsTrigger>
+        </TabsList>
 
-        {/* Resumo por Método */}
-        <Card className="lg:col-span-1 border-slate-200">
-          <CardHeader className="bg-slate-50/50 border-b py-4">
-            <CardTitle className="text-base font-bold text-slate-700">Por Método de Venda</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="space-y-3.5">
-              {Object.entries(summary.totalsByMethod).map(([method, total]) => (
-                <div key={method} className="flex justify-between items-center border-b border-slate-100 pb-2.5 last:border-0 last:pb-0">
-                  <span className="text-sm font-semibold text-slate-600">{method}</span>
-                  <span className="font-extrabold text-slate-800">
-                    {currencyFormatter.format(total as number)}
-                  </span>
-                </div>
-              ))}
-              {Object.keys(summary.totalsByMethod).length === 0 && (
-                <div className="text-center py-4 text-gray-400 text-xs">Sem vendas consolidadas.</div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Extrato Detalhado de Caixa (Manual + Custos Fixos) */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b bg-slate-50/50 flex justify-between items-center">
-          <h3 className="font-bold text-slate-700">Movimentações Manuais & Saídas de Caixa</h3>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-slate-50/30">
-              <TableHead>Data</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead className="text-right">Valor</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {transactions.map((tx: any) => (
-              <TableRow key={tx.id} className="hover:bg-slate-50/50 transition-colors">
-                <TableCell className="text-slate-500 text-xs">
-                  {format(new Date(tx.date || tx.createdAt), "dd/MM/yyyy HH:mm")}
-                </TableCell>
-                <TableCell className="font-medium text-slate-700">{tx.description}</TableCell>
-                <TableCell>
-                  {tx.type === "ENTRY" ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-100">
-                      <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
-                      Entrada
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-100">
-                      <ArrowDownRight className="h-3.5 w-3.5 text-rose-600" />
-                      Saída
-                    </span>
+        <TabsContent value="pedidos" className="animate-in fade-in duration-300 focus-visible:outline-none focus-visible:ring-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+            {/* Tabela de Pedidos */}
+            <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-4 border-b bg-slate-50/50">
+                <h3 className="font-bold text-slate-700">Pedidos Incluídos neste Caixa</h3>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50/30">
+                    <TableHead className="w-24">Nº Pedido</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Data Pagamento</TableHead>
+                    <TableHead>Método</TableHead>
+                    <TableHead className="text-right">Bruto</TableHead>
+                    <TableHead className="text-right text-rose-700">Taxa</TableHead>
+                    <TableHead className="text-right text-emerald-700">Líquido</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orders.map((order: any) => (
+                    <TableRow key={order.id} className="hover:bg-slate-50/50 transition-colors">
+                      <TableCell className="font-bold text-slate-900">#{order.orderNumber}</TableCell>
+                      <TableCell className="font-medium text-slate-700">{order.customerName}</TableCell>
+                      <TableCell className="text-slate-500 text-xs">
+                        {order.paymentDate
+                          ? format(new Date(order.paymentDate), "dd/MM/yyyy HH:mm")
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="font-bold text-slate-600 text-xs">
+                        {order.paymentMethod || "-"}
+                        {order.paymentMethod === "Cartão de Crédito" && order.installments && (
+                          <span className="text-slate-400 font-normal text-[11px] ml-1">({order.installments}x)</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right font-medium text-slate-800">
+                        {currencyFormatter.format(order.totalReceived)}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold text-rose-500">
+                        {order.cardFee ? currencyFormatter.format(order.cardFee) : "—"}
+                      </TableCell>
+                      <TableCell className="text-right font-black text-emerald-600">
+                        {currencyFormatter.format(order.totalReceived - (order.cardFee || 0))}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {orders.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                        Nenhum pedido pago neste período.
+                      </TableCell>
+                    </TableRow>
                   )}
-                </TableCell>
-                <TableCell className={`text-right font-black ${tx.type === "ENTRY" ? "text-emerald-600" : "text-rose-600"}`}>
-                  {tx.type === "ENTRY" ? "+" : "-"} {currencyFormatter.format(tx.amount)}
-                </TableCell>
-              </TableRow>
-            ))}
-            {transactions.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                  Nenhuma movimentação manual ou pagamento de custo fixo registrado neste caixa.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Resumo por Método */}
+            <Card className="lg:col-span-1 border-slate-200">
+              <CardHeader className="bg-slate-50/50 border-b py-4">
+                <CardTitle className="text-base font-bold text-slate-700">Por Método de Venda</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="space-y-3.5">
+                  {Object.entries(summary.totalsByMethod).map(([method, total]) => (
+                    <div key={method} className="flex justify-between items-center border-b border-slate-100 pb-2.5 last:border-0 last:pb-0">
+                      <span className="text-sm font-semibold text-slate-600">{method}</span>
+                      <span className="font-extrabold text-slate-800">
+                        {currencyFormatter.format(total as number)}
+                      </span>
+                    </div>
+                  ))}
+                  {Object.keys(summary.totalsByMethod).length === 0 && (
+                    <div className="text-center py-4 text-gray-400 text-xs">Sem vendas consolidadas.</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="movimentacoes" className="animate-in fade-in duration-300 focus-visible:outline-none focus-visible:ring-0">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-4 border-b bg-slate-50/50 flex justify-between items-center">
+              <h3 className="font-bold text-slate-700">Movimentações Manuais & Saídas de Caixa</h3>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50/30">
+                  <TableHead>Data</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((tx: any) => (
+                  <TableRow key={tx.id} className="hover:bg-slate-50/50 transition-colors">
+                    <TableCell className="text-slate-500 text-xs">
+                      {format(new Date(tx.date || tx.createdAt), "dd/MM/yyyy HH:mm")}
+                    </TableCell>
+                    <TableCell className="font-medium text-slate-700">{tx.description}</TableCell>
+                    <TableCell>
+                      {tx.type === "ENTRY" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-100">
+                          <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
+                          Entrada
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-100">
+                          <ArrowDownRight className="h-3.5 w-3.5 text-rose-600" />
+                          Saída
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className={`text-right font-black ${tx.type === "ENTRY" ? "text-emerald-600" : "text-rose-600"}`}>
+                      {tx.type === "ENTRY" ? "+" : "-"} {currencyFormatter.format(tx.amount)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {currentId && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteTx(tx.id)}
+                          disabled={deleteTxMutation.isPending}
+                          className="h-8 w-8 text-rose-500 hover:text-rose-700 hover:bg-rose-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {transactions.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                      Nenhuma movimentação manual ou pagamento de custo fixo registrado neste caixa.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog para Registro de Movimentação Manual */}
       <Dialog open={isTxOpen} onOpenChange={setIsTxOpen}>

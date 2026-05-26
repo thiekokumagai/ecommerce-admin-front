@@ -89,9 +89,16 @@ export const fixedCostService = {
       description: string;
     },
   ): Promise<CashTransaction> => {
-    const response = await apiFetch(`/cash-registers/${cashRegisterId}/transactions`, {
+    const response = await apiFetch(`/fixed-costs/transactions`, {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, cashRegisterId }),
+    });
+    return response.json();
+  },
+
+  deleteTransaction: async (id: string): Promise<CashTransaction> => {
+    const response = await apiFetch(`/fixed-costs/transactions/${id}`, {
+      method: "DELETE",
     });
     return response.json();
   },

@@ -31,13 +31,13 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -320,19 +320,19 @@ export default function CustosFixosPage() {
         </CardContent>
       </Card>
 
-      {/* Drawer / Sheet de Cadastro e Edição */}
-      <Sheet open={isSheetOpen} onOpenChange={(open) => !open && handleCloseSheet()}>
-        <SheetContent className="sm:max-w-md overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle className="text-xl font-bold text-gray-900">
+      {/* Dialog de Cadastro e Edição */}
+      <Dialog open={isSheetOpen} onOpenChange={(open) => !open && handleCloseSheet()}>
+        <DialogContent className="sm:max-w-md overflow-y-auto max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-gray-900">
               {editingCost ? "Editar Conta Fixa" : "Nova Conta Fixa"}
-            </SheetTitle>
-            <SheetDescription>
+            </DialogTitle>
+            <DialogDescription>
               Configure o valor e os critérios de recorrência da conta.
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
-          <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-6 py-6">
+          <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-6 py-4">
             <div className="space-y-4">
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="name" className="font-semibold text-gray-700">
@@ -367,7 +367,7 @@ export default function CustosFixosPage() {
                 )}
               </div>
 
-              <div className="flex items-center justify-between py-2 border-t border-b">
+              <div className="flex items-center justify-between py-2 border-t border-b border-gray-100">
                 <div className="space-y-0.5">
                   <Label className="font-semibold text-gray-800">Conta Recorrente / Repetitiva</Label>
                   <p className="text-xs text-gray-400">Ative se a conta se repete mensalmente.</p>
@@ -422,7 +422,7 @@ export default function CustosFixosPage() {
               )}
             </div>
 
-            <SheetFooter className="pt-4 border-t flex-row gap-2 justify-end">
+            <DialogFooter className="pt-4 border-t border-gray-100 flex gap-2 justify-end">
               <Button type="button" variant="outline" onClick={handleCloseSheet}>
                 Cancelar
               </Button>
@@ -433,10 +433,10 @@ export default function CustosFixosPage() {
                   ? "Salvar Alterações"
                   : "Criar Conta"}
               </Button>
-            </SheetFooter>
+            </DialogFooter>
           </form>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog de Confirmação de Pagamento */}
       <PayFixedCostDialog
