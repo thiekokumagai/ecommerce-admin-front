@@ -145,20 +145,23 @@ export default function PayFixedCostDialog({
           <div className="space-y-4">
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="amount" className="font-semibold text-gray-700">
-                Valor Pago (R$)
+                Valor Pago
               </Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                disabled={!openRegister || payMutation.isPending}
-                className="text-lg font-semibold h-11"
-                placeholder="0.00"
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">R$</span>
+                <Input
+                  id="amount"
+                  value={amount !== "" ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(amount)) : ""}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    setAmount(digits ? (Number(digits) / 100).toString() : "");
+                  }}
+                  disabled={!openRegister || payMutation.isPending}
+                  className="text-lg font-semibold h-11 pl-9"
+                  placeholder="0,00"
+                  required
+                />
+              </div>
             </div>
 
             <div className="flex flex-col space-y-1.5">

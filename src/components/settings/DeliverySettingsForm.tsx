@@ -255,15 +255,16 @@ export function DeliverySettingsForm() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground font-semibold">R$</span>
+                    <div className="relative w-32">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">R$</span>
                       <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="Ex: 8.50"
-                        value={newVal}
-                        onChange={(e) => setNewVal(e.target.value)}
-                        className="w-28 h-9"
+                        placeholder="Ex: 8,50"
+                        value={newVal !== "" ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(newVal)) : ""}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, "");
+                          setNewVal(digits ? (Number(digits) / 100).toString() : "");
+                        }}
+                        className="w-full h-9 pl-9"
                       />
                     </div>
                   </TableCell>

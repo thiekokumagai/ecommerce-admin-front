@@ -157,29 +157,49 @@ export default function CouponFormModal({ isOpen, onClose, coupon }: Props) {
 
               <div className="space-y-2">
                 <Label htmlFor="value" className="text-slate-700 font-bold">Valor do Desconto</Label>
-                <Input 
-                  id="value" 
-                  type="number" 
-                  step="0.01"
-                  placeholder={type === "FREE_SHIPPING" ? "N/A" : "EX: 10"} 
-                  value={value}
-                  onChange={(e) => setValue(e.target.value)}
-                  disabled={type === "FREE_SHIPPING"}
-                  className="h-11 rounded-xl border-slate-200 focus-visible:ring-violet-600 font-medium"
-                />
+                {type === "VALUE" ? (
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">R$</span>
+                    <Input 
+                      id="value" 
+                      placeholder="0,00" 
+                      value={value !== "" ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(value)) : ""}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "");
+                        setValue(digits ? Number(digits) / 100 : "");
+                      }}
+                      className="h-11 rounded-xl border-slate-200 focus-visible:ring-violet-600 font-medium pl-9"
+                    />
+                  </div>
+                ) : (
+                  <Input 
+                    id="value" 
+                    type="number" 
+                    step="0.01"
+                    placeholder={type === "FREE_SHIPPING" ? "N/A" : "EX: 10"} 
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    disabled={type === "FREE_SHIPPING"}
+                    className="h-11 rounded-xl border-slate-200 focus-visible:ring-violet-600 font-medium"
+                  />
+                )}
               </div>
 
               <div className="space-y-2 col-span-2">
-                <Label htmlFor="minOrderValue" className="text-slate-700 font-bold">Valor Mínimo do Pedido (R$)</Label>
-                <Input 
-                  id="minOrderValue" 
-                  type="number" 
-                  step="0.01"
-                  placeholder="Deixe em branco se não houver" 
-                  value={minOrderValue}
-                  onChange={(e) => setMinOrderValue(e.target.value)}
-                  className="h-11 rounded-xl border-slate-200 focus-visible:ring-violet-600 font-medium"
-                />
+                <Label htmlFor="minOrderValue" className="text-slate-700 font-bold">Valor Mínimo do Pedido</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">R$</span>
+                  <Input 
+                    id="minOrderValue" 
+                    placeholder="Deixe em branco se não houver" 
+                    value={minOrderValue !== "" ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(minOrderValue)) : ""}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      setMinOrderValue(digits ? Number(digits) / 100 : "");
+                    }}
+                    className="h-11 rounded-xl border-slate-200 focus-visible:ring-violet-600 font-medium pl-9"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2 col-span-2">

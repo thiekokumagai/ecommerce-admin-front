@@ -396,17 +396,21 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
             </div>
 
             <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="tx-amount" className="font-semibold text-gray-700">Valor (R$)</Label>
-              <Input
-                id="tx-amount"
-                type="number"
-                step="0.01"
-                min="0"
-                value={txAmount}
-                onChange={(e) => setTxAmount(e.target.value)}
-                placeholder="0.00"
-                required
-              />
+              <Label htmlFor="tx-amount" className="font-semibold text-gray-700">Valor</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">R$</span>
+                <Input
+                  id="tx-amount"
+                  value={txAmount !== "" ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(txAmount)) : ""}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "");
+                    setTxAmount(digits ? (Number(digits) / 100).toString() : "");
+                  }}
+                  className="pl-9"
+                  placeholder="0,00"
+                  required
+                />
+              </div>
             </div>
 
             <div className="flex flex-col space-y-1.5">

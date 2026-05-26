@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
@@ -80,6 +80,7 @@ export default function CustosFixosPage() {
     setValue,
     watch,
     reset,
+    control,
     formState: { errors },
   } = useForm<FixedCostFormData>({
     resolver: zodResolver(fixedCostSchema),
@@ -351,16 +352,26 @@ export default function CustosFixosPage() {
 
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="value" className="font-semibold text-gray-700">
-                  Valor Estimado (R$)
+                  Valor Estimado
                 </Label>
-                <Input
-                  id="value"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  {...register("value")}
-                  className={errors.value ? "border-red-500" : ""}
+                <Controller
+                  name="value"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-medium">R$</span>
+                      <Input
+                        id="value"
+                        placeholder="0,00"
+                        value={field.value !== undefined ? new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(field.value) : ""}
+                        onChange={(e) => {
+                          const digits = e.target.value.replace(/\D/g, "");
+                          field.onChange(digits ? Number(digits) / 100 : 0);
+                        }}
+                        className={`pl-9 ${errors.value ? "border-red-500" : ""}`}
+                      />
+                    </div>
+                  )}
                 />
                 {errors.value && (
                   <p className="text-xs text-red-500 font-medium">{errors.value.message}</p>
