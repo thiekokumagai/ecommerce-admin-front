@@ -193,3 +193,16 @@ Plans:
 Planos:
 
 - [x] 15-01: Módulo de Cupom no Backend e Frontend
+
+---
+
+### Fase 17: Módulo de Investimento
+
+**Objetivo:** Criar um módulo de investimento semelhante à conta fixa (com entrada e saída). O valor adicionado como investimento deve entrar como crédito neste módulo e sair do caixa principal. Ao realizar a conferência de um pedido (produtos que chegaram para estoque), o valor gasto deve ser subtraído do módulo de investimento (podendo inclusive ficar negativo se o gasto exceder o investimento inicial). Isso servirá para separar o dinheiro usado em compras de produtos e rastrear os gastos com fornecedores de forma segura.
+**Requisitos**: TBD
+**Depende de**: Fase 16
+**Planos**: 0 planos
+
+Planos:
+
+- [ ] TBD (execute o comando `/gsd-plan-phase 17` para detalhar)

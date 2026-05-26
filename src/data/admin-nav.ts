@@ -37,6 +37,7 @@ export const navSections = [
     items: [
       { title: "Caixa Atual", url: "/financeiro/atual", icon: Landmark },
       { title: "Contas Fixas", url: "/financeiro/custos-fixos", icon: Receipt },
+      { title: "Módulo de Investimento", url: "/investimentos", icon: Landmark },
       { title: "Histórico de Caixas", url: "/caixa", icon: FolderTree },
     ],
   },
