@@ -14,6 +14,12 @@ export interface CashRegisterSummary {
   cashRegister: CashRegister;
   summary: {
     totalReceived: number;
+    totalGross: number;
+    totalCardFees: number;
+    totalEntries: number;
+    totalOutflows: number;
+    motoboyOutflows: number;
+    totalNet: number;
     totalsByMethod: Record<string, number>;
     orderCount: number;
   };

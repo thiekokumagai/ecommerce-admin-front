@@ -45,6 +45,7 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
   const [txType, setTxType] = useState<"ENTRY" | "OUTFLOW">("ENTRY");
   const [txAmount, setTxAmount] = useState("");
   const [txDescription, setTxDescription] = useState("");
+  const [txCategory, setTxCategory] = useState<"GENERAL" | "MOTOBOY">("GENERAL");
 
   const { data, isLoading } = useQuery({
     queryKey: ["cash-register-summary", id],
@@ -58,7 +59,8 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
         type: txType,
         amount: parseFloat(txAmount),
         description: txDescription,
-      }),
+        category: txCategory,
+      } as any),
     onSuccess: () => {
       toast({
         title: "Lançamento efetuado!",
@@ -68,6 +70,7 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
       setIsTxOpen(false);
       setTxAmount("");
       setTxDescription("");
+      setTxCategory("GENERAL");
     },
     onError: (err: any) => {
       toast({
@@ -155,8 +158,7 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
         )}
       </div>
 
-      {/* Grid Estatístico Premium com 5 Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-6">
         <Card className="border-emerald-100 bg-emerald-50/10">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs uppercase tracking-wider text-emerald-800 font-bold">Faturamento Bruto</CardTitle>
@@ -197,6 +199,17 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
           <CardContent>
             <p className="text-3xl font-black text-rose-600">
               {currencyFormatter.format(summary.totalOutflows || 0)}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-orange-100 bg-orange-50/10">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs uppercase tracking-wider text-orange-800 font-bold">Gasto Motoboy</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-black text-orange-600">
+              {currencyFormatter.format(summary.motoboyOutflows || 0)}
             </p>
           </CardContent>
         </Card>
@@ -321,7 +334,14 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
                     <TableCell className="text-slate-500 text-xs">
                       {format(new Date(tx.date || tx.createdAt), "dd/MM/yyyy HH:mm")}
                     </TableCell>
-                    <TableCell className="font-medium text-slate-700">{tx.description}</TableCell>
+                    <TableCell className="font-medium text-slate-700">
+                      {tx.description}
+                      {tx.category === "MOTOBOY" && (
+                        <span className="ml-2 inline-flex items-center rounded-md bg-orange-50 px-1.5 py-0.5 text-[10px] font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">
+                          Motoboy
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {tx.type === "ENTRY" ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-100">
@@ -394,6 +414,24 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
                 </SelectContent>
               </Select>
             </div>
+
+            {txType === "OUTFLOW" && (
+              <div className="flex flex-col space-y-1.5 animate-in fade-in slide-in-from-top-2">
+                <Label htmlFor="tx-category" className="font-semibold text-gray-700">Categoria da Saída</Label>
+                <Select
+                  value={txCategory}
+                  onValueChange={(val: any) => setTxCategory(val)}
+                >
+                  <SelectTrigger id="tx-category">
+                    <SelectValue placeholder="Selecione a categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="GENERAL">Geral</SelectItem>
+                    <SelectItem value="MOTOBOY">Motoboy / Frete</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="tx-amount" className="font-semibold text-gray-700">Valor</Label>
