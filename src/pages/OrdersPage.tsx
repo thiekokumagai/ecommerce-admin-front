@@ -317,7 +317,10 @@ export default function OrdersPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right font-extrabold text-slate-800">
-                        R$ {order.totalOrder.toFixed(2)}
+                        {new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: "BRL"
+                        }).format(order.totalOrder)}
                       </TableCell>
                       <TableCell>
                         <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-400 group-hover:bg-violet-600 group-hover:text-white group-hover:border-violet-600 transition-all shrink-0">
