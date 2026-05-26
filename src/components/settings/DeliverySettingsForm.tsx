@@ -225,7 +225,12 @@ export function DeliverySettingsForm() {
                   ranges.map((r) => (
                     <TableRow key={r.id} className="hover:bg-muted/20">
                       <TableCell className="font-medium">Até {r.distancia} km</TableCell>
-                      <TableCell className="font-semibold">R$ {r.valor.toFixed(2)}</TableCell>
+                      <TableCell className="font-semibold">
+                        {new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: "BRL"
+                        }).format(r.valor)}
+                      </TableCell>
                       <TableCell>
                         <Button
                           size="icon"
