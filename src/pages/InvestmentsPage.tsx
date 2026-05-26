@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useInvestmentSummary, useInvestmentTransactions } from "@/hooks/useInvestments";
+import { useInvestmentSummary, useInvestmentTransactions, useDeleteInvestmentTransaction } from "@/hooks/useInvestments";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Plus, Minus, ArrowUpRight, ArrowDownRight, TrendingUp } from "lucide-react";
+import { Loader2, Plus, Minus, ArrowUpRight, ArrowDownRight, TrendingUp, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AddInvestmentModal } from "@/components/investments/AddInvestmentModal";
 import { RegisterPurchaseModal } from "@/components/investments/RegisterPurchaseModal";
@@ -16,6 +16,7 @@ export default function InvestmentsPage() {
 
   const { data: summary, isLoading: isLoadingSummary } = useInvestmentSummary();
   const { data: transactions, isLoading: isLoadingTransactions } = useInvestmentTransactions();
+  const { mutate: deleteTransaction, isPending: isDeleting } = useDeleteInvestmentTransaction();
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -108,6 +109,7 @@ export default function InvestmentsPage() {
                     <TableHead className="font-semibold text-slate-600">Descrição</TableHead>
                     <TableHead className="font-semibold text-slate-600 text-center">Tipo</TableHead>
                     <TableHead className="font-semibold text-slate-600 text-right">Valor</TableHead>
+                    <TableHead className="font-semibold text-slate-600 text-center w-[80px]">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -129,6 +131,21 @@ export default function InvestmentsPage() {
                       </TableCell>
                       <TableCell className={`text-right font-bold ${tx.type === "ENTRY" ? "text-emerald-600" : "text-rose-600"}`}>
                         {tx.type === "ENTRY" ? "+" : "-"} {formatCurrency(tx.amount)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 h-8 w-8"
+                          onClick={() => {
+                            if (window.confirm("Tem certeza que deseja excluir esta transação?")) {
+                              deleteTransaction(tx.id);
+                            }
+                          }}
+                          disabled={isDeleting}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

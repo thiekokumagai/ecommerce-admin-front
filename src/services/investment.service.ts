@@ -40,4 +40,10 @@ export const investmentService = {
     });
     return response.json();
   },
+
+  deleteTransaction: async (id: string): Promise<void> => {
+    await apiFetch(`/investments/${id}`, {
+      method: "DELETE",
+    });
+  },
 };

@@ -22,12 +22,9 @@ export function useAddInvestment() {
   return useMutation({
     mutationFn: investmentService.addInvestment,
     onSuccess: () => {
-      toast({ title: "Investimento adicionado", description: "O valor foi transferido do caixa principal para o módulo de investimentos." });
+      toast({ title: "Investimento adicionado", description: "O valor foi adicionado ao módulo de investimentos com sucesso." });
       queryClient.invalidateQueries({ queryKey: ["investment-summary"] });
       queryClient.invalidateQueries({ queryKey: ["investment-transactions"] });
-      // Invalidar caixa também
-      queryClient.invalidateQueries({ queryKey: ["cash-registers"] });
-      queryClient.invalidateQueries({ queryKey: ["active-cash-register"] });
     },
     onError: (error: any) => {
       toast({
@@ -53,6 +50,26 @@ export function useRegisterPurchase() {
       toast({
         variant: "destructive",
         title: "Erro ao registrar compra",
+        description: error.message || "Ocorreu um erro.",
+      });
+    },
+  });
+}
+
+export function useDeleteInvestmentTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: investmentService.deleteTransaction,
+    onSuccess: () => {
+      toast({ title: "Transação excluída", description: "A transação de investimento foi excluída com sucesso." });
+      queryClient.invalidateQueries({ queryKey: ["investment-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["investment-transactions"] });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir transação",
         description: error.message || "Ocorreu um erro.",
       });
     },

@@ -59,6 +59,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
 
   const [paymentMethod, setPaymentMethod] = useState("");
   const [localStatus, setLocalStatus] = useState<OrderStatus | "">("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
   const [manualDiscount, setManualDiscount] = useState(0);
   const [pixDiscount, setPixDiscount] = useState(0);
   const [surcharge, setSurcharge] = useState(0);
@@ -80,6 +81,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
       const isCurrentlyPaid = order.paymentStatus === "PAID" || order.status === "COMPLETED" || order.status === "CANCELLED";
 
       if (isCurrentlyPaid) {
+        setCouponDiscount(0);
         setManualDiscount(order.discount || 0);
         setPixDiscount(order.pixDiscount || 0);
         setSurcharge(order.surcharge || 0);
@@ -92,15 +94,18 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
           initialDiscount = order.freight;
         }
 
-        setManualDiscount(initialDiscount);
+        setCouponDiscount(initialDiscount);
+        setManualDiscount(0);
         setSurcharge(0);
         const method = order.paymentMethod || "";
         const baseTotal = order.itemsTotal + order.freight;
         let initialPixDiscount = 0;
         let initialCardSurcharge = 0;
         let inst = order.installments || 1;
-        const amountForFee = baseTotal - initialDiscount;
-        const productDiscount = (order.coupon?.type === 'FREE_SHIPPING') ? 0 : initialDiscount;
+        
+        const totalDiscount = initialDiscount;
+        const amountForFee = baseTotal - totalDiscount;
+        const productDiscount = (order.coupon?.type === 'FREE_SHIPPING') ? 0 : totalDiscount;
         const baseForPix = Math.max(0, order.itemsTotal - productDiscount);
 
         if (method === "PIX") {
@@ -118,7 +123,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
 
         setPixDiscount(initialPixDiscount);
         setCardSurcharge(initialCardSurcharge);
-        setTotalReceived(Math.round((baseTotal + initialCardSurcharge - initialPixDiscount - initialDiscount) * 100) / 100);
+        setTotalReceived(Math.round((baseTotal + initialCardSurcharge - initialPixDiscount - totalDiscount) * 100) / 100);
       }
     }
   }, [order, settings]);
@@ -140,7 +145,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
     setTotalReceived(newTotal);
     if (!order) return;
     const baseTotal = order.itemsTotal + order.freight;
-    const baseCalculated = baseTotal - pixDiscount + cardSurcharge;
+    const baseCalculated = baseTotal - couponDiscount - pixDiscount + cardSurcharge;
     if (newTotal > baseCalculated) {
       setSurcharge(newTotal - baseCalculated);
       setManualDiscount(0);
@@ -157,8 +162,9 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
     setManualDiscount(val);
     if (!order) return;
     const baseTotal = order.itemsTotal + order.freight;
-    const amountForFee = baseTotal - val;
-    const productDiscount = (order.coupon?.type === 'FREE_SHIPPING') ? 0 : val;
+    const totalDiscount = couponDiscount + val;
+    const amountForFee = baseTotal - totalDiscount;
+    const productDiscount = (order.coupon?.type === 'FREE_SHIPPING') ? 0 : totalDiscount;
     const baseForPix = Math.max(0, order.itemsTotal - productDiscount);
     
     let newPixDiscount = 0;
@@ -182,14 +188,14 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
 
     setPixDiscount(newPixDiscount);
     setCardSurcharge(newCardSurcharge);
-    setTotalReceived(Math.round((baseTotal + surcharge + newCardSurcharge - val - newPixDiscount) * 100) / 100);
+    setTotalReceived(Math.round((baseTotal + surcharge + newCardSurcharge - totalDiscount - newPixDiscount) * 100) / 100);
   };
 
   const handleSurchargeChange = (val: number) => {
     setSurcharge(val);
     if (!order) return;
     const baseTotal = order.itemsTotal + order.freight;
-    setTotalReceived(baseTotal + val + cardSurcharge - manualDiscount - pixDiscount);
+    setTotalReceived(baseTotal + val + cardSurcharge - (couponDiscount + manualDiscount) - pixDiscount);
   };
 
   // Regras de parcelamento / cartão vigentes
@@ -217,8 +223,9 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
     const baseTotal = order.itemsTotal + order.freight;
     let newDiscount = 0;
     let newCardSurcharge = 0;
-    const amountForFee = baseTotal - manualDiscount;
-    const productDiscount = (order.coupon?.type === 'FREE_SHIPPING') ? 0 : manualDiscount;
+    const totalDiscount = couponDiscount + manualDiscount;
+    const amountForFee = baseTotal - totalDiscount;
+    const productDiscount = (order.coupon?.type === 'FREE_SHIPPING') ? 0 : totalDiscount;
     const baseForPix = Math.max(0, order.itemsTotal - productDiscount);
 
     if (method === "PIX") {
@@ -239,7 +246,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
 
     setPixDiscount(newDiscount);
     setCardSurcharge(newCardSurcharge);
-    setTotalReceived(Math.round((baseTotal + surcharge + newCardSurcharge - newDiscount - manualDiscount) * 100) / 100);
+    setTotalReceived(Math.round((baseTotal + surcharge + newCardSurcharge - newDiscount - totalDiscount) * 100) / 100);
   };
 
   const handleInstallmentsChange = (inst: number) => {
@@ -248,7 +255,8 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
 
     const baseTotal = order.itemsTotal + order.freight;
     let newCardSurcharge = 0;
-    const amountForFee = baseTotal - manualDiscount;
+    const totalDiscount = couponDiscount + manualDiscount;
+    const amountForFee = baseTotal - totalDiscount;
 
     const activeRule = creditRules.find((r: any) => inst >= (r.parcelaMin || 0) && inst <= (r.parcelaMax || 99));
     if (activeRule && typeof activeRule.value === "number" && activeRule.passedToCustomer !== false) {
@@ -256,7 +264,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
     }
 
     setCardSurcharge(newCardSurcharge);
-    setTotalReceived(Math.round((baseTotal + surcharge + newCardSurcharge - pixDiscount - manualDiscount) * 100) / 100);
+    setTotalReceived(Math.round((baseTotal + surcharge + newCardSurcharge - pixDiscount - totalDiscount) * 100) / 100);
   };
 
   const handleReceiveOrder = async () => {
@@ -269,7 +277,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
         payload: {
           paymentMethod,
           paymentType: derivedPaymentType,
-          discount: manualDiscount,
+          discount: couponDiscount + manualDiscount,
           pixDiscount,
           surcharge,
           cardSurcharge,
@@ -542,7 +550,12 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                 {order.coupon && (
                   <div className="flex justify-between text-violet-600 font-bold items-center bg-violet-50/30 px-1 py-0.5 rounded border border-violet-100">
                     <span>Cupom Aplicado</span>
-                    <span className="bg-violet-600 text-white px-2 py-0.5 rounded text-[10px] uppercase">{order.coupon.title}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="bg-violet-600 text-white px-2 py-0.5 rounded text-[10px] uppercase">{order.coupon.title}</span>
+                      {couponDiscount > 0 && (
+                        <span>- {formatCurrency(couponDiscount)}</span>
+                      )}
+                    </div>
                   </div>
                 )}
                 {paymentMethod === "Cartão de Crédito" && cardSurcharge > 0 && (
@@ -603,7 +616,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                 </div>
                 <div className="flex justify-between font-bold text-slate-800 border-t border-slate-100 pt-2.5 items-center">
                   <span>Total final</span>
-                  <span>{formatCurrency((order.itemsTotal || 0) + (order.freight || 0) + surcharge + cardSurcharge - manualDiscount - pixDiscount)}</span>
+                  <span>{formatCurrency((order.itemsTotal || 0) + (order.freight || 0) + surcharge + cardSurcharge - (couponDiscount + manualDiscount) - pixDiscount)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-emerald-600 bg-emerald-50/50 p-2 rounded-lg mt-1 items-center">
                   <span>Total recebido</span>

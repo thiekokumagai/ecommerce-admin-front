@@ -87,6 +87,7 @@ export const fixedCostService = {
       type: 'ENTRY' | 'OUTFLOW';
       amount: number;
       description: string;
+      category?: string;
     },
   ): Promise<CashTransaction> => {
     const response = await apiFetch(`/fixed-costs/transactions`, {

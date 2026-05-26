@@ -12,7 +12,7 @@ interface Props {
 
 export function AddInvestmentModal({ isOpen, onClose }: Props) {
   const [amount, setAmount] = useState<string>("");
-  const [description, setDescription] = useState<string>("Transferência para Investimento");
+  const [description, setDescription] = useState<string>("Adição ao Investimento");
   const addMutation = useAddInvestment();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -24,7 +24,7 @@ export function AddInvestmentModal({ isOpen, onClose }: Props) {
       {
         onSuccess: () => {
           setAmount("");
-          setDescription("Transferência para Investimento");
+          setDescription("Adição ao Investimento");
           onClose();
         },
       }
@@ -37,7 +37,7 @@ export function AddInvestmentModal({ isOpen, onClose }: Props) {
         <DialogHeader>
           <DialogTitle>Adicionar Investimento</DialogTitle>
           <DialogDescription>
-            Este valor será transferido do caixa aberto no momento para a sua carteira de investimentos.
+            Adicione um valor à sua carteira de investimentos de forma independente.
           </DialogDescription>
         </DialogHeader>
 

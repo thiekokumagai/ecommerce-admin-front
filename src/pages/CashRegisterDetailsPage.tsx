@@ -42,10 +42,10 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
   const queryClient = useQueryClient();
 
   const [isTxOpen, setIsTxOpen] = useState(false);
-  const [txType, setTxType] = useState<"ENTRY" | "OUTFLOW">("ENTRY");
+  const [txType, setTxType] = useState<"ENTRY" | "OUTFLOW">("OUTFLOW");
   const [txAmount, setTxAmount] = useState("");
   const [txDescription, setTxDescription] = useState("");
-  const [txCategory, setTxCategory] = useState<"GENERAL" | "MOTOBOY">("GENERAL");
+  const [txCategory, setTxCategory] = useState<"GENERAL" | "MOTOBOY">("MOTOBOY");
 
   const { data, isLoading } = useQuery({
     queryKey: ["cash-register-summary", id],
@@ -70,7 +70,8 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
       setIsTxOpen(false);
       setTxAmount("");
       setTxDescription("");
-      setTxCategory("GENERAL");
+      setTxType("OUTFLOW");
+      setTxCategory("MOTOBOY");
     },
     onError: (err: any) => {
       toast({
