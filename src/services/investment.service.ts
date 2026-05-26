@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { apiFetch } from "./api";
 
 export interface InvestmentTransaction {
   id: string;
@@ -16,22 +16,28 @@ export interface InvestmentSummary {
 
 export const investmentService = {
   getSummary: async (): Promise<InvestmentSummary> => {
-    const { data } = await api.get("/investments/summary");
-    return data;
+    const response = await apiFetch("/investments/summary");
+    return response.json();
   },
 
   getTransactions: async (): Promise<InvestmentTransaction[]> => {
-    const { data } = await api.get("/investments/transactions");
-    return data;
+    const response = await apiFetch("/investments/transactions");
+    return response.json();
   },
 
   addInvestment: async (payload: { amount: number; description?: string }): Promise<InvestmentTransaction> => {
-    const { data } = await api.post("/investments/add", payload);
-    return data;
+    const response = await apiFetch("/investments/add", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
   },
 
   registerPurchase: async (payload: { amount: number; description: string }): Promise<InvestmentTransaction> => {
-    const { data } = await api.post("/investments/purchase", payload);
-    return data;
+    const response = await apiFetch("/investments/purchase", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return response.json();
   },
 };

@@ -33,7 +33,7 @@ export function useAddInvestment() {
       toast({
         variant: "destructive",
         title: "Erro ao adicionar investimento",
-        description: error.response?.data?.message || "Ocorreu um erro.",
+        description: error.message || "Ocorreu um erro.",
       });
     },
   });
@@ -53,7 +53,7 @@ export function useRegisterPurchase() {
       toast({
         variant: "destructive",
         title: "Erro ao registrar compra",
-        description: error.response?.data?.message || "Ocorreu um erro.",
+        description: error.message || "Ocorreu um erro.",
       });
     },
   });
