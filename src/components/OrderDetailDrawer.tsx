@@ -372,6 +372,10 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
     }
   };
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent hideCloseButton className="w-full sm:max-w-md md:max-w-xl lg:max-w-2xl h-[90vh] overflow-hidden bg-white p-0 border border-slate-200 shadow-2xl flex flex-col rounded-2xl">
@@ -517,7 +521,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                         </div>
                         <div className="flex-1 border-b border-dashed border-slate-200 mx-2" />
                         <span className="text-sm font-bold text-slate-700 shrink-0">
-                          R$ {(item.price * item.quantity).toFixed(2)}
+                          {formatCurrency(item.price * item.quantity)}
                         </span>
                       </div>
                     </div>
@@ -529,11 +533,11 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
               <div className="space-y-2.5 bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm text-sm font-medium">
                 <div className="flex justify-between text-slate-500 items-center">
                   <span>Total dos itens ({order.items.length})</span>
-                  <span>R$ {order.itemsTotal.toFixed(2)}</span>
+                  <span>{formatCurrency(order.itemsTotal)}</span>
                 </div>
                 <div className="flex justify-between text-slate-500 items-center">
                   <span>Frete</span>
-                  <span>R$ {order.freight.toFixed(2)}</span>
+                  <span>{formatCurrency(order.freight)}</span>
                 </div>
                 {order.coupon && (
                   <div className="flex justify-between text-violet-600 font-bold items-center bg-violet-50/30 px-1 py-0.5 rounded border border-violet-100">
@@ -544,25 +548,25 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                 {paymentMethod === "Cartão de Crédito" && cardSurcharge > 0 && (
                   <div className="flex justify-between text-violet-600 font-bold items-center bg-violet-50/30 px-1 py-0.5 rounded">
                     <span>Juros Crédito ({installments}x)</span>
-                    <span>R$ {cardSurcharge.toFixed(2)}</span>
+                    <span>{formatCurrency(cardSurcharge)}</span>
                   </div>
                 )}
                 {paymentMethod === "Cartão de Débito" && cardSurcharge > 0 && (
                   <div className="flex justify-between text-violet-600 font-bold items-center bg-violet-50/30 px-1 py-0.5 rounded">
                     <span>Taxa Débito</span>
-                    <span>R$ {cardSurcharge.toFixed(2)}</span>
+                    <span>{formatCurrency(cardSurcharge)}</span>
                   </div>
                 )}
                 {paymentMethod === "PIX" && pixDiscount > 0 && (
                   <div className="flex justify-between text-emerald-600 font-bold items-center bg-emerald-50/30 px-1 py-0.5 rounded">
                     <span>Desconto PIX</span>
-                    <span>- R$ {pixDiscount.toFixed(2)}</span>
+                    <span>- {formatCurrency(pixDiscount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-slate-500 items-center">
                   <span>Desconto Recebimento</span>
                   {isPaid ? (
-                    <span className="font-semibold text-slate-700 pr-1">R$ {manualDiscount.toFixed(2)}</span>
+                    <span className="font-semibold text-slate-700 pr-1">{formatCurrency(manualDiscount)}</span>
                   ) : (
                     <div className="relative w-32">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
@@ -581,7 +585,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                 <div className="flex justify-between text-slate-500 items-center">
                   <span>Acréscimo Recebimento</span>
                   {isPaid ? (
-                    <span className="font-semibold text-slate-700 pr-1">R$ {surcharge.toFixed(2)}</span>
+                    <span className="font-semibold text-slate-700 pr-1">{formatCurrency(surcharge)}</span>
                   ) : (
                     <div className="relative w-32">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
@@ -599,12 +603,12 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                 </div>
                 <div className="flex justify-between font-bold text-slate-800 border-t border-slate-100 pt-2.5 items-center">
                   <span>Total final</span>
-                  <span>R$ {((order.itemsTotal || 0) + (order.freight || 0) + surcharge + cardSurcharge - manualDiscount - pixDiscount).toFixed(2)}</span>
+                  <span>{formatCurrency((order.itemsTotal || 0) + (order.freight || 0) + surcharge + cardSurcharge - manualDiscount - pixDiscount)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-emerald-600 bg-emerald-50/50 p-2 rounded-lg mt-1 items-center">
                   <span>Total recebido</span>
                   {isPaid ? (
-                    <span className="font-bold text-emerald-700 pr-1">R$ {totalReceived.toFixed(2)}</span>
+                    <span className="font-bold text-emerald-700 pr-1">{formatCurrency(totalReceived)}</span>
                   ) : (
                     <div className="relative w-32">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-emerald-600">R$</span>
@@ -675,14 +679,14 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                     </div>
                     {activeRule && (
                       <div className="text-right text-[11px] text-violet-600 font-bold bg-violet-50/70 px-2.5 py-1 rounded-md mt-0.5 border border-violet-100/50">
-                        Taxa estimada (Juros): R$ {estimatedCardFee.toFixed(2)} ({interestPercentage.toFixed(2)}%)
+                        Taxa estimada (Juros): {formatCurrency(estimatedCardFee)} ({interestPercentage.toFixed(2)}%)
                       </div>
                     )}
                   </div>
                 )}
                 {paymentMethod === "Cartão de Débito" && !isPaid && debitRule && (
                   <div className="text-right text-[11px] text-violet-600 font-bold bg-violet-50/70 px-2.5 py-1 rounded-md mt-0.5 border border-violet-100/50">
-                    Taxa estimada (Débito): R$ {estimatedDebitFee.toFixed(2)} ({debitFeePercentage.toFixed(2)}%)
+                    Taxa estimada (Débito): {formatCurrency(estimatedDebitFee)} ({debitFeePercentage.toFixed(2)}%)
                   </div>
                 )}
                 {isPaid && order.installments && order.paymentMethod === "Cartão de Crédito" && (
@@ -695,11 +699,11 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                   <div className="flex flex-col gap-1 border-t border-slate-100 pt-2">
                     <div className="flex justify-between text-slate-500">
                       <span>Taxa de Cartão Retida</span>
-                      <span className="text-rose-600 font-bold">R$ {order.cardFee.toFixed(2)}</span>
+                      <span className="text-rose-600 font-bold">{formatCurrency(order.cardFee)}</span>
                     </div>
                     <div className="flex justify-between text-slate-500 font-semibold text-xs border-t border-dashed border-slate-100 pt-1">
                       <span>Receita Líquida</span>
-                      <span className="text-emerald-600 font-bold">R$ {(order.totalReceived - order.cardFee).toFixed(2)}</span>
+                      <span className="text-emerald-600 font-bold">{formatCurrency(order.totalReceived - order.cardFee)}</span>
                     </div>
                   </div>
                 )}
