@@ -266,7 +266,10 @@ export default function CustosFixosPage() {
                     <TableRow key={cost.id} className="hover:bg-gray-50/30 transition-colors">
                       <TableCell className="font-semibold text-gray-800">{cost.name}</TableCell>
                       <TableCell className="font-medium text-gray-600">
-                        R$ {cost.value.toFixed(2)}
+                        {new Intl.NumberFormat("pt-BR", {
+                          style: "currency",
+                          currency: "BRL"
+                        }).format(cost.value)}
                       </TableCell>
                       <TableCell>
                         {!cost.repeats ? (
