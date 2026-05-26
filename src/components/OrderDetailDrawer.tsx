@@ -81,14 +81,14 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
       const isCurrentlyPaid = order.paymentStatus === "PAID" || order.status === "COMPLETED" || order.status === "CANCELLED";
 
       if (isCurrentlyPaid) {
-        setCouponDiscount(0);
-        setManualDiscount(order.discount || 0);
-        setPixDiscount(order.pixDiscount || 0);
-        setSurcharge(order.surcharge || 0);
-        setCardSurcharge(order.cardSurcharge || 0);
+        setCouponDiscount((order.couponDiscount || 0) + (order.couponFreightDiscount || 0));
+        setManualDiscount(order.receiptDiscount || 0);
+        setPixDiscount(order.paymentDiscount || 0);
+        setSurcharge(order.receiptSurcharge || 0);
+        setCardSurcharge(order.installmentSurcharge || 0);
         setTotalReceived(order.totalReceived > 0 ? order.totalReceived : (order.totalOrder || 0));
       } else {
-        let initialDiscount = order.discount || 0;
+        let initialDiscount = (order.couponDiscount || 0) + (order.couponFreightDiscount || 0);
         
         if (order.coupon && order.coupon.type === 'FREE_SHIPPING' && initialDiscount === 0) {
           initialDiscount = order.freight;

@@ -286,12 +286,7 @@ export default function OrderDetailsPage() {
                   <span>-R$ {order.receiptDiscount.toFixed(2)}</span>
                 </div>
               ) : null}
-              {(order.discount > 0 && !order.couponDiscount && !order.couponFreightDiscount && !order.paymentDiscount && !order.receiptDiscount) ? (
-                <div className="flex justify-between text-rose-600">
-                  <span>Desconto</span>
-                  <span>-R$ {order.discount.toFixed(2)}</span>
-                </div>
-              ) : null}
+
               
               {order.installmentSurcharge ? (
                 <div className="flex justify-between text-slate-500">
