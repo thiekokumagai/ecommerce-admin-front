@@ -196,13 +196,44 @@ Planos:
 
 ---
 
-### Fase 17: Módulo de Investimento
+### [CONCLUÍDO] Fase 17: Módulo de Investimento
 
 **Objetivo:** Criar um módulo de investimento semelhante à conta fixa (com entrada e saída). O valor adicionado como investimento deve entrar como crédito neste módulo e sair do caixa principal. Ao realizar a conferência de um pedido (produtos que chegaram para estoque), o valor gasto deve ser subtraído do módulo de investimento (podendo inclusive ficar negativo se o gasto exceder o investimento inicial). Isso servirá para separar o dinheiro usado em compras de produtos e rastrear os gastos com fornecedores de forma segura.
-**Requisitos**: TBD
-**Depende de**: Fase 16
-**Planos**: 0 planos
+**Planos:** 1 plano
 
 Planos:
 
-- [ ] TBD (execute o comando `/gsd-plan-phase 17` para detalhar)
+- [x] 17-01: Módulo de Investimento no Backend e Frontend
+
+---
+
+### [CONCLUÍDO] Fase 18: Separação de Taxas e Descontos
+
+**Objetivo:** Suportar a segregação detalhada de taxas e descontos nos pedidos, evitando sobreposição e garantindo um resumo financeiro transparente na listagem de pedidos e fechamentos de caixa.
+**Planos:** 1 plano
+
+Planos:
+
+- [x] 18-01: Separação de Taxas e Descontos no Recebimento e Detalhes de Pedidos (Frontend)
+
+---
+
+### [CONCLUÍDO] Fase 19: Dashboard Dinâmico e Indicadores de Vendas
+
+**Objetivo:** Modernizar o painel de controle administrativo, tornando todos os KPIs (Vendas, Pedidos, Ticket Médio, Itens Vendidos), gráficos e a lista de itens mais vendidos totalmente dinâmicos, com filtros por data (default "Hoje") e filtragem de best-sellers por categoria.
+**Planos:** 1 plano
+
+Planos:
+
+- [x] 19-01: Lógica do Dashboard no Backend NestJS e Integração com Página do Dashboard no Frontend (Backend & Frontend)
+
+---
+
+### [CONCLUÍDO] Fase 20: Indicadores de Desempenho e Vendas do Dia no Caixa
+
+**Objetivo:** Adicionar métricas estratégicas detalhadas na visualização do caixa administrativo (Faturamento de Hoje, Pedidos no Período, Ticket Médio do Período, e Itens Vendidos Hoje) e otimizar o layout separando as informações de caixa/saldos das métricas comerciais com espaçamento aprimorado.
+**Planos:** 1 plano
+
+Planos:
+
+- [x] 20-01: Lógica e Visualização de Indicadores do Período e Vendas do Dia no Detalhamento do Caixa (Frontend)

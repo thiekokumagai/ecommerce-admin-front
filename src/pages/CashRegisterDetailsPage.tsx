@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Landmark, Plus, ArrowUpRight, ArrowDownRight, Trash2 } from "lucide-react";
+import { ArrowLeft, Landmark, Plus, ArrowUpRight, ArrowDownRight, Trash2, ShoppingBag, TrendingUp, Calendar, Package } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -129,6 +129,28 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
     currency: "BRL",
   });
 
+  // Calculations for additional metrics
+  const totalPedidosPeriodo = orders.length;
+  const ticketMedio = totalPedidosPeriodo > 0 ? (summary.totalReceived / totalPedidosPeriodo) : 0;
+
+  // Compute using local timezone America/Campo_Grande
+  const nowLocal = new Date().toLocaleString("en-US", { timeZone: "America/Campo_Grande" });
+  const todayLocal = new Date(nowLocal);
+  const todayStart = new Date(todayLocal.getFullYear(), todayLocal.getMonth(), todayLocal.getDate(), 0, 0, 0, 0);
+  const todayEnd = new Date(todayLocal.getFullYear(), todayLocal.getMonth(), todayLocal.getDate(), 23, 59, 59, 999);
+
+  const ordersToday = orders.filter((order: any) => {
+    if (!order.paymentDate) return false;
+    const paymentDate = new Date(new Date(order.paymentDate).toLocaleString("en-US", { timeZone: "America/Campo_Grande" }));
+    return paymentDate >= todayStart && paymentDate <= todayEnd;
+  });
+
+  const totalVendasDia = ordersToday.reduce((acc: number, order: any) => acc + (order.totalReceived || 0), 0);
+  const produtosVendidosDia = ordersToday.reduce((acc: number, order: any) => {
+    const itemsQty = order.items?.reduce((itemAcc: number, item: any) => itemAcc + (item.quantity || 0), 0) || 0;
+    return acc + itemsQty;
+  }, 0);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -159,72 +181,135 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-6">
-        <Card className="border-emerald-100 bg-emerald-50/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-wider text-emerald-800 font-bold">Faturamento Bruto</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-black text-emerald-600">
-              {currencyFormatter.format(summary.totalGross || summary.totalReceived)}
-            </p>
-          </CardContent>
-        </Card>
+      {/* Grupo 1: Fluxo de Caixa (Financeiro) */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Fluxo de Caixa & Saldos</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <Card className="border-emerald-100 bg-emerald-50/10 rounded-2xl shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs uppercase tracking-wider text-emerald-800 font-bold">Faturamento Bruto</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-black text-emerald-600">
+                {currencyFormatter.format(summary.totalGross || summary.totalReceived)}
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="border-green-100 bg-green-50/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-wider text-green-800 font-bold">Entradas Manuais</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-black text-green-600">
-              {currencyFormatter.format(summary.totalEntries || 0)}
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="border-amber-100 bg-amber-50/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-wider text-amber-800 font-bold">Taxas Retidas (Cartão)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-black text-amber-600">
-              {currencyFormatter.format(summary.totalCardFees || 0)}
-            </p>
-          </CardContent>
-        </Card>
+          <Card className="border-green-100 bg-green-50/10 rounded-2xl shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs uppercase tracking-wider text-green-800 font-bold">Entradas Manuais</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-black text-green-600">
+                {currencyFormatter.format(summary.totalEntries || 0)}
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-amber-100 bg-amber-50/10 rounded-2xl shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs uppercase tracking-wider text-amber-800 font-bold">Taxas Retidas (Cartão)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-black text-amber-600">
+                {currencyFormatter.format(summary.totalCardFees || 0)}
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="border-rose-100 bg-rose-50/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-wider text-rose-800 font-bold">Saídas / Despesas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-black text-rose-600">
-              {currencyFormatter.format(summary.totalOutflows || 0)}
-            </p>
-          </CardContent>
-        </Card>
+          <Card className="border-rose-100 bg-rose-50/10 rounded-2xl shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs uppercase tracking-wider text-rose-800 font-bold">Saídas / Despesas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-black text-rose-600">
+                {currencyFormatter.format(summary.totalOutflows || 0)}
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="border-orange-100 bg-orange-50/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-wider text-orange-800 font-bold">Gasto Motoboy</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-black text-orange-600">
-              {currencyFormatter.format(summary.motoboyOutflows || 0)}
-            </p>
-          </CardContent>
-        </Card>
+          <Card className="border-orange-100 bg-orange-50/10 rounded-2xl shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs uppercase tracking-wider text-orange-800 font-bold">Gasto Motoboy</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-black text-orange-600">
+                {currencyFormatter.format(summary.motoboyOutflows || 0)}
+              </p>
+            </CardContent>
+          </Card>
 
-        <Card className="border-violet-100 bg-violet-50/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs uppercase tracking-wider text-violet-800 font-bold">Saldo Líquido</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-black text-violet-600">
-              {currencyFormatter.format(summary.totalNet !== undefined ? summary.totalNet : summary.totalReceived)}
-            </p>
-          </CardContent>
-        </Card>
+          <Card className="border-violet-100 bg-violet-50/10 rounded-2xl shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs uppercase tracking-wider text-violet-800 font-bold">Saldo Líquido</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-black text-violet-600">
+                {currencyFormatter.format(summary.totalNet !== undefined ? summary.totalNet : summary.totalReceived)}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Grupo 2: Indicadores de Desempenho e Vendas do Dia */}
+      <div className="space-y-3 pt-2">
+        <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Indicadores do Período & Vendas de Hoje</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="border-slate-200 bg-slate-50/20 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-xl text-emerald-600 bg-emerald-50">
+                <Calendar className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Vendas Hoje</p>
+                <p className="text-2xl font-black text-slate-800">
+                  {currencyFormatter.format(totalVendasDia)}
+                </p>
+              </div>
+            </CardContent>
+          </Card>          
+          <Card className="border-slate-200 bg-slate-50/20 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-xl text-sky-600 bg-sky-50">
+                <ShoppingBag className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Pedidos no Período</p>
+                <p className="text-2xl font-black text-slate-800">{totalPedidosPeriodo}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 bg-slate-50/20 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-xl text-teal-600 bg-teal-50">
+                <TrendingUp className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Ticket Médio</p>
+                <p className="text-2xl font-black text-slate-800">
+                  {currencyFormatter.format(ticketMedio)}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          
+
+          <Card className="border-slate-200 bg-slate-50/20 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-xl text-amber-600 bg-amber-50">
+                <Package className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Itens Vendidos Hoje</p>
+                <p className="text-2xl font-black text-slate-800">{produtosVendidosDia}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Tabs defaultValue="pedidos" className="w-full">
