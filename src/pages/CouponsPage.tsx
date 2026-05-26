@@ -38,7 +38,12 @@ export default function CouponsPage() {
   const formatValue = (type: string, value?: number) => {
     if (type === "FREE_SHIPPING") return "Frete Grátis";
     if (!value) return "N/A";
-    if (type === "VALUE") return `R$ ${value.toFixed(2)}`;
+    if (type === "VALUE") {
+      return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      }).format(value);
+    }
     if (type === "PERCENTAGE") return `${value}%`;
     return "";
   };
