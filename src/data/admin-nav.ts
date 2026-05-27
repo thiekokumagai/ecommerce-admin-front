@@ -8,6 +8,7 @@ import {
   Landmark,
   Settings,
   Receipt,
+  Users,
 } from "lucide-react";
 
 export const dashboardNavItem = {
@@ -30,6 +31,7 @@ export const navSections = [
     label: "Vendas",
     items: [
       { title: "Pedidos", url: "/pedidos", icon: ShoppingBag },
+      { title: "Clientes", url: "/clientes", icon: Users },
     ],
   },
   {

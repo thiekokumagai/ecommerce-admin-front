@@ -250,3 +250,19 @@ Planos:
 Planos:
 
 - [ ] TBD (execute o comando `/gsd-plan-phase 21` para detalhar)
+
+---
+
+### Fase 22: Módulo de Clientes
+
+**Objetivo:** Criar e gerenciar a base de clientes. O sistema deve capturar o cliente automaticamente (buscar por telefone ou criar um novo junto com seu endereço) no momento da geração do pedido, vinculando-o ao `Order`. Além disso, implementar uma tela no painel administrativo para listar e gerenciar os clientes.
+**Requisitos**: TBD
+**Depende de:** Fase 21
+**Planos:** 4 planos
+
+Planos:
+
+- [x] 22-01: Endpoints e Serviços do CustomerModule (Backend)
+- [x] 22-02: Integração e Serviços no Frontend
+- [x] 22-03: Tela de Listagem e Navegação
+- [x] 22-04: Drawer de Detalhes e Histórico
