@@ -23,6 +23,7 @@ const VariationPage = lazy(() => import("@/pages/VariationPage"));
 const VariationDetailsPage = lazy(() => import("@/pages/VariationDetailsPage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const OrderPrintPage = lazy(() => import("@/pages/OrderPrintPage"));
 
 function RouteFallback() {
   return (
@@ -49,6 +50,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route element={<ProtectedRoute />}>
+              <Route path="/pedidos/:id/imprimir" element={<OrderPrintPage />} />
               <Route element={<AdminLayout />}>
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/pedidos" element={<OrdersPage />} />

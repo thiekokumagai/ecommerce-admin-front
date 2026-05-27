@@ -411,34 +411,45 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
 
                 {/* Quick actions top-right */}
                 <div className="flex items-center gap-1.5">
-                  <button className="w-8 h-8 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors" title="Compartilhar">
+                  {/* 1. Imprimir */}
+                  <a 
+                    href={`/pedidos/${order.id}/imprimir`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-8 h-8 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors" 
+                    title="Imprimir"
+                  >
+                    <Printer className="h-3.5 w-3.5" />
+                  </a>
+                  
+                  {/* 2. Compartilhar */}
+                  <button 
+                    disabled
+                    className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 cursor-not-allowed" 
+                    title="Compartilhar (Em breve)"
+                  >
                     <Send className="h-3.5 w-3.5" />
                   </button>
+
+                  {/* 3. Editar */}
+                  <button 
+                    disabled
+                    className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 cursor-not-allowed" 
+                    title="Editar pedido (Em breve)"
+                  >
+                    <Edit className="h-3.5 w-3.5" />
+                  </button>
+
+                  {/* 4. WhatsApp */}
                   <a 
                     href={`https://wa.me/55${order.customerPhone.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-8 h-8 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors" 
+                    className="w-8 h-8 rounded-full bg-emerald-50 hover:bg-emerald-100 flex items-center justify-center text-emerald-600 hover:text-emerald-700 transition-colors" 
                     title="WhatsApp"
                   >
                     <MessageSquare className="h-3.5 w-3.5" />
                   </a>
-                  <button 
-                    onClick={handleCopyAddress} 
-                    className="w-8 h-8 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors" 
-                    title="Copiar dados"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                  </button>
-                  <button className="w-8 h-8 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors" title="Imprimir">
-                    <Printer className="h-3.5 w-3.5" />
-                  </button>
-                  <button className="w-8 h-8 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors" title="Download PDF">
-                    <Download className="h-3.5 w-3.5" />
-                  </button>
-                  <button className="w-8 h-8 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors" title="Editar">
-                    <Edit className="h-3.5 w-3.5" />
-                  </button>
                 </div>
               </div>
 

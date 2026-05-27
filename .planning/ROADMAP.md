@@ -237,3 +237,16 @@ Planos:
 Planos:
 
 - [x] 20-01: Lógica e Visualização de Indicadores do Período e Vendas do Dia no Detalhamento do Caixa (Frontend)
+
+---
+
+### Fase 21: Ações do modal de pedidos
+
+**Objetivo:** Implementar botões de ação na gaveta de pedidos na seguinte sequência: Imprimir (abrir em nova aba para impressão no modelo recebido, fechando a aba em caso de fechamento do diálogo de impressão), Compartilhar (sem ação por enquanto), Editar pedido (sem ação por enquanto), e WhatsApp (botão para abrir conversa com o cliente no WhatsApp do pedido).
+**Requisitos**: TBD
+**Depende de:** Fase 20
+**Planos:** 0 planos
+
+Planos:
+
+- [ ] TBD (execute o comando `/gsd-plan-phase 21` para detalhar)
