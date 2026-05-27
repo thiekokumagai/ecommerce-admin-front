@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useCustomerDetails, useUpdateCustomer } from "@/hooks/useCustomers";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, X, User, Phone, MapPin, CalendarDays, Edit2, Save } from "lucide-react";
+import { Loader2, User, Phone, MapPin, CalendarDays, Edit2, Save, ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 interface CustomerDetailDrawerProps {
@@ -39,35 +39,33 @@ export default function CustomerDetailDrawer({ customerId, isOpen, onClose }: Cu
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full sm:max-w-md p-0 overflow-hidden flex flex-col bg-slate-50/50 border-l border-slate-200/60 shadow-2xl">
-        <div className="bg-white px-6 py-4 border-b border-slate-200/80 flex items-center justify-between shrink-0">
-          <SheetHeader className="text-left space-y-0.5">
-            <SheetTitle className="text-xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
-              <User className="h-5 w-5 text-violet-600" />
-              Detalhes do Cliente
-            </SheetTitle>
-          </SheetHeader>
-          <SheetClose asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100">
-              <X className="h-4 w-4" />
-            </Button>
-          </SheetClose>
-        </div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent hideCloseButton className="w-full sm:max-w-md md:max-w-xl lg:max-w-2xl h-[90vh] overflow-hidden bg-white p-0 border border-slate-200 shadow-2xl flex flex-col rounded-2xl">
+        <DialogTitle className="sr-only">Detalhes do Cliente</DialogTitle>
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-violet-600" />
+            <p className="text-sm text-slate-500 font-medium animate-pulse">Carregando dados do cliente...</p>
+          </div>
+        ) : !customer ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-400">
+            <User className="h-8 w-8" />
+            <p className="text-sm font-semibold">Cliente não encontrado</p>
+          </div>
+        ) : (
+          <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Header with back button */}
+              <div className="flex items-center justify-between border-b border-slate-200/80 pb-4">
+                <button 
+                  onClick={onClose}
+                  className="flex items-center gap-1.5 text-slate-600 hover:text-violet-700 transition-colors text-sm font-semibold group"
+                >
+                  <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
+                  <span>Voltar</span>
+                </button>
+              </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-8">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="h-8 w-8 animate-spin text-violet-600" />
-              <p className="text-sm font-semibold text-slate-500">Carregando dados...</p>
-            </div>
-          ) : !customer ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400">
-              <User className="h-8 w-8" />
-              <p className="text-sm font-semibold">Cliente não encontrado</p>
-            </div>
-          ) : (
-            <>
               {/* Informações Pessoais */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -87,7 +85,7 @@ export default function CustomerDetailDrawer({ customerId, isOpen, onClose }: Cu
                   )}
                 </div>
 
-                <div className="bg-white rounded-2xl border border-slate-200/60 p-4 space-y-4 shadow-sm">
+                <div className="bg-white rounded-xl border border-slate-200/60 p-4 space-y-4 shadow-sm">
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase">Nome Completo</label>
                     {isEditing ? (
@@ -135,12 +133,12 @@ export default function CustomerDetailDrawer({ customerId, isOpen, onClose }: Cu
 
                 <div className="space-y-3">
                   {customer.addresses?.length === 0 ? (
-                    <div className="bg-white rounded-2xl border border-slate-200/60 p-6 text-center text-slate-400 font-medium text-sm">
+                    <div className="bg-white rounded-xl border border-slate-200/60 p-6 text-center text-slate-400 font-medium text-sm">
                       Nenhum endereço salvo.
                     </div>
                   ) : (
                     customer.addresses?.map((addr) => (
-                      <div key={addr.id} className="bg-white rounded-2xl border border-slate-200/60 p-4 shadow-sm relative overflow-hidden">
+                      <div key={addr.id} className="bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm relative overflow-hidden">
                         {addr.isDefault && (
                           <div className="absolute top-0 right-0 bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">
                             PRINCIPAL
@@ -158,10 +156,10 @@ export default function CustomerDetailDrawer({ customerId, isOpen, onClose }: Cu
                   )}
                 </div>
               </div>
-            </>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
