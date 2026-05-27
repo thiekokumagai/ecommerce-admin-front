@@ -9,6 +9,8 @@ import { Loader2, Plus, Minus, ArrowUpRight, ArrowDownRight, TrendingUp, Trash2 
 import { Badge } from "@/components/ui/badge";
 import { AddInvestmentModal } from "@/components/investments/AddInvestmentModal";
 import { RegisterPurchaseModal } from "@/components/investments/RegisterPurchaseModal";
+import { cashRegisterService } from "@/services/cash-register.service";
+import { useQuery } from "@tanstack/react-query";
 
 export default function InvestmentsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -17,6 +19,32 @@ export default function InvestmentsPage() {
   const { data: summary, isLoading: isLoadingSummary } = useInvestmentSummary();
   const { data: transactions, isLoading: isLoadingTransactions } = useInvestmentTransactions();
   const { mutate: deleteTransaction, isPending: isDeleting } = useDeleteInvestmentTransaction();
+
+  const { data: registers, isLoading: isLoadingRegisters } = useQuery({
+    queryKey: ["cash-registers"],
+    queryFn: cashRegisterService.findAll,
+  });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const openRegister = registers?.find((r) => {
+    const start = new Date(r.startDate);
+    const end = new Date(r.endDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+    return today >= start && today <= end;
+  });
+
+  const filteredTransactions = transactions?.filter(tx => {
+    if (!openRegister) return false;
+    const txDate = new Date(tx.createdAt);
+    const start = new Date(openRegister.startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(openRegister.endDate);
+    end.setHours(23, 59, 59, 999);
+    return txDate >= start && txDate <= end;
+  });
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -96,11 +124,15 @@ export default function InvestmentsPage() {
           <CardTitle className="text-lg font-bold text-slate-800">Histórico de Transações</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoadingTransactions ? (
+          {isLoadingTransactions || isLoadingRegisters ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
             </div>
-          ) : transactions && transactions.length > 0 ? (
+          ) : !openRegister ? (
+            <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+              <p className="text-slate-500 font-medium">Nenhum caixa aberto no momento. Abra um caixa para listar os lançamentos.</p>
+            </div>
+          ) : filteredTransactions && filteredTransactions.length > 0 ? (
             <div className="border rounded-xl overflow-hidden">
               <Table>
                 <TableHeader className="bg-slate-50">
@@ -113,7 +145,7 @@ export default function InvestmentsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {transactions.map((tx) => (
+                  {filteredTransactions.map((tx) => (
                     <TableRow key={tx.id}>
                       <TableCell className="font-medium text-slate-500">
                         {format(new Date(tx.createdAt), "dd 'de' MMM, yyyy 'às' HH:mm", { locale: ptBR })}
@@ -160,7 +192,7 @@ export default function InvestmentsPage() {
         </CardContent>
       </Card>
 
-      <AddInvestmentModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+      <AddInvestmentModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} cashRegisterId={openRegister?.id} />
       <RegisterPurchaseModal isOpen={isPurchaseModalOpen} onClose={() => setIsPurchaseModalOpen(false)} />
     </div>
   );

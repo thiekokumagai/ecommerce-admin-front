@@ -8,9 +8,10 @@ import { useAddInvestment } from "@/hooks/useInvestments";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  cashRegisterId?: string;
 }
 
-export function AddInvestmentModal({ isOpen, onClose }: Props) {
+export function AddInvestmentModal({ isOpen, onClose, cashRegisterId }: Props) {
   const [amount, setAmount] = useState<string>("");
   const [description, setDescription] = useState<string>("Adição ao Investimento");
   const addMutation = useAddInvestment();
@@ -20,7 +21,7 @@ export function AddInvestmentModal({ isOpen, onClose }: Props) {
     if (!amount || Number(amount) <= 0) return;
 
     addMutation.mutate(
-      { amount: Number(amount), description },
+      { amount: Number(amount), description, cashRegisterId },
       {
         onSuccess: () => {
           setAmount("");

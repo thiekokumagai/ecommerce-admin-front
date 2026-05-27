@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { investmentService } from "@/services/investment.service";
 import { toast } from "@/components/ui/use-toast";
+import { fixedCostService } from "@/services/fixed-cost.service";
 
 export function useInvestmentSummary() {
   return useQuery({
@@ -20,11 +21,32 @@ export function useAddInvestment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: investmentService.addInvestment,
+    mutationFn: async (payload: { amount: number; description?: string; cashRegisterId?: string }) => {
+      const result = await investmentService.addInvestment({
+        amount: payload.amount,
+        description: payload.description,
+      });
+
+      if (payload.cashRegisterId) {
+        try {
+          await fixedCostService.createManualTransaction(payload.cashRegisterId, {
+            type: "OUTFLOW",
+            amount: payload.amount,
+            description: payload.description || "Transferência para Investimento",
+            category: "GENERAL",
+          });
+        } catch (err) {
+          console.error("Erro ao descontar do caixa:", err);
+          throw new Error("Investimento adicionado, mas falhou ao descontar do caixa atual.");
+        }
+      }
+      return result;
+    },
     onSuccess: () => {
-      toast({ title: "Investimento adicionado", description: "O valor foi adicionado ao módulo de investimentos com sucesso." });
+      toast({ title: "Investimento adicionado", description: "O valor foi transferido com sucesso." });
       queryClient.invalidateQueries({ queryKey: ["investment-summary"] });
       queryClient.invalidateQueries({ queryKey: ["investment-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["cash-register-summary"] });
     },
     onError: (error: any) => {
       toast({

@@ -276,8 +276,8 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Pedidos no Período</p>
-                <p className="text-2xl font-black text-slate-800">{totalPedidosPeriodo}</p>
+                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Pedidos Hoje</p>
+                <p className="text-2xl font-black text-slate-800">{ordersToday.length}</p>
               </div>
             </CardContent>
           </Card>
