@@ -1,4 +1,4 @@
-import { api } from './api';
+import { apiFetch } from './api';
 
 export interface CustomerAddress {
   id: string;
@@ -33,17 +33,21 @@ export interface PaginatedCustomers {
 
 export const customersService = {
   getCustomers: async (params?: { page?: number; limit?: number; search?: string }) => {
-    const response = await api.get<PaginatedCustomers>('/customers', { params });
-    return response.data;
+    const query = new URLSearchParams(params as any).toString();
+    const response = await apiFetch(`/customers${query ? `?${query}` : ''}`);
+    return response.json() as Promise<PaginatedCustomers>;
   },
 
   getCustomerById: async (id: string) => {
-    const response = await api.get<Customer>(`/customers/${id}`);
-    return response.data;
+    const response = await apiFetch(`/customers/${id}`);
+    return response.json() as Promise<Customer>;
   },
 
   updateCustomer: async (id: string, data: { name?: string; phone?: string }) => {
-    const response = await api.put<Customer>(`/customers/${id}`, data);
-    return response.data;
+    const response = await apiFetch(`/customers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    return response.json() as Promise<Customer>;
   },
 };
