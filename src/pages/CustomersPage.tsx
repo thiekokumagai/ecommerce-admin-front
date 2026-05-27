@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Search, Loader2, Users, ArrowRight, X } from "lucide-react";
-import CustomerDetailDrawer from "@/components/CustomerDetailDrawer";
+import { useNavigate } from "react-router-dom";
 
 export default function CustomersPage() {
   const [search, setSearch] = useState("");
@@ -12,8 +12,7 @@ export default function CustomersPage() {
   const limit = 15;
 
   const { data: paginatedData, isLoading } = useCustomers(search, page, limit);
-
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const customers = paginatedData?.data || [];
   const meta = paginatedData?.meta || { total: 0, page: 1, limit: 15, totalPages: 1 };
@@ -88,7 +87,7 @@ export default function CustomersPage() {
               {customers.map((customer) => (
                 <TableRow 
                   key={customer.id} 
-                  onClick={() => setSelectedCustomerId(customer.id)}
+                  onClick={() => navigate(`/clientes/${customer.id}`)}
                   className="group cursor-pointer hover:bg-violet-50/40 transition-colors"
                 >
                   <TableCell className="pl-6">
@@ -159,13 +158,6 @@ export default function CustomersPage() {
           )}
         </div>
       )}
-
-      {/* Modal Details Drawer */}
-      <CustomerDetailDrawer 
-        customerId={selectedCustomerId} 
-        isOpen={!!selectedCustomerId} 
-        onClose={() => setSelectedCustomerId(null)}
-      />
     </div>
   );
 }

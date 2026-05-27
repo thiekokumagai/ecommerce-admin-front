@@ -29,6 +29,7 @@ interface OrderDetailDrawerProps {
   orderId: string | null;
   isOpen: boolean;
   onClose: () => void;
+  readOnly?: boolean;
 }
 
 const statusConfig: Record<OrderStatus, { label: string; bg: string; text: string }> = {
@@ -46,7 +47,7 @@ const paymentLabels: Record<string, string> = {
   Dinheiro: "Dinheiro",
 };
 
-export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDetailDrawerProps) {
+export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly = false }: OrderDetailDrawerProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   
@@ -460,6 +461,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                   <Select 
                     value={localStatus || order.status} 
                     onValueChange={handleStatusChange}
+                    disabled={readOnly}
                   >
                     <SelectTrigger className={`w-32 h-7 text-xs font-bold rounded-full border-0 focus:ring-0 ${statusConfig[order.status].bg} ${statusConfig[order.status].text}`}>
                       <SelectValue />
@@ -603,14 +605,14 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                           const digits = e.target.value.replace(/\D/g, "");
                           handleDiscountChange(Number(digits) / 100);
                         }}
-                        disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
+                        disabled={readOnly || order.status === "COMPLETED" || order.status === "CANCELLED"}
                       />
                     </div>
                   )}
                 </div>
                 <div className="flex justify-between text-slate-500 items-center">
                   <span>Acréscimo Recebimento</span>
-                  {isPaid ? (
+                  {isPaid || readOnly ? (
                     <span className="font-semibold text-slate-700 pr-1">{formatCurrency(surcharge)}</span>
                   ) : (
                     <div className="relative w-32">
@@ -622,7 +624,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                           const digits = e.target.value.replace(/\D/g, "");
                           handleSurchargeChange(Number(digits) / 100);
                         }}
-                        disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
+                        disabled={readOnly || order.status === "COMPLETED" || order.status === "CANCELLED"}
                       />
                     </div>
                   )}
@@ -633,7 +635,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                 </div>
                 <div className="flex justify-between font-bold text-emerald-600 bg-emerald-50/50 p-2 rounded-lg mt-1 items-center">
                   <span>Total recebido</span>
-                  {isPaid ? (
+                  {isPaid || readOnly ? (
                     <span className="font-bold text-emerald-700 pr-1">{formatCurrency(totalReceived)}</span>
                   ) : (
                     <div className="relative w-32">
@@ -645,7 +647,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                           const digits = e.target.value.replace(/\D/g, "");
                           handleTotalChange(Number(digits) / 100);
                         }}
-                        disabled={order.status === "COMPLETED" || order.status === "CANCELLED"}
+                        disabled={readOnly || order.status === "COMPLETED" || order.status === "CANCELLED"}
                       />
                     </div>
                   )}
@@ -663,7 +665,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                 </div>
                 <div className="flex justify-between text-slate-500 items-center">
                   <span>Forma de pagamento</span>
-                  {isPaid ? (
+                  {isPaid || readOnly ? (
                     <span className="font-bold text-slate-800">{paymentMethod || "-"}</span>
                   ) : (
                     <Select 
@@ -774,6 +776,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
             </div>
 
             {/* Footer Buttons aligned side-by-side */}
+            {!readOnly && (
             <div className="flex items-center gap-3 p-6 border-t border-slate-200/80 bg-slate-50 shrink-0">
               {order.status !== "CANCELLED" ? (
                 order.paymentStatus === "PAID" ? (
@@ -835,6 +838,8 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose }: OrderDet
                 Voltar
               </Button>
             </div>
+            )}
+
 
           </div>
         ) : (

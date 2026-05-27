@@ -10,6 +10,7 @@ export interface CustomerAddress {
   cep: string;
   complement?: string | null;
   isDefault: boolean;
+  createdAt?: string;
 }
 
 export interface Customer {
@@ -19,6 +20,7 @@ export interface Customer {
   createdAt: string;
   updatedAt: string;
   addresses: CustomerAddress[];
+  orders?: any[];
 }
 
 export interface PaginatedCustomers {

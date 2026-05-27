@@ -10,6 +10,7 @@ const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const OrdersPage = lazy(() => import("@/pages/OrdersPage"));
 const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
 const CustomersPage = lazy(() => import("@/pages/CustomersPage"));
+const CustomerDetailsPage = lazy(() => import("@/pages/CustomerDetailsPage"));
 const ProductDetailsPage = lazy(() => import("@/pages/ProductDetailsPage"));
 const CategoriesPage = lazy(() => import("@/pages/CategoriesPage"));
 const CouponsPage = lazy(() => import("@/pages/CouponsPage"));
@@ -56,6 +57,7 @@ const App = () => (
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/pedidos" element={<OrdersPage />} />
                 <Route path="/clientes" element={<CustomersPage />} />
+                <Route path="/clientes/:id" element={<CustomerDetailsPage />} />
                 <Route path="/produtos" element={<ProductsPage />} />
                 <Route path="/produtos/:id" element={<ProductDetailsPage />} />
                 <Route path="/categorias" element={<CategoriesPage />} />
