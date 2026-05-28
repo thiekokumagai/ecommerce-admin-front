@@ -9,6 +9,7 @@ import {
   Settings,
   Receipt,
   Users,
+  Download,
 } from "lucide-react";
 
 export const dashboardNavItem = {
@@ -47,6 +48,7 @@ export const navSections = [
     label: "Configuração",
     items: [
       { title: "Configuração", url: "/configuracoes", icon: Settings },
+      { title: "Importações", url: "/importacoes", icon: Download },
     ],
   },
 ];

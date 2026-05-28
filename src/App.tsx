@@ -24,6 +24,7 @@ const InvestmentsPage = lazy(() => import("@/pages/InvestmentsPage"));
 const VariationPage = lazy(() => import("@/pages/VariationPage"));
 const VariationDetailsPage = lazy(() => import("@/pages/VariationDetailsPage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const ImportsPage = lazy(() => import("@/pages/ImportsPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const OrderPrintPage = lazy(() => import("@/pages/OrderPrintPage"));
 
@@ -69,6 +70,7 @@ const App = () => (
                 <Route path="/caixa/:id" element={<CashRegisterDetailsPage />} />
                 <Route path="/financeiro/atual" element={<CurrentCashRegisterPage />} />
                 <Route path="/financeiro/custos-fixos" element={<CustosFixosPage />} />
+                <Route path="/importacoes" element={<ImportsPage />} />
                 <Route path="/investimentos" element={<InvestmentsPage />} />
                 <Route path="/variacoes" element={<VariationPage />} />
                 <Route path="/variacoes/:id" element={<VariationDetailsPage />} />
