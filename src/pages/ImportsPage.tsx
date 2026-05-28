@@ -4,6 +4,7 @@ import { importsService } from '../services/imports.service';
 export default function ImportsPage() {
   const [loadingCategory, setLoadingCategory] = useState(false);
   const [loadingProduct, setLoadingProduct] = useState(false);
+  const [loadingProductImages, setLoadingProductImages] = useState(false);
   const [loadingOrder, setLoadingOrder] = useState(false);
   const [loadingClear, setLoadingClear] = useState(false);
   const [message, setMessage] = useState('');
@@ -31,6 +32,19 @@ export default function ImportsPage() {
       setMessage('Erro na importação de produtos');
     } finally {
       setLoadingProduct(false);
+    }
+  };
+
+  const handleImportProductImages = async () => {
+    try {
+      setLoadingProductImages(true);
+      setMessage('');
+      const res = await importsService.importProductImages();
+      setMessage(res.message || 'Sucesso');
+    } catch (error) {
+      setMessage('Erro na importação das imagens dos produtos');
+    } finally {
+      setLoadingProductImages(false);
     }
   };
 
@@ -101,13 +115,22 @@ export default function ImportsPage() {
           <p className="text-gray-600 text-center mb-4 text-sm">
             Importa produtos e variações, relaciona com categorias importadas e baixa imagens.
           </p>
-          <button 
-            onClick={handleImportProducts} 
-            disabled={loadingProduct}
-            className="mt-auto px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {loadingProduct ? 'Importando...' : 'Sincronizar Produtos'}
-          </button>
+          <div className="mt-auto flex flex-col w-full gap-2">
+            <button 
+              onClick={handleImportProducts} 
+              disabled={loadingProduct || loadingProductImages}
+              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {loadingProduct ? 'Importando...' : 'Sincronizar Produtos'}
+            </button>
+            <button 
+              onClick={handleImportProductImages} 
+              disabled={loadingProduct || loadingProductImages}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            >
+              {loadingProductImages ? 'Baixando Imagens...' : 'Baixar Imagens dos Produtos'}
+            </button>
+          </div>
         </div>
 
         {/* Pedidos */}
