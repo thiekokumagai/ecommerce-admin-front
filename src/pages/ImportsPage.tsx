@@ -5,6 +5,7 @@ export default function ImportsPage() {
   const [loadingCategory, setLoadingCategory] = useState(false);
   const [loadingProduct, setLoadingProduct] = useState(false);
   const [loadingOrder, setLoadingOrder] = useState(false);
+  const [loadingClear, setLoadingClear] = useState(false);
   const [message, setMessage] = useState('');
 
   const handleImportCategories = async () => {
@@ -46,9 +47,35 @@ export default function ImportsPage() {
     }
   };
 
+  const handleClearDatabase = async () => {
+    if (!window.confirm('Tem certeza que deseja limpar o banco de dados? Esta ação apagará categorias, produtos, clientes e pedidos. As configurações e usuários serão mantidos.')) {
+      return;
+    }
+    
+    try {
+      setLoadingClear(true);
+      setMessage('');
+      const res = await importsService.clearDatabase();
+      setMessage(res.message || 'Banco limpo com sucesso');
+    } catch (error) {
+      setMessage('Erro ao limpar o banco de dados');
+    } finally {
+      setLoadingClear(false);
+    }
+  };
+
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Módulo de Importação (Vendizap)</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Módulo de Importação (Vendizap)</h1>
+        <button
+          onClick={handleClearDatabase}
+          disabled={loadingClear}
+          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+        >
+          {loadingClear ? 'Limpando...' : 'Limpar Banco de Dados'}
+        </button>
+      </div>
       
       {message && <div className="mb-4 p-4 bg-blue-100 text-blue-800 rounded">{message}</div>}
 

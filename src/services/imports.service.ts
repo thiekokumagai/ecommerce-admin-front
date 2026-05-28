@@ -15,4 +15,9 @@ export const importsService = {
     const response = await apiFetch('/imports/vendizap/orders', { method: 'POST' });
     return response.json();
   },
+
+  clearDatabase: async () => {
+    const response = await apiFetch('/imports/vendizap/clear', { method: 'DELETE' });
+    return response.json();
+  },
 };
