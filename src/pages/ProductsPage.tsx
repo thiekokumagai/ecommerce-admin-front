@@ -25,7 +25,7 @@ export default function ProductsPage() {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<ProductListTableFilters>({
     search: "",
-    status: "all",
+    status: "active",
     categoryId: "",
   });
   const [selectedIds, setSelectedIds] = useState<string[]>([]);

@@ -258,7 +258,7 @@ export function ProductListTable({
 
   const clearFilters = () => {
     setSearchValue("");
-    onFiltersChange({ search: "", status: "all", categoryId: "" });
+    onFiltersChange({ search: "", status: "active", categoryId: "" });
   };
 
   const handleSearchClick = () => {
@@ -271,7 +271,7 @@ export function ProductListTable({
     }
   };
 
-  const hasFilters = filters.search || filters.status !== "all" || filters.categoryId;
+  const hasFilters = filters.search || filters.status !== "active" || filters.categoryId;
 
   const startIdx = (page - 1) * PAGE_SIZE + 1;
   const endIdx = (page - 1) * PAGE_SIZE + products.length;
