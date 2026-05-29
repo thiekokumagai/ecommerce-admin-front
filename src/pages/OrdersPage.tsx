@@ -37,9 +37,13 @@ const paymentStatusConfig: Record<PaymentStatus, { label: string; bg: string; te
 
 const paymentLabels: Record<string, string> = {
   PIX: "PIX",
+  pix: "PIX",
   "Cartão de Crédito": "Crédito",
+  credito: "Crédito",
   "Cartão de Débito": "Débito",
+  debito: "Débito",
   Dinheiro: "Dinheiro",
+  dinheiro: "Dinheiro",
 };
 
 export default function OrdersPage() {
