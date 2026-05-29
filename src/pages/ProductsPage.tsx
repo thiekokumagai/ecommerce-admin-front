@@ -193,6 +193,7 @@ export default function ProductsPage() {
         isLoading={productsQuery.isLoading}
         page={page}
         hasNextPage={meta?.hasNextPage ?? false}
+        totalPages={meta?.totalPages}
         onPageChange={(p) => {
           setPage(p);
           setSelectedIds([]);

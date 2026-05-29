@@ -123,11 +123,23 @@ export async function getProducts(
   if (params?.categoryId) qs.set("categoryId", params.categoryId);
 
   const response = await apiFetch(`/products?${qs.toString()}`);
+  
+  // Try to get total count from header
+  const totalCountHeader = response.headers.get('x-total-count');
+  const totalCount = totalCountHeader ? parseInt(totalCountHeader, 10) : 0;
+  const totalPages = totalCount > 0 ? Math.ceil(totalCount / limit) : undefined;
+  
   const data = (await response.json()) as ProductApiResponse[];
   const products = data.map(normalizeProduct);
+  
   return {
     products,
-    meta: { page, limit, hasNextPage: products.length === limit },
+    meta: { 
+      page, 
+      limit, 
+      hasNextPage: totalPages !== undefined ? page < totalPages : products.length === limit,
+      totalPages 
+    },
   };
 }
 

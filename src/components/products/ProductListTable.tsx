@@ -165,6 +165,7 @@ interface ProductListTableProps {
   isLoading: boolean;
   page: number;
   hasNextPage: boolean;
+  totalPages?: number;
   onPageChange: (page: number) => void;
   filters: ProductListTableFilters;
   onFiltersChange: (filters: ProductListTableFilters) => void;
@@ -184,6 +185,7 @@ export function ProductListTable({
   isLoading,
   page,
   hasNextPage,
+  totalPages,
   onPageChange,
   filters,
   onFiltersChange,
@@ -199,6 +201,7 @@ export function ProductListTable({
   const [sortField, setSortField] = useState<SortField>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [searchValue, setSearchValue] = useState(filters.search || "");
   const navigate = useNavigate();
 
   const handleDuplicate = async (id: string) => {
@@ -254,7 +257,18 @@ export function ProductListTable({
   };
 
   const clearFilters = () => {
+    setSearchValue("");
     onFiltersChange({ search: "", status: "all", categoryId: "" });
+  };
+
+  const handleSearchClick = () => {
+    onFiltersChange({ ...filters, search: searchValue });
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearchClick();
+    }
   };
 
   const hasFilters = filters.search || filters.status !== "all" || filters.categoryId;
@@ -304,13 +318,19 @@ export function ProductListTable({
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
-        <Input
-          id="product-search"
-          placeholder="Buscar produtos..."
-          value={filters.search}
-          onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
-          className="w-56"
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            id="product-search"
+            placeholder="Buscar produtos..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            className="w-56"
+          />
+          <Button variant="secondary" onClick={handleSearchClick}>
+            Buscar
+          </Button>
+        </div>
 
         <Select
           value={filters.status}
@@ -527,42 +547,82 @@ export function ProductListTable({
       </div>
 
       {/* Footer: count + pagination */}
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
+      <div className="flex items-center justify-between text-sm text-muted-foreground mt-4">
         <span>
           {products.length > 0
             ? `Mostrando ${startIdx}–${endIdx}`
             : "Nenhum resultado"}
         </span>
 
-        <Pagination className="w-auto mx-0 justify-end">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (page > 1) onPageChange(page - 1);
-                }}
-                aria-disabled={page === 1}
-                className={page === 1 ? "pointer-events-none opacity-50" : ""}
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <span className="px-3 py-2 text-sm">Página {page}</span>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (hasNextPage) onPageChange(page + 1);
-                }}
-                aria-disabled={!hasNextPage}
-                className={!hasNextPage ? "pointer-events-none opacity-50" : ""}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+        <div className="flex items-center space-x-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.preventDefault();
+              if (page > 1) onPageChange(page - 1);
+            }}
+            disabled={page === 1}
+          >
+            Anterior
+          </Button>
+          
+          {totalPages ? (
+            Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+              <Button
+                key={pageNum}
+                variant={pageNum === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => onPageChange(pageNum)}
+                className={pageNum === page ? "pointer-events-none" : ""}
+              >
+                {pageNum}
+              </Button>
+            ))
+          ) : (
+            <>
+              {page > 1 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPageChange(page - 1)}
+                >
+                  {page - 1}
+                </Button>
+              )}
+
+              <Button
+                variant="default"
+                size="sm"
+                className="pointer-events-none"
+              >
+                {page}
+              </Button>
+
+              {hasNextPage && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPageChange(page + 1)}
+                >
+                  {page + 1}
+                </Button>
+              )}
+            </>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.preventDefault();
+              if (hasNextPage) onPageChange(page + 1);
+            }}
+            disabled={!hasNextPage}
+          >
+            Próximo
+          </Button>
+        </div>
       </div>
     </div>
   );

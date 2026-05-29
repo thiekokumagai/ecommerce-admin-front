@@ -16,6 +16,11 @@ export const importsService = {
     return response.json();
   },
 
+  importProductVariations: async () => {
+    const response = await apiFetch('/imports/vendizap/products/variations', { method: 'POST' });
+    return response.json();
+  },
+
   importOrders: async () => {
     const response = await apiFetch('/imports/vendizap/orders', { method: 'POST' });
     return response.json();

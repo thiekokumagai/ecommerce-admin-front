@@ -31,6 +31,7 @@ export type ProductListMeta = {
   page: number;
   limit: number;
   hasNextPage: boolean;
+  totalPages?: number;
 };
 
 export type ProductResponse = {

@@ -5,6 +5,7 @@ export default function ImportsPage() {
   const [loadingCategory, setLoadingCategory] = useState(false);
   const [loadingProduct, setLoadingProduct] = useState(false);
   const [loadingProductImages, setLoadingProductImages] = useState(false);
+  const [loadingProductVariations, setLoadingProductVariations] = useState(false);
   const [loadingOrder, setLoadingOrder] = useState(false);
   const [loadingClear, setLoadingClear] = useState(false);
   const [message, setMessage] = useState('');
@@ -45,6 +46,19 @@ export default function ImportsPage() {
       setMessage('Erro na importação das imagens dos produtos');
     } finally {
       setLoadingProductImages(false);
+    }
+  };
+
+  const handleImportProductVariations = async () => {
+    try {
+      setLoadingProductVariations(true);
+      setMessage('');
+      const res = await importsService.importProductVariations();
+      setMessage(res.message || 'Sucesso');
+    } catch (error) {
+      setMessage('Erro na importação das variações dos produtos');
+    } finally {
+      setLoadingProductVariations(false);
     }
   };
 
@@ -118,17 +132,24 @@ export default function ImportsPage() {
           <div className="mt-auto flex flex-col w-full gap-2">
             <button 
               onClick={handleImportProducts} 
-              disabled={loadingProduct || loadingProductImages}
+              disabled={loadingProduct || loadingProductImages || loadingProductVariations}
               className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
             >
               {loadingProduct ? 'Importando...' : 'Sincronizar Produtos'}
             </button>
             <button 
               onClick={handleImportProductImages} 
-              disabled={loadingProduct || loadingProductImages}
+              disabled={loadingProduct || loadingProductImages || loadingProductVariations}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
             >
-              {loadingProductImages ? 'Baixando Imagens...' : 'Baixar Imagens dos Produtos'}
+              {loadingProductImages ? 'Baixando Imagens...' : 'Baixar Imagens'}
+            </button>
+            <button 
+              onClick={handleImportProductVariations} 
+              disabled={loadingProduct || loadingProductImages || loadingProductVariations}
+              className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50"
+            >
+              {loadingProductVariations ? 'Importando Variações...' : 'Importar Variações e Estoque'}
             </button>
           </div>
         </div>
