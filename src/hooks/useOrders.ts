@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { getOrders, getOrderById, cancelOrder, receiveOrder, revertReceiveOrder, updateOrderStatus, markOrderPrinted } from "@/services/order.service";
 import { OrderStatus, PaymentStatus } from "@/types/order";
 
@@ -19,7 +19,26 @@ export function useOrders(
   });
 }
 
-
+export function useInfiniteOrders(
+  search?: string, 
+  status?: string, 
+  startDate?: string, 
+  endDate?: string,
+  limit: number = 20,
+  paymentStatus?: string,
+  options?: any
+) {
+  return useInfiniteQuery({
+    queryKey: ["orders", "infinite", { search, status, startDate, endDate, limit, paymentStatus }],
+    queryFn: ({ pageParam = 1 }) => getOrders(search, status, startDate, endDate, pageParam, limit, paymentStatus),
+    getNextPageParam: (lastPage) => {
+      if (!lastPage || !lastPage.meta) return undefined;
+      return lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined;
+    },
+    initialPageParam: 1,
+    ...options
+  });
+}
 
 export function useOrderDetails(id: string) {
   return useQuery({

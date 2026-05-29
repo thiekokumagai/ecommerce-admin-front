@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { useProducts } from "@/hooks/useProducts";
+import { useInfiniteProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
 import { ProductListTable, ProductListTableFilters } from "@/components/products/ProductListTable";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,6 @@ export default function ProductsPage() {
   const queryClient = useQueryClient();
 
   // Pagination & filter state
-  const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<ProductListTableFilters>({
     search: "",
     status: "active",
@@ -33,20 +32,18 @@ export default function ProductsPage() {
   // Reset page when filters change
   const handleFiltersChange = (next: ProductListTableFilters) => {
     setFilters(next);
-    setPage(1);
     setSelectedIds([]);
   };
 
-  const productsQuery = useProducts({
-    page,
+  const productsQuery = useInfiniteProducts({
     limit: PAGE_SIZE,
     search: filters.search || undefined,
     categoryId: filters.categoryId || undefined,
   });
   const categoriesQuery = useCategories();
 
-  const rawProducts = productsQuery.data?.products ?? [];
-  const meta = productsQuery.data?.meta;
+  const rawProducts = productsQuery.data?.pages.flatMap((p) => p.products || []) ?? [];
+  const meta = productsQuery.data?.pages[0]?.meta;
 
   // Client-side status filter (API doesn't support it yet)
   const products =
@@ -182,13 +179,9 @@ export default function ProductsPage() {
         products={products}
         categories={categories}
         isLoading={productsQuery.isLoading}
-        page={page}
-        hasNextPage={meta?.hasNextPage ?? false}
-        totalPages={meta?.totalPages}
-        onPageChange={(p) => {
-          setPage(p);
-          setSelectedIds([]);
-        }}
+        hasNextPage={productsQuery.hasNextPage}
+        isFetchingNextPage={productsQuery.isFetchingNextPage}
+        onLoadMore={() => productsQuery.fetchNextPage()}
         filters={filters}
         onFiltersChange={handleFiltersChange}
         selectedIds={selectedIds}

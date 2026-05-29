@@ -15,6 +15,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -163,10 +164,9 @@ interface ProductListTableProps {
   products: ProductResponse[];
   categories: Category[];
   isLoading: boolean;
-  page: number;
   hasNextPage: boolean;
-  totalPages?: number;
-  onPageChange: (page: number) => void;
+  isFetchingNextPage: boolean;
+  onLoadMore: () => void;
   filters: ProductListTableFilters;
   onFiltersChange: (filters: ProductListTableFilters) => void;
   selectedIds: string[];
@@ -183,10 +183,9 @@ export function ProductListTable({
   products,
   categories,
   isLoading,
-  page,
   hasNextPage,
-  totalPages,
-  onPageChange,
+  isFetchingNextPage,
+  onLoadMore,
   filters,
   onFiltersChange,
   selectedIds,
@@ -203,6 +202,24 @@ export function ProductListTable({
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState(filters.search || "");
   const navigate = useNavigate();
+  const loaderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const loader = loaderRef.current;
+    if (!loader) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          onLoadMore();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(loader);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, onLoadMore]);
 
   const handleDuplicate = async (id: string) => {
     setDuplicatingId(id);
@@ -273,8 +290,7 @@ export function ProductListTable({
 
   const hasFilters = filters.search || filters.status !== "active" || filters.categoryId;
 
-  const startIdx = (page - 1) * PAGE_SIZE + 1;
-  const endIdx = (page - 1) * PAGE_SIZE + products.length;
+  const totalDisplayed = products.length;
 
   return (
     <div className="space-y-4">
@@ -546,83 +562,19 @@ export function ProductListTable({
         </Table>
       </div>
 
-      {/* Footer: count + pagination */}
-      <div className="flex items-center justify-between text-sm text-muted-foreground mt-4">
-        <span>
+      {/* Footer: count + infinite scroll */}
+      <div className="flex flex-col items-center justify-center text-sm text-muted-foreground mt-4 gap-4 pb-4">
+        <span className="w-full text-left">
           {products.length > 0
-            ? `Mostrando ${startIdx}–${endIdx}`
+            ? `Mostrando ${totalDisplayed} produtos`
             : "Nenhum resultado"}
         </span>
 
-        <div className="flex items-center space-x-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={(e) => {
-              e.preventDefault();
-              if (page > 1) onPageChange(page - 1);
-            }}
-            disabled={page === 1}
-          >
-            Anterior
-          </Button>
-          
-          {totalPages ? (
-            Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-              <Button
-                key={pageNum}
-                variant={pageNum === page ? "default" : "outline"}
-                size="sm"
-                onClick={() => onPageChange(pageNum)}
-                className={pageNum === page ? "pointer-events-none" : ""}
-              >
-                {pageNum}
-              </Button>
-            ))
-          ) : (
-            <>
-              {page > 1 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onPageChange(page - 1)}
-                >
-                  {page - 1}
-                </Button>
-              )}
-
-              <Button
-                variant="default"
-                size="sm"
-                className="pointer-events-none"
-              >
-                {page}
-              </Button>
-
-              {hasNextPage && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onPageChange(page + 1)}
-                >
-                  {page + 1}
-                </Button>
-              )}
-            </>
-          )}
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={(e) => {
-              e.preventDefault();
-              if (hasNextPage) onPageChange(page + 1);
-            }}
-            disabled={!hasNextPage}
-          >
-            Próximo
-          </Button>
-        </div>
+        {hasNextPage && (
+          <div ref={loaderRef} className="flex justify-center p-4">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        )}
       </div>
     </div>
   );

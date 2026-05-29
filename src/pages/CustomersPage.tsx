@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useCustomers } from "@/hooks/useCustomers";
+import { useState, useEffect, useRef } from "react";
+import { useInfiniteCustomers } from "@/hooks/useCustomers";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,14 +8,31 @@ import { useNavigate } from "react-router-dom";
 
 export default function CustomersPage() {
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const limit = 15;
+  const limit = 20;
 
-  const { data: paginatedData, isLoading } = useCustomers(search, page, limit);
+  const { data: paginatedData, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteCustomers(search, limit);
   const navigate = useNavigate();
 
-  const customers = paginatedData?.data || [];
-  const meta = paginatedData?.meta || { total: 0, page: 1, limit: 15, totalPages: 1 };
+  const customers = paginatedData?.pages.flatMap(p => p.data || []) || [];
+
+  const loaderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const loader = loaderRef.current;
+    if (!loader) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(loader);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
     <div className="space-y-6">
@@ -39,7 +56,7 @@ export default function CustomersPage() {
             type="text" 
             placeholder="Buscar por nome ou telefone..." 
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => { setSearch(e.target.value); }}
             className="pl-10 h-11 border-slate-200 focus-visible:ring-violet-600 rounded-xl font-medium placeholder:text-slate-400"
           />
         </div>
@@ -47,7 +64,7 @@ export default function CustomersPage() {
         {search && (
           <Button 
             variant="ghost" 
-            onClick={() => { setSearch(""); setPage(1); }} 
+            onClick={() => { setSearch(""); }} 
             className="h-11 px-3 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-xl transition-colors sm:ml-auto"
           >
             <X className="h-4 w-4 mr-2" />
@@ -111,49 +128,10 @@ export default function CustomersPage() {
             </TableBody>
           </Table>
 
-          {/* Pagination Controls */}
-          {meta.totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-slate-100 bg-slate-50/50 gap-3">
-              <span className="text-xs font-semibold text-slate-500">
-                Mostrando página {meta.page} de {meta.totalPages} ({meta.total} {meta.total === 1 ? 'cliente' : 'clientes'})
-              </span>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={meta.page <= 1}
-                  className="h-8 rounded-lg font-bold text-xs border-slate-200 text-slate-600"
-                >
-                  Anterior
-                </Button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: meta.totalPages }, (_, i) => i + 1).map((p) => (
-                    <Button
-                      key={p}
-                      variant={meta.page === p ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setPage(p)}
-                      className={`h-8 w-8 rounded-lg font-bold text-xs p-0 border-slate-200 ${
-                        meta.page === p 
-                          ? "bg-violet-600 hover:bg-violet-700 text-white" 
-                          : "text-slate-600 hover:bg-slate-100"
-                      }`}
-                    >
-                      {p}
-                    </Button>
-                  ))}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
-                  disabled={meta.page >= meta.totalPages}
-                  className="h-8 rounded-lg font-bold text-xs border-slate-200 text-slate-600"
-                >
-                  Próxima
-                </Button>
-              </div>
+          {/* Infinite Scroll Loader */}
+          {hasNextPage && (
+            <div ref={loaderRef} className="flex justify-center p-6 border-t border-slate-100 bg-slate-50/50">
+              <Loader2 className="h-6 w-6 animate-spin text-violet-600" />
             </div>
           )}
         </div>
