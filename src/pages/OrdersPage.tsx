@@ -1,5 +1,5 @@
 import { useState, Fragment, useEffect } from "react";
-import { useOrders, useUpdateOrderStatus, useMarkOrderAsPrinted } from "@/hooks/useOrders";
+import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { Input } from "@/components/ui/input";
 import { 
   Select, 
@@ -82,23 +82,6 @@ export default function OrdersPage() {
 
   const orders = paginatedData?.data || [];
   const meta = paginatedData?.meta || { total: 0, page: 1, limit: 10, totalPages: 1 };
-
-  const markOrderAsPrintedMutation = useMarkOrderAsPrinted();
-
-  useEffect(() => {
-    if (orders.length > 0) {
-      const newOrders = orders.filter((o: any) => o.isPrinted === false);
-      
-      if (newOrders.length > 0) {
-        newOrders.forEach((order: any) => {
-          // Marca logo como impresso no frontend local para não repetir antes do refetch
-          order.isPrinted = true;
-          window.open(`/pedidos/${order.id}/imprimir`, '_blank');
-          markOrderAsPrintedMutation.mutate(order.id);
-        });
-      }
-    }
-  }, [orders, markOrderAsPrintedMutation]);
 
   const updateStatusMutation = useUpdateOrderStatus();
 
