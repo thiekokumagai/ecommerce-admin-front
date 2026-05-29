@@ -42,6 +42,7 @@ type ProductApiResponse = {
   price?: string | null;
   promotionalPrice?: string | null;
   costPrice?: string | null;
+  isVisible?: boolean;
 };
 
 type ProductItemApiResponse = {
@@ -64,7 +65,7 @@ function normalizeProduct(item: ProductApiResponse): ProductResponse {
   const totalStock = items.reduce((acc, i) => acc + (i.stock ?? 0), 0);
   const firstWithSku = items.find((i) => i.sku);
   const primarySku: string | null = firstWithSku?.sku ?? null;
-  const status: "active" | "inactive" = totalStock > 0 ? "active" : "inactive";
+  const status: "active" | "inactive" = item.isVisible ? "active" : "inactive";
 
   return {
     id: item.id,

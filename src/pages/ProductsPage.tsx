@@ -111,12 +111,11 @@ export default function ProductsPage() {
     },
   });
 
-  // ─── Bulk Disable (zera estoque de todos os itens) ─────────────────────────
+  // ─── Bulk Disable (atualiza isVisible) ─────────────────────────
   const bulkDisableMutation = useMutation({
     mutationFn: async (ids: string[]) => {
       for (const productId of ids) {
-        const items = await getProductItems(productId);
-        await Promise.all(items.map((item) => updateProductItem(item.id, { stock: 0 })));
+        await updateProduct(productId, { isVisible: false });
       }
     },
     onSuccess: () => {
@@ -132,19 +131,11 @@ export default function ProductsPage() {
     },
   });
 
-  // ─── Bulk Enable (set stock=1 no primeiro item) ────────────────────────────
+  // ─── Bulk Enable (atualiza isVisible) ────────────────────────────
   const bulkEnableMutation = useMutation({
     mutationFn: async (ids: string[]) => {
       for (const productId of ids) {
-        const items = await getProductItems(productId);
-        if (items.length === 0) {
-          toast({
-            variant: "destructive",
-            title: `Produto sem itens — não é possível ativar automaticamente`,
-          });
-          continue;
-        }
-        await updateProductItem(items[0].id, { stock: 1 });
+        await updateProduct(productId, { isVisible: true });
       }
     },
     onSuccess: () => {

@@ -79,6 +79,7 @@ export type CreateProductPayload = {
   price?: number;
   promotionalPrice?: number;
   costPrice?: number;
+  isVisible?: boolean;
 };
 
 export type CreateProductItemPayload = {
