@@ -6,6 +6,7 @@ export default function ImportsPage() {
   const [loadingProduct, setLoadingProduct] = useState(false);
   const [loadingProductImages, setLoadingProductImages] = useState(false);
   const [loadingProductVariations, setLoadingProductVariations] = useState(false);
+  const [loadingFixCategories, setLoadingFixCategories] = useState(false);
   const [loadingOrder, setLoadingOrder] = useState(false);
   const [loadingClear, setLoadingClear] = useState(false);
   const [message, setMessage] = useState('');
@@ -33,6 +34,19 @@ export default function ImportsPage() {
       setMessage('Erro na importação de produtos');
     } finally {
       setLoadingProduct(false);
+    }
+  };
+
+  const handleFixCategories = async () => {
+    try {
+      setLoadingFixCategories(true);
+      setMessage('');
+      const res = await importsService.fixProductCategories();
+      setMessage(`${res.message || 'Sucesso'} (Analisados: ${res.data?.totalAnalyzed || 0}, Atualizados: ${res.data?.totalUpdated || 0})`);
+    } catch (error) {
+      setMessage('Erro na correção de categorias de produtos');
+    } finally {
+      setLoadingFixCategories(false);
     }
   };
 
@@ -132,21 +146,28 @@ export default function ImportsPage() {
           <div className="mt-auto flex flex-col w-full gap-2">
             <button 
               onClick={handleImportProducts} 
-              disabled={loadingProduct || loadingProductImages || loadingProductVariations}
+              disabled={loadingProduct || loadingProductImages || loadingProductVariations || loadingFixCategories}
               className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50"
             >
               {loadingProduct ? 'Importando...' : 'Sincronizar Produtos'}
             </button>
             <button 
+              onClick={handleFixCategories} 
+              disabled={loadingProduct || loadingProductImages || loadingProductVariations || loadingFixCategories}
+              className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50"
+            >
+              {loadingFixCategories ? 'Corrigindo...' : 'Corrigir Categorias via API Indiv.'}
+            </button>
+            <button 
               onClick={handleImportProductImages} 
-              disabled={loadingProduct || loadingProductImages || loadingProductVariations}
+              disabled={loadingProduct || loadingProductImages || loadingProductVariations || loadingFixCategories}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
             >
               {loadingProductImages ? 'Baixando Imagens...' : 'Baixar Imagens'}
             </button>
             <button 
               onClick={handleImportProductVariations} 
-              disabled={loadingProduct || loadingProductImages || loadingProductVariations}
+              disabled={loadingProduct || loadingProductImages || loadingProductVariations || loadingFixCategories}
               className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 disabled:opacity-50"
             >
               {loadingProductVariations ? 'Importando Variações...' : 'Importar Variações e Estoque'}
