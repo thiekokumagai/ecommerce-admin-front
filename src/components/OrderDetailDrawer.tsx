@@ -512,7 +512,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
               {/* Product items section */}
               <div className="space-y-3">
                 <div className="text-xs uppercase tracking-wider text-slate-400 font-bold">Itens do Pedido</div>
-                <div className="space-y-3 bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm max-h-[220px] overflow-y-auto">
+                <div className="space-y-3 bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm">
                   {order.items.map((item) => (
                     <div key={item.id} className="flex items-center gap-3 relative">
                       {/* Product Image */}
