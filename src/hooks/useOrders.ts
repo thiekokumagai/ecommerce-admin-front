@@ -9,11 +9,13 @@ export function useOrders(
   endDate?: string,
   page?: number,
   limit?: number,
-  paymentStatus?: string
+  paymentStatus?: string,
+  options?: Omit<import("@tanstack/react-query").UseQueryOptions<any, any, any, any>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
     queryKey: ["orders", { search, status, startDate, endDate, page, limit, paymentStatus }],
     queryFn: () => getOrders(search, status, startDate, endDate, page, limit, paymentStatus),
+    ...options
   });
 }
 

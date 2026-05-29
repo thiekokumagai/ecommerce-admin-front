@@ -1,4 +1,4 @@
-import { useState, Fragment } from "react";
+import { useState, Fragment, useEffect } from "react";
 import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { Input } from "@/components/ui/input";
 import { 
@@ -50,6 +50,7 @@ export default function OrdersPage() {
   const [endDate, setEndDate] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [lastSeenOrderNumber, setLastSeenOrderNumber] = useState<number | null>(null);
   const limit = 10;
 
   const hasFilters = search !== "" || status !== "ALL" || paymentStatus !== "ALL" || startDate !== "" || endDate !== "";
@@ -76,11 +77,30 @@ export default function OrdersPage() {
     getValidDateString(endDate),
     page,
     limit,
-    paymentStatus
+    paymentStatus,
+    { refetchInterval: 10000 }
   );
 
   const orders = paginatedData?.data || [];
   const meta = paginatedData?.meta || { total: 0, page: 1, limit: 10, totalPages: 1 };
+
+  useEffect(() => {
+    if (orders.length > 0) {
+      const maxOrderNumber = Math.max(...orders.map((o: any) => o.orderNumber));
+      
+      if (lastSeenOrderNumber === null) {
+        setLastSeenOrderNumber(maxOrderNumber);
+      } else if (maxOrderNumber > lastSeenOrderNumber) {
+        const newOrders = orders.filter((o: any) => o.orderNumber > lastSeenOrderNumber);
+        
+        newOrders.forEach((order: any) => {
+          window.open(`/pedidos/${order.id}/imprimir`, '_blank');
+        });
+        
+        setLastSeenOrderNumber(maxOrderNumber);
+      }
+    }
+  }, [orders, lastSeenOrderNumber]);
 
   const updateStatusMutation = useUpdateOrderStatus();
 
