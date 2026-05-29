@@ -87,3 +87,9 @@ export async function updateOrderStatus(id: string, payload: {
   });
   return response.json();
 }
+
+export async function markOrderPrinted(id: string): Promise<void> {
+  await apiFetch(`/orders/${id}/print`, {
+    method: "PATCH",
+  });
+}

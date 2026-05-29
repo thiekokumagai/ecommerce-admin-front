@@ -1,5 +1,5 @@
 import { useState, Fragment, useEffect } from "react";
-import { useOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
+import { useOrders, useUpdateOrderStatus, useMarkOrderAsPrinted } from "@/hooks/useOrders";
 import { Input } from "@/components/ui/input";
 import { 
   Select, 
@@ -50,7 +50,6 @@ export default function OrdersPage() {
   const [endDate, setEndDate] = useState("");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [lastSeenOrderNumber, setLastSeenOrderNumber] = useState<number | null>(null);
   const limit = 10;
 
   const hasFilters = search !== "" || status !== "ALL" || paymentStatus !== "ALL" || startDate !== "" || endDate !== "";
@@ -84,23 +83,22 @@ export default function OrdersPage() {
   const orders = paginatedData?.data || [];
   const meta = paginatedData?.meta || { total: 0, page: 1, limit: 10, totalPages: 1 };
 
+  const markOrderAsPrintedMutation = useMarkOrderAsPrinted();
+
   useEffect(() => {
     if (orders.length > 0) {
-      const maxOrderNumber = Math.max(...orders.map((o: any) => o.orderNumber));
+      const newOrders = orders.filter((o: any) => o.isPrinted === false);
       
-      if (lastSeenOrderNumber === null) {
-        setLastSeenOrderNumber(maxOrderNumber);
-      } else if (maxOrderNumber > lastSeenOrderNumber) {
-        const newOrders = orders.filter((o: any) => o.orderNumber > lastSeenOrderNumber);
-        
+      if (newOrders.length > 0) {
         newOrders.forEach((order: any) => {
+          // Marca logo como impresso no frontend local para não repetir antes do refetch
+          order.isPrinted = true;
           window.open(`/pedidos/${order.id}/imprimir`, '_blank');
+          markOrderAsPrintedMutation.mutate(order.id);
         });
-        
-        setLastSeenOrderNumber(maxOrderNumber);
       }
     }
-  }, [orders, lastSeenOrderNumber]);
+  }, [orders, markOrderAsPrintedMutation]);
 
   const updateStatusMutation = useUpdateOrderStatus();
 
