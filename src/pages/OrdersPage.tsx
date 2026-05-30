@@ -36,12 +36,12 @@ const paymentStatusConfig: Record<PaymentStatus, { label: string; bg: string; te
 };
 
 const paymentLabels: Record<string, string> = {
-  PIX: "PIX",
-  pix: "PIX",
-  "Cartão de Crédito": "Crédito",
-  credito: "Crédito",
-  "Cartão de Débito": "Débito",
-  debito: "Débito",
+  PIX: "Pix",
+  pix: "Pix",
+  "Cartão de Crédito": "Cartão de Crédito",
+  credito: "Cartão de Crédito",
+  "Cartão de Débito": "Cartão de Débito",
+  debito: "Cartão de Débito",
   Dinheiro: "Dinheiro",
   dinheiro: "Dinheiro",
 };

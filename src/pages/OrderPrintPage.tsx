@@ -119,8 +119,14 @@ export default function OrderPrintPage() {
 
       <div className="mb-4">
         <p>Pagamento: <span className="font-bold">{order.paymentType}</span></p>
-        <p>Forma de pagamento: <span className="font-bold">{order.paymentMethod}</span></p>
-        {order.pixKey && order.paymentMethod === "PIX" && (
+        <p>Forma de pagamento: <span className="font-bold">{
+          order.paymentMethod === 'pix' ? 'Pix' :
+          order.paymentMethod === 'credito' ? 'Cartão de Crédito' :
+          order.paymentMethod === 'debito' ? 'Cartão de Débito' :
+          order.paymentMethod === 'dinheiro' ? 'Dinheiro' :
+          order.paymentMethod
+        }</span></p>
+        {order.pixKey && (order.paymentMethod === "PIX" || order.paymentMethod === "pix") && (
           <p>Chave PIX: <span className="font-bold">{order.pixKey}</span></p>
         )}
       </div>
