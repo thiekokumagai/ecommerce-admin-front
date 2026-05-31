@@ -16,7 +16,7 @@ import {
   duplicateProduct,
 } from "@/services/product.service";
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 100;
 
 export default function ProductsPage() {
   const queryClient = useQueryClient();
