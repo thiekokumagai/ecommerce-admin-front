@@ -835,7 +835,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
                 <div className="flex justify-between text-slate-500">
                   <span>Pagamento</span>
                   <span className="text-slate-800 font-bold">
-                    {isPaid ? (order.paymentType?.toLowerCase() === 'na entrega' ? 'Na Entrega' : order.paymentType?.toLowerCase() === 'online' ? 'Online' : order.paymentType) : ((paymentMethod === "PIX" || paymentMethod === "pix") ? "Online" : "Na Entrega")}
+                    {isPaid ? (order.paymentType?.toLowerCase() === 'na entrega' ? 'Na Entrega' : order.paymentType?.toLowerCase() === 'online' ? 'Online' : order.paymentType?.charAt(0).toUpperCase() + order.paymentType?.slice(1)) : ((paymentMethod === "PIX" || paymentMethod === "pix") ? "Online" : "Na Entrega")}
                   </span>
                 </div>
                 <div className="flex justify-between text-slate-500 items-center">
