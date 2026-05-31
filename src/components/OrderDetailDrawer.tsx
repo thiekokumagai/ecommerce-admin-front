@@ -654,26 +654,6 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
                 </div>
               </div>
 
-                    value={localStatus || order.status} 
-                    onValueChange={handleStatusChange}
-                    disabled={readOnly}
-                  >
-                    <SelectTrigger className={`w-32 h-7 text-xs font-bold rounded-full border-0 focus:ring-0 ${statusConfig[order.status].bg} ${statusConfig[order.status].text}`}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="PENDING">Pendente</SelectItem>
-                      <SelectItem value="CONFIRMED">Separado</SelectItem>
-                      <SelectItem value="DISPATCHED">Enviado</SelectItem>
-                      <SelectItem value="COMPLETED">Entregue</SelectItem>
-                      <SelectItem value="CANCELLED">Cancelado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="text-xs text-slate-500 font-medium">
-                  {formattedDate(order.createdAt)}
-                </div>
-                
                 {/* Client info expandable header style */}
                 <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
