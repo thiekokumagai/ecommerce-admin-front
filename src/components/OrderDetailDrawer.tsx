@@ -2,7 +2,6 @@ import { useOrderDetails, useCancelOrder, useReceiveOrder, useRevertReceiveOrder
 import { useSettings } from "@/hooks/useSettings";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,12 +12,9 @@ import {
   MessageSquare, 
   Copy, 
   Printer, 
-  Download, 
   Edit, 
   User, 
   Phone, 
-  MapPin, 
-  CreditCard, 
   Check, 
   Loader2 
 } from "lucide-react";
@@ -41,10 +37,10 @@ const statusConfig: Record<OrderStatus, { label: string; bg: string; text: strin
 };
 
 const paymentLabels: Record<string, string> = {
-  PIX: "PIX",
-  "Cartão de Crédito": "Cartão de Crédito",
-  "Cartão de Débito": "Cartão de Débito",
-  Dinheiro: "Dinheiro",
+  "pix": "pix",
+  "credito": "Cartão de Crédito",
+  "debito": "Cartão de Débito",
+  "dinheiro": "Dinheiro",
 };
 
 export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly = false }: OrderDetailDrawerProps) {
@@ -666,7 +662,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
                 <div className="flex justify-between text-slate-500 items-center">
                   <span>Forma de pagamento</span>
                   {isPaid || readOnly ? (
-                    <span className="font-bold text-slate-800">{paymentMethod || "-"}</span>
+                    <span className="font-bold text-slate-800">{paymentLabels[paymentMethod] || "-"}</span>
                   ) : (
                     <Select 
                       value={paymentMethod} 
