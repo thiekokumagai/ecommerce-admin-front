@@ -37,10 +37,17 @@ const statusConfig: Record<OrderStatus, { label: string; bg: string; text: strin
 };
 
 const paymentLabels: Record<string, string> = {
-  "pix": "pix",
+  "pix": "PIX",
+  "PIX": "PIX",
+  "credit": "Cartão de Crédito",
   "credito": "Cartão de Crédito",
+  "Cartão de Crédito": "Cartão de Crédito",
+  "debit": "Cartão de Débito",
   "debito": "Cartão de Débito",
+  "Cartão de Débito": "Cartão de Débito",
+  "cash": "Dinheiro",
   "dinheiro": "Dinheiro",
+  "Dinheiro": "Dinheiro",
 };
 
 export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly = false }: OrderDetailDrawerProps) {
@@ -105,16 +112,21 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
         const productDiscount = (order.coupon?.type === 'FREE_SHIPPING') ? 0 : totalDiscount;
         const baseForPix = Math.max(0, order.itemsTotal - productDiscount);
 
-        if (method === "pix") {
+        if (method === "pix" || method === "PIX") {
           const pixRule = settings?.paymentRules?.find((r: any) => r.paymentMethod === "pix" && r.type === "discount");
           if (pixRule && typeof pixRule.value === "number") {
             initialPixDiscount = Math.round((baseForPix * (pixRule.value / 100)) * 100) / 100;
           }
-        } else if (method === "credito") {
+        } else if (method === "credit" || method === "credito" || method === "Cartão de Crédito") {
           const creditRules = settings?.paymentRules?.filter((r: any) => r.paymentMethod === "credit" && r.type === "charge") || [];
           const activeRule = creditRules.find((r: any) => inst >= (r.parcelaMin || 0) && inst <= (r.parcelaMax || 99));
           if (activeRule && typeof activeRule.value === "number" && activeRule.passedToCustomer !== false) {
             initialCardSurcharge = Math.round((amountForFee * (activeRule.value / 100)) * 100) / 100;
+          }
+        } else if (method === "debit" || method === "debito" || method === "Cartão de Débito") {
+          const debitRule = settings?.paymentRules?.find((r: any) => r.paymentMethod === "debit" && r.type === "charge");
+          if (debitRule && typeof debitRule.value === "number" && debitRule.passedToCustomer !== false) {
+            initialCardSurcharge = Math.round((amountForFee * (debitRule.value / 100)) * 100) / 100;
           }
         }
 
@@ -167,17 +179,17 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
     let newPixDiscount = 0;
     let newCardSurcharge = 0;
 
-    if (paymentMethod === "pix") {
+    if (paymentMethod === "pix" || paymentMethod === "PIX") {
       const pixRule = settings?.paymentRules?.find((r: any) => r.paymentMethod === "pix" && r.type === "discount");
       if (pixRule && typeof pixRule.value === "number") {
         newPixDiscount = Math.round((baseForPix * (pixRule.value / 100)) * 100) / 100;
       }
-    } else if (paymentMethod === "credito") {
+    } else if (paymentMethod === "credit" || paymentMethod === "credito" || paymentMethod === "Cartão de Crédito") {
       const activeRule = creditRules.find((r: any) => installments >= (r.parcelaMin || 0) && installments <= (r.parcelaMax || 99));
       if (activeRule && typeof activeRule.value === "number" && activeRule.passedToCustomer !== false) {
         newCardSurcharge = Math.round((amountForFee * (activeRule.value / 100)) * 100) / 100;
       }
-    } else if (paymentMethod === "debito") {
+    } else if (paymentMethod === "debit" || paymentMethod === "debito" || paymentMethod === "Cartão de Débito") {
       if (debitRule && typeof debitRule.value === "number" && debitRule.passedToCustomer !== false) {
         newCardSurcharge = Math.round((amountForFee * (debitRule.value / 100)) * 100) / 100;
       }
@@ -209,9 +221,9 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
   const debitFeePercentage = debitRule ? debitRule.value : 0;
   const estimatedDebitFee = debitRule ? (totalReceived * (debitRule.value / 100)) : 0;
 
-  const calculatedFee = paymentMethod === "Cartão de Crédito"
+  const calculatedFee = (paymentMethod === "credit" || paymentMethod === "credito" || paymentMethod === "Cartão de Crédito")
     ? estimatedCardFee
-    : (paymentMethod === "Cartão de Débito" ? estimatedDebitFee : 0);
+    : ((paymentMethod === "debit" || paymentMethod === "debito" || paymentMethod === "Cartão de Débito") ? estimatedDebitFee : 0);
 
   const handlePaymentMethodChange = (method: string) => {
     setPaymentMethod(method);
@@ -225,17 +237,17 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
     const productDiscount = (order.coupon?.type === 'FREE_SHIPPING') ? 0 : totalDiscount;
     const baseForPix = Math.max(0, order.itemsTotal - productDiscount);
 
-    if (method === "PIX") {
+    if (method === "pix" || method === "PIX") {
       const pixRule = settings?.paymentRules?.find((r: any) => r.paymentMethod === "pix" && r.type === "discount");
       if (pixRule && typeof pixRule.value === "number") {
         newDiscount = Math.round((baseForPix * (pixRule.value / 100)) * 100) / 100;
       }
-    } else if (method === "Cartão de Crédito") {
+    } else if (method === "credit" || method === "credito" || method === "Cartão de Crédito") {
       const activeRule = creditRules.find((r: any) => installments >= (r.parcelaMin || 0) && installments <= (r.parcelaMax || 99));
       if (activeRule && typeof activeRule.value === "number" && activeRule.passedToCustomer !== false) {
         newCardSurcharge = Math.round((amountForFee * (activeRule.value / 100)) * 100) / 100;
       }
-    } else if (method === "Cartão de Débito") {
+    } else if (method === "debit" || method === "debito" || method === "Cartão de Débito") {
       if (debitRule && typeof debitRule.value === "number" && debitRule.passedToCustomer !== false) {
         newCardSurcharge = Math.round((amountForFee * (debitRule.value / 100)) * 100) / 100;
       }
@@ -267,7 +279,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
   const handleReceiveOrder = async () => {
     if (!orderId) return;
     try {
-      const derivedPaymentType = paymentMethod === "PIX" ? "Online" : "Na Entrega";
+      const derivedPaymentType = (paymentMethod === "pix" || paymentMethod === "PIX") ? "Online" : "Na Entrega";
 
       await receiveMutation.mutateAsync({
         id: orderId,
@@ -281,7 +293,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
           receiptSurcharge: surcharge,
           installmentSurcharge: cardSurcharge,
           totalReceived,
-          installments: paymentMethod === "Cartão de Crédito" ? installments : 1,
+          installments: (paymentMethod === "credit" || paymentMethod === "credito" || paymentMethod === "Cartão de Crédito") ? installments : 1,
           cardFee: calculatedFee,
         }
       });
@@ -569,19 +581,19 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
                     </div>
                   </div>
                 )}
-                {paymentMethod === "Cartão de Crédito" && cardSurcharge > 0 && (
+                {(paymentMethod === "credit" || paymentMethod === "credito") && cardSurcharge > 0 && (
                   <div className="flex justify-between text-violet-600 font-bold items-center bg-violet-50/30 px-1 py-0.5 rounded">
                     <span>Juros Crédito ({installments}x)</span>
                     <span>{formatCurrency(cardSurcharge)}</span>
                   </div>
                 )}
-                {paymentMethod === "Cartão de Débito" && cardSurcharge > 0 && (
+                {(paymentMethod === "debit" || paymentMethod === "debito") && cardSurcharge > 0 && (
                   <div className="flex justify-between text-violet-600 font-bold items-center bg-violet-50/30 px-1 py-0.5 rounded">
                     <span>Taxa Débito</span>
                     <span>{formatCurrency(cardSurcharge)}</span>
                   </div>
                 )}
-                {paymentMethod === "PIX" && pixDiscount > 0 && (
+                {(paymentMethod === "pix" || paymentMethod === "PIX") && pixDiscount > 0 && (
                   <div className="flex justify-between text-emerald-600 font-bold items-center bg-emerald-50/30 px-1 py-0.5 rounded">
                     <span>Desconto PIX</span>
                     <span>- {formatCurrency(pixDiscount)}</span>
@@ -673,14 +685,19 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
                         <SelectValue placeholder="Selecione" />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.keys(paymentLabels).map(k => (
-                          <SelectItem key={k} value={k}>{paymentLabels[k]}</SelectItem>
+                        {[
+                          { value: "pix", label: "PIX" },
+                          { value: "credit", label: "Cartão de Crédito" },
+                          { value: "debit", label: "Cartão de Débito" },
+                          { value: "cash", label: "Dinheiro" }
+                        ].map(opt => (
+                          <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   )}
                 </div>
-                {paymentMethod === "credito" && !isPaid && (
+                {(paymentMethod === "credit" || paymentMethod === "credito") && !isPaid && (
                   <div className="flex flex-col gap-1.5 border-t border-slate-100 pt-2">
                     <div className="flex justify-between text-slate-500 items-center">
                       <span>Parcelas</span>
@@ -708,12 +725,12 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
                     )}
                   </div>
                 )}
-                {paymentMethod === "debito" && !isPaid && debitRule && (
+                {(paymentMethod === "debit" || paymentMethod === "debito") && !isPaid && debitRule && (
                   <div className="text-right text-[11px] text-violet-600 font-bold bg-violet-50/70 px-2.5 py-1 rounded-md mt-0.5 border border-violet-100/50">
                     Taxa estimada (Débito): {formatCurrency(estimatedDebitFee)} ({debitFeePercentage.toFixed(2)}%)
                   </div>
                 )}
-                {isPaid && order.installments && order.paymentMethod === "Cartão de Crédito" && (
+                {isPaid && order.installments && (order.paymentMethod === "credit" || order.paymentMethod === "credito" || order.paymentMethod === "Cartão de Crédito") && (
                   <div className="flex justify-between text-slate-500 border-t border-slate-100 pt-2">
                     <span>Parcelas pagas</span>
                     <span className="text-slate-800 font-bold">{order.installments}x</span>

@@ -39,10 +39,13 @@ const paymentLabels: Record<string, string> = {
   PIX: "Pix",
   pix: "Pix",
   "Cartão de Crédito": "Cartão de Crédito",
+  credit: "Cartão de Crédito",
   credito: "Cartão de Crédito",
   "Cartão de Débito": "Cartão de Débito",
+  debit: "Cartão de Débito",
   debito: "Cartão de Débito",
   Dinheiro: "Dinheiro",
+  cash: "Dinheiro",
   dinheiro: "Dinheiro",
 };
 
@@ -335,11 +338,23 @@ export default function OrdersPage() {
                           </Select>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-extrabold text-slate-800">
-                        {new Intl.NumberFormat("pt-BR", {
-                          style: "currency",
-                          currency: "BRL"
-                        }).format(order.totalOrder)}
+                      <TableCell className="text-right">
+                        <div className="font-extrabold text-slate-800">
+                          {new Intl.NumberFormat("pt-BR", {
+                            style: "currency",
+                            currency: "BRL"
+                          }).format(order.totalOrder)}
+                        </div>
+                        {order.paymentDiscount > 0 && (
+                          <div className="text-[10px] text-emerald-600 font-bold mt-0.5">
+                            Desc. PIX: -{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(order.paymentDiscount)}
+                          </div>
+                        )}
+                        {order.cardFee > 0 && (
+                          <div className="text-[10px] text-rose-500 font-bold mt-0.5">
+                            Taxa Retida: -{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(order.cardFee)}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-400 group-hover:bg-violet-600 group-hover:text-white group-hover:border-violet-600 transition-all shrink-0">

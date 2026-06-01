@@ -349,13 +349,13 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
                       </TableCell>
                       <TableCell className="font-bold text-slate-600 text-xs">
                         {
-                          order.paymentMethod === 'pix' ? 'Pix' :
-                          order.paymentMethod === 'credito' ? 'Cartão de Crédito' :
-                          order.paymentMethod === 'debito' ? 'Cartão de Débito' :
-                          order.paymentMethod === 'dinheiro' ? 'Dinheiro' :
+                          (order.paymentMethod === 'pix' || order.paymentMethod === 'PIX') ? 'Pix' :
+                          (order.paymentMethod === 'credito' || order.paymentMethod === 'credit' || order.paymentMethod === 'Cartão de Crédito') ? 'Cartão de Crédito' :
+                          (order.paymentMethod === 'debito' || order.paymentMethod === 'debit' || order.paymentMethod === 'Cartão de Débito') ? 'Cartão de Débito' :
+                          (order.paymentMethod === 'dinheiro' || order.paymentMethod === 'cash' || order.paymentMethod === 'Dinheiro') ? 'Dinheiro' :
                           order.paymentMethod || "-"
                         }
-                        {(order.paymentMethod === "Cartão de Crédito" || order.paymentMethod === "credito") && order.installments && (
+                        {(order.paymentMethod === "Cartão de Crédito" || order.paymentMethod === "credito" || order.paymentMethod === "credit") && order.installments && (
                           <span className="text-slate-400 font-normal text-[11px] ml-1">({order.installments}x)</span>
                         )}
                       </TableCell>
@@ -391,10 +391,10 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
                   {Object.entries(summary.totalsByMethod).map(([method, total]) => (
                     <div key={method} className="flex justify-between items-center border-b border-slate-100 pb-2.5 last:border-0 last:pb-0">
                       <span className="text-sm font-semibold text-slate-600">{
-                          method === 'pix' ? 'Pix' :
-                          method === 'credito' ? 'Cartão de Crédito' :
-                          method === 'debito' ? 'Cartão de Débito' :
-                          method === 'dinheiro' ? 'Dinheiro' :
+                          (method === 'pix' || method === 'PIX') ? 'Pix' :
+                          (method === 'credito' || method === 'credit' || method === 'Cartão de Crédito') ? 'Cartão de Crédito' :
+                          (method === 'debito' || method === 'debit' || method === 'Cartão de Débito') ? 'Cartão de Débito' :
+                          (method === 'dinheiro' || method === 'cash' || method === 'Dinheiro') ? 'Dinheiro' :
                           method
                       }</span>
                       <span className="font-extrabold text-slate-800">
