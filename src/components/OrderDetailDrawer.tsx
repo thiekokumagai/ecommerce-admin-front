@@ -279,7 +279,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
   const handleReceiveOrder = async () => {
     if (!orderId) return;
     try {
-      const derivedPaymentType = (paymentMethod === "pix" || paymentMethod === "PIX") ? "Online" : "Na Entrega";
+      const derivedPaymentType = (paymentMethod === "pix" || paymentMethod === "PIX") ? "online" : "entrega";
 
       await receiveMutation.mutateAsync({
         id: orderId,
