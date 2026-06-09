@@ -129,10 +129,6 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
     currency: "BRL",
   });
 
-  // Calculations for additional metrics
-  const totalPedidosPeriodo = orders.length;
-  const ticketMedio = totalPedidosPeriodo > 0 ? (summary.totalReceived / totalPedidosPeriodo) : 0;
-
   // Compute using local timezone America/Campo_Grande
   const nowLocal = new Date().toLocaleString("en-US", { timeZone: "America/Campo_Grande" });
   const todayLocal = new Date(nowLocal);
@@ -150,6 +146,8 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
     const itemsQty = order.items?.reduce((itemAcc: number, item: any) => itemAcc + (item.quantity || 0), 0) || 0;
     return acc + itemsQty;
   }, 0);
+
+  const ticketMedioHoje = ordersToday.length > 0 ? (totalVendasDia / ordersToday.length) : 0;
 
   return (
     <div className="space-y-6">
@@ -288,9 +286,9 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
                 <TrendingUp className="h-5 w-5" />
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Ticket Médio</p>
+                <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Ticket Médio (Hoje)</p>
                 <p className="text-2xl font-black text-slate-800">
-                  {currencyFormatter.format(ticketMedio)}
+                  {currencyFormatter.format(ticketMedioHoje)}
                 </p>
               </div>
             </CardContent>
