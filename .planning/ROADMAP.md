@@ -282,3 +282,16 @@ Planos:
 - [ ] 23-02: Componente de Edição Avançada de Estoque (Frontend)
 - [ ] 23-03: Drawer de Histórico de Movimentações e Observações (Frontend)
 - [ ] 23-04: Integração de Edição Rápida nas Variações (Frontend)
+
+---
+
+### Phase 24: Criar novo pedido no admin
+
+**Objetivo:** Permitir a criação de um novo pedido diretamente pelo painel administrativo, contemplando busca simples de produtos para adição, busca de cliente pelo telefone com exibição de endereços salvos, aplicação de cupom de desconto e escolha da forma de pagamento, finalizando o pedido.
+**Requisitos**: Selecionar produtos via busca simples, buscar cliente por telefone, usar endereços salvos, aplicar cupom, método de pagamento, finalizar pedido.
+**Depende de:** Fase 23
+**Planos:** 0 planos
+
+Planos:
+
+- [ ] TBD (execute o comando `/gsd-plan-phase 24` para detalhar)
