@@ -35,14 +35,7 @@ export async function getOrders(
   return response.json();
 }
 
-export async function createOrder(payload: {
-  customerId: string;
-  items: { productId: string; quantity: number }[];
-  shippingAddressId?: string;
-  couponCode?: string;
-  paymentMethod: string;
-  paymentStatus: PaymentStatus;
-}): Promise<Order> {
+export async function createOrder(payload: any): Promise<Order> {
   const response = await apiFetch(`/orders`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

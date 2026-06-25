@@ -17,32 +17,46 @@ import { useToast } from "@/components/ui/use-toast";
 
 interface OrderSummaryProps {
   subtotal: number;
+  deliveryFee: number;
   discount: number;
   total: number;
   coupon: Coupon | null;
   onApplyCoupon: (coupon: Coupon | null) => void;
   paymentMethod: string;
   onPaymentMethodChange: (val: string) => void;
+  creditInstallments: number;
+  onCreditInstallmentsChange: (val: number) => void;
+  installmentsOptions: { value: number; interest: number }[];
   isPaid: boolean;
   onIsPaidChange: (val: boolean) => void;
   onSubmit: () => void;
   isSubmitting: boolean;
   isValid: boolean;
+  pixDiscountAmount: number;
+  creditInterestAmount: number;
+  isCalculatingFreight: boolean;
 }
 
 export function OrderSummary({
   subtotal,
+  deliveryFee,
   discount,
   total,
   coupon,
   onApplyCoupon,
   paymentMethod,
   onPaymentMethodChange,
+  creditInstallments,
+  onCreditInstallmentsChange,
+  installmentsOptions,
   isPaid,
   onIsPaidChange,
   onSubmit,
   isSubmitting,
-  isValid
+  isValid,
+  pixDiscountAmount,
+  creditInterestAmount,
+  isCalculatingFreight
 }: OrderSummaryProps) {
   const [couponCode, setCouponCode] = useState("");
   const { data: coupons } = useCoupons();
@@ -128,6 +142,33 @@ export function OrderSummary({
             <SelectItem value="Dinheiro">Dinheiro</SelectItem>
           </SelectContent>
         </Select>
+
+        {paymentMethod === "Cartão de Crédito" && installmentsOptions.length > 0 && (
+          <div className="mt-3">
+            <Select 
+              value={creditInstallments.toString()} 
+              onValueChange={(val) => onCreditInstallmentsChange(Number(val))}
+            >
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Selecione o parcelamento" />
+              </SelectTrigger>
+              <SelectContent>
+                {installmentsOptions.map(opt => {
+                  const baseForCredit = Math.max(0, subtotal - discount) + deliveryFee;
+                  const totalWithInterest = baseForCredit * (1 + (opt.interest / 100));
+                  const installmentValue = totalWithInterest / opt.value;
+                  const formattedValue = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(installmentValue);
+
+                  return (
+                    <SelectItem key={opt.value} value={opt.value.toString()}>
+                      {opt.value}x de {formattedValue} {opt.interest > 0 ? `(com juros)` : `(sem juros)`}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -149,10 +190,33 @@ export function OrderSummary({
           <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(subtotal)}</span>
         </div>
         
+        <div className="flex justify-between text-slate-500 font-medium">
+          <span>Frete</span>
+          {isCalculatingFreight ? (
+            <span className="text-slate-400 text-sm">Calculando...</span>
+          ) : (
+            <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(deliveryFee)}</span>
+          )}
+        </div>
+
         {discount > 0 && (
           <div className="flex justify-between text-emerald-600 font-bold">
-            <span>Desconto</span>
+            <span>Desconto (Cupom)</span>
             <span>-{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(discount)}</span>
+          </div>
+        )}
+
+        {pixDiscountAmount > 0 && paymentMethod === "PIX" && (
+          <div className="flex justify-between text-emerald-600 font-bold">
+            <span>Desconto (Pix)</span>
+            <span>-{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pixDiscountAmount)}</span>
+          </div>
+        )}
+
+        {creditInterestAmount > 0 && paymentMethod === "Cartão de Crédito" && (
+          <div className="flex justify-between text-rose-600 font-bold">
+            <span>Juros Cartão</span>
+            <span>+{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(creditInterestAmount)}</span>
           </div>
         )}
         

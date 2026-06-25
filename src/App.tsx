@@ -37,6 +37,8 @@ function RouteFallback() {
   );
 }
 
+import GoogleMapsLoader from "@/components/GoogleMapsLoader";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -47,6 +49,7 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <GoogleMapsLoader />
     <TooltipProvider>
       <Toaster />
       <BrowserRouter>

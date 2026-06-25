@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
 import type { ProductResponse } from "@/types/product";
 
+import { buildImageUrl } from "@/utils/image-url";
+
 interface ProductSearchProps {
   onSelectProduct: (product: ProductResponse) => void;
 }
@@ -60,7 +62,7 @@ export function ProductSearch({ onSelectProduct }: ProductSearchProps) {
                 >
                   <div className="flex items-center gap-3">
                     {product.images && product.images.length > 0 ? (
-                      <img src={product.images[0].url} alt={product.title} className="w-10 h-10 rounded-md object-cover" />
+                      <img src={buildImageUrl(product.images[0].url)} alt={product.title} className="w-10 h-10 rounded-md object-cover" />
                     ) : (
                       <div className="w-10 h-10 rounded-md bg-slate-100 flex items-center justify-center">
                         <span className="text-xs text-slate-400">Sem img</span>

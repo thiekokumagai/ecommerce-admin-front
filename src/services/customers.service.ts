@@ -45,6 +45,14 @@ export const customersService = {
     return response.json() as Promise<Customer>;
   },
 
+  createCustomer: async (data: { name: string; phone: string }) => {
+    const response = await apiFetch(`/customers`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return response.json() as Promise<Customer>;
+  },
+
   updateCustomer: async (id: string, data: { name?: string; phone?: string }) => {
     const response = await apiFetch(`/customers/${id}`, {
       method: 'PUT',

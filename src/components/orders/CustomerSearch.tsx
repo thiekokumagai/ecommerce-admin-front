@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { Search, Loader2, MapPin, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useCustomers } from "@/hooks/useCustomers";
-import type { Customer, CustomerAddress } from "@/services/customers.service";
+import { customersService, type Customer, type CustomerAddress } from "@/services/customers.service";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { SimpleAddressForm } from "@/components/orders/SimpleAddressForm";
 
 interface CustomerSearchProps {
   onSelectCustomer: (customer: Customer | null) => void;
@@ -16,6 +18,10 @@ export function CustomerSearch({ onSelectCustomer, onSelectAddress }: CustomerSe
   const [debouncedTerm, setDebouncedTerm] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  
+  const [newCustomerName, setNewCustomerName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [isAddingAddress, setIsAddingAddress] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -108,8 +114,36 @@ export function CustomerSearch({ onSelectCustomer, onSelectAddress }: CustomerSe
       )}
 
       {!selectedCustomerId && debouncedTerm && !isLoading && customers.length === 0 && (
-        <div className="p-4 text-center text-sm text-slate-500 bg-slate-50 rounded-xl border border-slate-100">
-          Nenhum cliente encontrado com esse telefone/nome.
+        <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3">
+          <div className="text-sm text-slate-500 text-center mb-2">
+            Nenhum cliente encontrado. Cadastre agora:
+          </div>
+          <Input 
+            placeholder="Nome do cliente" 
+            value={newCustomerName}
+            onChange={(e) => setNewCustomerName(e.target.value)}
+          />
+          <Button 
+            className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+            disabled={!newCustomerName.trim() || isCreating}
+            onClick={async () => {
+              setIsCreating(true);
+              try {
+                const newCustomer = await customersService.createCustomer({
+                  name: newCustomerName.trim(),
+                  phone: searchTerm, // Use what they typed
+                });
+                handleSelectCustomer(newCustomer);
+                setNewCustomerName(""); // reset
+              } catch (e) {
+                console.error(e);
+              } finally {
+                setIsCreating(false);
+              }
+            }}
+          >
+            {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Cadastrar e Selecionar"}
+          </Button>
         </div>
       )}
 
@@ -128,11 +162,32 @@ export function CustomerSearch({ onSelectCustomer, onSelectAddress }: CustomerSe
           </div>
 
           <div>
-            <h3 className="font-semibold text-slate-700 mb-3 flex items-center gap-2">
-              <MapPin className="h-4 w-4" /> Endereço de Entrega
-            </h3>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-semibold text-slate-700 flex items-center gap-2">
+                <MapPin className="h-4 w-4" /> Endereço de Entrega
+              </h3>
+              {!isAddingAddress && (
+                <Button variant="outline" size="sm" className="h-8" onClick={() => setIsAddingAddress(true)}>
+                  Nova Busca (Google)
+                </Button>
+              )}
+            </div>
             
-            {selectedCustomer.addresses && selectedCustomer.addresses.length > 0 ? (
+            {isAddingAddress && (
+              <SimpleAddressForm 
+                onCancel={() => setIsAddingAddress(false)}
+                onSave={(newAddr) => {
+                  if (selectedCustomer) {
+                    selectedCustomer.addresses = [...(selectedCustomer.addresses || []), newAddr];
+                  }
+                  setSelectedAddressId(newAddr.id);
+                  onSelectAddress(newAddr);
+                  setIsAddingAddress(false);
+                }}
+              />
+            )}
+            
+            {!isAddingAddress && selectedCustomer.addresses && selectedCustomer.addresses.length > 0 ? (
               <RadioGroup 
                 value={selectedAddressId || ""} 
                 onValueChange={(val) => {
