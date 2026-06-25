@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowUpDown, Trash2, EyeOff, Eye, X, Copy } from "lucide-react";
+import { ArrowUpDown, Trash2, EyeOff, Eye, X, Copy, Plus, Minus } from "lucide-react";
 import type { ProductResponse } from "@/types/product";
 import { buildImageUrl } from "@/utils/image-url";
 
@@ -160,6 +160,44 @@ function InlinePriceInput({ value, onSave }: InlinePriceInputProps) {
   );
 }
 
+function InlineStockEditor({ stock, onAdd, onSub }: { stock: number; onAdd: () => Promise<void>; onSub: () => Promise<void> }) {
+  const [isPending, setIsPending] = useState(false);
+
+  const handleUpdate = async (type: 'add' | 'sub') => {
+    setIsPending(true);
+    try {
+      if (type === 'add') await onAdd();
+      else await onSub();
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-1 bg-muted px-1 py-0.5 rounded border inline-flex">
+      <button 
+        type="button" 
+        onClick={(e) => { e.stopPropagation(); void handleUpdate('sub'); }}
+        disabled={isPending || stock <= 0}
+        className="w-4 h-4 flex items-center justify-center rounded-sm hover:bg-background text-muted-foreground disabled:opacity-50"
+      >
+        <Minus className="h-3 w-3" />
+      </button>
+      <span className="font-semibold text-foreground text-[11px] min-w-[20px] text-center">
+        {isPending ? <Loader2 className="h-3 w-3 animate-spin mx-auto" /> : stock}
+      </span>
+      <button 
+        type="button" 
+        onClick={(e) => { e.stopPropagation(); void handleUpdate('add'); }}
+        disabled={isPending}
+        className="w-4 h-4 flex items-center justify-center rounded-sm hover:bg-background text-muted-foreground disabled:opacity-50"
+      >
+        <Plus className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
+
 interface ProductListTableProps {
   products: ProductResponse[];
   categories: Category[];
@@ -176,6 +214,7 @@ interface ProductListTableProps {
   onBulkDelete: (ids: string[]) => void;
   isBulkPending: boolean;
   onUpdateProduct?: (id: string, values: { price?: number; costPrice?: number }) => Promise<void>;
+  onUpdateStock?: (itemId: string, type: 'ADD' | 'SUBTRACT', quantity: number) => Promise<void>;
   onDuplicateProduct?: (id: string) => Promise<void>;
 }
 
@@ -195,6 +234,7 @@ export function ProductListTable({
   onBulkDelete,
   isBulkPending,
   onUpdateProduct,
+  onUpdateStock,
   onDuplicateProduct,
 }: ProductListTableProps) {
   const [sortField, setSortField] = useState<SortField>(null);
@@ -513,16 +553,33 @@ export function ProductListTable({
                   </TableCell>
                   <TableCell>
                     {product.variations.length === 0 ? (
-                      <span className="font-semibold text-foreground">{product.totalStock}</span>
+                      product.items?.[0] && onUpdateStock ? (
+                        <InlineStockEditor 
+                          stock={product.items[0].stock}
+                          onAdd={() => onUpdateStock(product.items![0].id, 'ADD', 1)}
+                          onSub={() => onUpdateStock(product.items![0].id, 'SUBTRACT', 1)}
+                        />
+                      ) : (
+                        <span className="font-semibold text-foreground">{product.totalStock}</span>
+                      )
                     ) : (
                       <div className="space-y-1">                        
-                        <div className="flex flex-wrap gap-1 text-[11px] text-muted-foreground max-w-[220px]">
+                        <div className="flex flex-col gap-1 text-[11px] text-muted-foreground max-w-[220px]">
                           {product.items?.map((item) => {
                              const optionLabel = item.options.map((o) => o.optionValue).join("/");
                              return (
-                               <span key={item.id} className="inline-block bg-muted px-1.5 py-0.5 rounded border whitespace-nowrap">
-                                 {optionLabel}: <span className="font-semibold text-foreground">{item.stock}</span>
-                               </span>
+                               <div key={item.id} className="flex items-center gap-2 justify-between w-full">
+                                 <span className="whitespace-nowrap truncate" title={optionLabel}>{optionLabel}</span>
+                                 {onUpdateStock ? (
+                                   <InlineStockEditor 
+                                     stock={item.stock}
+                                     onAdd={() => onUpdateStock(item.id, 'ADD', 1)}
+                                     onSub={() => onUpdateStock(item.id, 'SUBTRACT', 1)}
+                                   />
+                                 ) : (
+                                   <span className="font-semibold text-foreground">{item.stock}</span>
+                                 )}
+                               </div>
                              );
                           })}
                         </div>

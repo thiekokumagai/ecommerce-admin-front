@@ -9,6 +9,7 @@ import type {
   RemoveProductVariationOptionPayload,
   RemoveProductVariationPayload,
   UpdateProductItemPayload,
+  StockMovement,
 } from "@/types/product";
 
 type ProductApiResponse = {
@@ -280,8 +281,15 @@ export async function updateProductItem(itemId: string, payload: UpdateProductIt
   return normalizeProductItem(data);
 }
 
-export async function updateProductItemsBatch(items: { itemId: string; stock: number }[]) {
-  return Promise.all(items.map((item) => updateProductItem(item.itemId, { stock: item.stock })));
+export async function updateProductItemsBatch(
+  items: { itemId: string; payload: UpdateProductItemPayload }[]
+) {
+  return Promise.all(items.map((item) => updateProductItem(item.itemId, item.payload)));
+}
+
+export async function getProductStockHistory(productId: string): Promise<StockMovement[]> {
+  const response = await apiFetch(`/products/${productId}/stock-history`);
+  return await response.json();
 }
 export async function updateProduct(
   id: string,

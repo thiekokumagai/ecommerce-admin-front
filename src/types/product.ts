@@ -89,7 +89,9 @@ export type CreateProductItemPayload = {
 };
 
 export type UpdateProductItemPayload = {
-  stock: number;
+  type: 'ADD' | 'SUBTRACT' | 'SET';
+  quantity: number;
+  observation?: string;
 };
 
 export type RemoveProductVariationPayload = {
@@ -99,4 +101,15 @@ export type RemoveProductVariationPayload = {
 export type RemoveProductVariationOptionPayload = {
   variationId: string;
   optionId: string;
+};
+
+export type StockMovement = {
+  id: string;
+  type: 'ADD' | 'SUBTRACT' | 'SET';
+  quantity: number;
+  previousStock: number;
+  newStock: number;
+  observation?: string | null;
+  createdAt: string;
+  productItem?: ProductItem;
 };

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, AlertCircle } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 import { useProductItems } from "@/hooks/useProductItems";
 import { useProducts } from "@/hooks/useProducts";
@@ -30,7 +30,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
-import type { ProductImage, ProductItem, ProductResponse } from "@/types/product";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { ProductImage, ProductItem, ProductResponse, UpdateProductItemPayload } from "@/types/product";
 import type { Variation } from "@/types/variation";
 import type { QuickEditMode } from "@/components/products/ProductStockEditor";
 
@@ -143,7 +145,9 @@ export default function ProductDetailsPage() {
   const [bulkMode, setBulkMode] = useState<QuickEditMode>("add");
   const [bulkValues, setBulkValues] = useState<Record<string, string>>({});
   const [directStockValue, setDirectStockValue] = useState("");
+  const [stockObservation, setStockObservation] = useState("");
   const [hasVariations, setHasVariations] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [savingStep, setSavingStep] = useState<string | null>(null);
 
   const productForm = useForm<ProductDetailsFormValues>({
@@ -197,11 +201,7 @@ export default function ProductDetailsPage() {
       }, {}),
     );
 
-    if (!hasAnyVariation && savedItems[0]) {
-      setDirectStockValue(String(savedItems[0].stock));
-    } else {
-      setDirectStockValue("");
-    }
+    setDirectStockValue("");
   }, [savedItems]);
 
   const selectedVariations = useMemo(
@@ -265,13 +265,14 @@ export default function ProductDetailsPage() {
 
   const orderedSavedItems = combinedItems;
 
-  const products = Array.isArray(productsQuery.data)
-    ? productsQuery.data
-    : [];
+  const productQuery = useQuery({
+    queryKey: ["product", id],
+    queryFn: () => getProductById(id!),
+    enabled: !isNewProduct && !!id,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  const currentProduct = products.find(
-    (product) => product.id === productId,
-  );
+  const currentProduct = productQuery.data;
 
   const createProductMutation = useMutation({
     mutationFn: createProduct,
@@ -281,6 +282,7 @@ export default function ProductDetailsPage() {
       setImages(product.images);
       setSelectedVariationIds(product.variationIds ?? []);
       setSelectedOptionsByVariation(getSelectedOptionsMap(product));
+      setIsVisible(product.status === "active");
       navigate(`/produtos/${product.id}`, { replace: true });
       toast({ title: "Produto criado" });
     },
@@ -289,20 +291,16 @@ export default function ProductDetailsPage() {
     },
   });
 
-  const productQuery = useQuery({
-    queryKey: ["product", id],
-    queryFn: () => getProductById(id!),
-    enabled: !isNewProduct && !!id,
-    staleTime: 5 * 60 * 1000,
-  });
+
 
   useEffect(() => {
     if (productQuery.data) {
       const product = productQuery.data;
       setProductId(product.id);
       setImages(product.images);
-      setSelectedVariationIds(product.variationIds ?? []);
-      setSelectedOptionsByVariation(getSelectedOptionsMap(product));
+      setSelectedVariationIds(productQuery.data.variationIds ?? []);
+      setSelectedOptionsByVariation(getSelectedOptionsMap(productQuery.data));
+      setIsVisible(productQuery.data.status === "active");
       setHasVariations((product.variationIds?.length ?? 0) > 0);
       productForm.reset({
         title: product.title,
@@ -490,7 +488,7 @@ export default function ProductDetailsPage() {
   });
 
   const updateStockBatchMutation = useMutation({
-    mutationFn: (items: { itemId: string; stock: number }[]) => updateProductItemsBatch(items),
+    mutationFn: (items: { itemId: string; payload: UpdateProductItemPayload }[]) => updateProductItemsBatch(items),
     onSuccess: async () => {
       await refetchItems();
     },
@@ -500,13 +498,13 @@ export default function ProductDetailsPage() {
   });
 
   const saveDirectStockMutation = useMutation({
-    mutationFn: async ({ currentProductId, stock, itemId }: { currentProductId: string; stock: number; itemId?: string }) => {
+    mutationFn: async ({ currentProductId, payload, itemId, initialStock }: { currentProductId: string; payload: UpdateProductItemPayload; itemId?: string; initialStock?: number }) => {
       if (itemId) {
-        await updateProductItem(itemId, { stock });
+        await updateProductItem(itemId, payload);
       } else {
         await createProductItems(currentProductId, [
           {
-            stock,
+            stock: initialStock ?? 0,
           },
         ]);
       }
@@ -529,7 +527,7 @@ export default function ProductDetailsPage() {
     setPendingImages((previous) => {
       previous.forEach((image) => URL.revokeObjectURL(image.previewUrl));
       return files.map((file) => ({
-        id: crypto.randomUUID(),
+        id: window.crypto && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2),
         name: file.name,
         previewUrl: URL.createObjectURL(file),
         file,
@@ -638,6 +636,7 @@ export default function ProductDetailsPage() {
 
     const formValues = {
       ...rawValues,
+      isVisible,
       descriptionFormated: rawValues.description?.replace(/<[^>]*>/g, "").trim() ?? "",
     };
 
@@ -687,8 +686,14 @@ export default function ProductDetailsPage() {
             .filter((item) => !item.isVirtual && (bulkValues[item.id] ?? "") !== "")
             .map((item) => {
               const value = Number(bulkValues[item.id]);
-              const nextStock = bulkMode === "add" ? item.stock + value : bulkMode === "subtract" ? Math.max(0, item.stock - value) : value;
-              return { itemId: item.id, stock: nextStock };
+              return {
+                itemId: item.id,
+                payload: {
+                  type: bulkMode === "add" ? "ADD" : bulkMode === "subtract" ? "SUBTRACT" : "SET",
+                  quantity: value,
+                  observation: stockObservation,
+                } as UpdateProductItemPayload
+              };
             });
 
           if (itemsToUpdate.length > 0) {
@@ -697,16 +702,30 @@ export default function ProductDetailsPage() {
           }
         }
       } else {
-        const value = Number(directStockValue);
-        if (!Number.isNaN(value) && directStockValue !== "") {
-          setSavingStep("Atualizando estoque direto...");
-          const directItem = savedItems.find((item) => item.options.length === 0);
-          const currentStock = directItem?.stock ?? 0;
-          const stock = bulkMode === "add" ? currentStock + value : bulkMode === "subtract" ? Math.max(0, currentStock - value) : value;
+        const value = Number(directStockValue) || 0;
+        const directItem = savedItems.find((item) => item.options.length === 0);
+
+        if (!directItem) {
+          setSavingStep("Criando controle de estoque...");
           await saveDirectStockMutation.mutateAsync({
             currentProductId: currentId!,
-            stock,
-            itemId: directItem?.id
+            payload: {
+              type: "SET",
+              quantity: value,
+              observation: stockObservation,
+            },
+            initialStock: value,
+          });
+        } else if (!Number.isNaN(value) && directStockValue !== "") {
+          setSavingStep("Atualizando estoque direto...");
+          await saveDirectStockMutation.mutateAsync({
+            currentProductId: currentId!,
+            payload: {
+              type: bulkMode === "add" ? "ADD" : bulkMode === "subtract" ? "SUBTRACT" : "SET",
+              quantity: value,
+              observation: stockObservation,
+            },
+            itemId: directItem.id,
           });
         }
       }
@@ -714,6 +733,7 @@ export default function ProductDetailsPage() {
       setSavingStep(null);
       setBulkValues({});
       setDirectStockValue("");
+      setStockObservation("");
       queryClient.invalidateQueries({ queryKey: ["product", currentId] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
       await refetchItems();
@@ -755,7 +775,17 @@ export default function ProductDetailsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="product-active"
+              checked={isVisible}
+              onCheckedChange={setIsVisible}
+            />
+            <Label htmlFor="product-active" className="cursor-pointer font-semibold">
+              {isVisible ? "Ativo" : "Inativo"}
+            </Label>
+          </div>
           <Button
             type="button"
             className="h-12 rounded-2xl px-8 font-semibold shadow-lg transition-all hover:scale-[1.02]"
@@ -775,8 +805,36 @@ export default function ProductDetailsPage() {
       </div>
 
       <div className="grid gap-8">
-        {/* Images Section */}
-        <Suspense fallback={<PageLoader message="Carregando gestor de imagens..." />}>
+        <Tabs defaultValue="produto" className="w-full">
+          <TabsList className="mb-8 border-b rounded-none w-full justify-start bg-transparent h-auto p-0 gap-6">
+            <TabsTrigger value="produto" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none bg-transparent pb-3 pt-2 px-1 text-base font-semibold data-[state=active]:bg-transparent">
+              Produto
+            </TabsTrigger>
+            {productId && (
+              <>
+                <TabsTrigger value="variacoes" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none bg-transparent pb-3 pt-2 px-1 text-base font-semibold data-[state=active]:bg-transparent">
+                  Variações
+                </TabsTrigger>
+                <TabsTrigger value="estoque" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:shadow-none bg-transparent pb-3 pt-2 px-1 text-base font-semibold data-[state=active]:bg-transparent">
+                  Estoque
+                </TabsTrigger>
+              </>
+            )}
+          </TabsList>
+          
+          <TabsContent value="produto" className="space-y-8 outline-none">
+            {currentProduct && currentProduct.totalStock === 0 && (
+              <Alert variant="destructive" className="border-red-500/50 bg-red-500/10 text-red-600">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Produto sem estoque!</AlertTitle>
+                <AlertDescription>
+                  Este produto consta com estoque 0 e aparecerá como esgotado para os clientes. Ajuste o estoque na aba <strong>Estoque</strong>.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Images Section */}
+            <Suspense fallback={<PageLoader message="Carregando gestor de imagens..." />}>
           <ProductImageManager
             images={images}
             pendingImages={pendingImages}
@@ -796,12 +854,13 @@ export default function ProductDetailsPage() {
           />
         </Suspense>
 
-        {/* Product Details Section */}
         <ProductDetailsForm
           form={productForm}
           categories={categories}
         />
+        </TabsContent>
 
+        <TabsContent value="variacoes" className="space-y-8 outline-none">
         {/* Variations Toggle Section */}
         <div className="rounded-3xl border bg-card p-6 shadow-sm">
           <div className="flex items-center justify-between">
@@ -847,11 +906,25 @@ export default function ProductDetailsPage() {
                     }
                   />
                 </Suspense>
+              </>
+            ) : (
+              <div className="text-center py-12 border border-dashed rounded-3xl bg-muted/20">
+                <p className="text-muted-foreground">Ative as variações acima para configurá-las.</p>
+              </div>
+            )}
+          </div>
+        </div>
+        </TabsContent>
 
-                <div className="space-y-4">
-                  <h3 className="text-lg font-bold">Grade de Estoque</h3>
-                  <Suspense fallback={<PageLoader message="Carregando editor de estoque..." />}>
+        <TabsContent value="estoque" className="space-y-8 outline-none">
+        {/* Estoque */}
+        <div className="space-y-4">
+          {hasVariations ? (
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold hidden">Grade de Estoque</h3>
+              <Suspense fallback={<PageLoader message="Carregando editor de estoque..." />}>
                     <ProductStockEditor
+                      productId={productId || undefined}
                       productReady={true}
                       hasVariations={true}
                       loadingSavedItems={loadingSavedItems}
@@ -859,20 +932,22 @@ export default function ProductDetailsPage() {
                       directStockValue=""
                       bulkMode={bulkMode}
                       bulkValues={bulkValues}
+                      observation={stockObservation}
                       isSaving={isSaving}
                       onModeChange={setBulkMode}
                       onDirectStockChange={setDirectStockValue}
                       onValueChange={(itemId, value) => setBulkValues(prev => ({ ...prev, [itemId]: value }))}
+                      onObservationChange={setStockObservation}
                       onSaveAll={() => void handleSaveEverything()}
                     />
                   </Suspense>
                 </div>
-              </>
             ) : (
               <div className="space-y-4">
                 <h3 className="text-lg font-bold">Gerenciar Estoque Direto</h3>
                 <Suspense fallback={<PageLoader message="Carregando editor de estoque..." />}>
                   <ProductStockEditor
+                    productId={productId || undefined}
                     productReady={true}
                     hasVariations={false}
                     loadingSavedItems={loadingSavedItems}
@@ -880,17 +955,20 @@ export default function ProductDetailsPage() {
                     directStockValue={directStockValue}
                     bulkMode={bulkMode}
                     bulkValues={{}}
+                    observation={stockObservation}
                     isSaving={isSaving}
                     onModeChange={setBulkMode}
                     onDirectStockChange={setDirectStockValue}
                     onValueChange={() => {}}
+                    onObservationChange={setStockObservation}
                     onSaveAll={() => void handleSaveEverything()}
                   />
                 </Suspense>
               </div>
             )}
           </div>
-        </div>
+        </TabsContent>
+        </Tabs>
 
         {/* Bottom Save Button */}
         <div className="flex justify-end pt-4">

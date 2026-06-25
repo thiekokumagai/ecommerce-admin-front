@@ -71,6 +71,23 @@ export default function ProductsPage() {
     },
   });
 
+  // ─── Inline Stock Update ──────────────────────────────────────────────────
+  const updateStockMutation = useMutation({
+    mutationFn: async ({ itemId, type, quantity }: { itemId: string; type: 'ADD' | 'SUBTRACT'; quantity: number }) => {
+      await updateProductItem(itemId, { type, quantity, observation: 'Ajuste rápido' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      toast({ title: "Estoque atualizado com sucesso" });
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: error.message || "Erro ao atualizar estoque",
+      });
+    },
+  });
+
   // ─── Duplicate Product ────────────────────────────────────────────────────
   const duplicateProductMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -192,6 +209,9 @@ export default function ProductsPage() {
         isBulkPending={isBulkPending}
         onUpdateProduct={async (id, values) => {
           await updateProductMutation.mutateAsync({ id, ...values });
+        }}
+        onUpdateStock={async (itemId, type, quantity) => {
+          await updateStockMutation.mutateAsync({ itemId, type, quantity });
         }}
         onDuplicateProduct={async (id) => {
           await duplicateProductMutation.mutateAsync(id);

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { DollarSign, ShoppingBag, TrendingUp, Package, Calendar, RefreshCw } from "lucide-react";
+import { DollarSign, ShoppingBag, TrendingUp, Package, Calendar, RefreshCw, CheckCircle, XCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { getDashboardStats, DashboardKPIs, DashboardChartItem, BestSellerItem } from "@/services/dashboard.service";
 import { getCategories } from "@/services/category.service";
@@ -148,6 +148,18 @@ export default function DashboardPage() {
       icon: Package,
       color: "text-warning bg-warning/10",
     },
+    {
+      label: "Produtos Ativos",
+      value: stats ? stats.produtosAtivos : 0,
+      icon: CheckCircle,
+      color: "text-emerald-600 bg-emerald-100",
+    },
+    {
+      label: "Produtos Inativos",
+      value: stats ? stats.produtosInativos : 0,
+      icon: XCircle,
+      color: "text-slate-600 bg-slate-200",
+    },
   ];
 
   return (
@@ -244,7 +256,7 @@ export default function DashboardPage() {
       )}
 
       {/* KPI Cards Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
         {kpiCards.map((card, idx) => {
           const IconComponent = card.icon;
           return (

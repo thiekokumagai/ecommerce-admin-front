@@ -182,7 +182,7 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
       {/* Grupo 1: Fluxo de Caixa (Financeiro) */}
       <div className="space-y-3">
         <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Fluxo de Caixa & Saldos</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <Card className="border-emerald-100 bg-emerald-50/10 rounded-2xl shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs uppercase tracking-wider text-emerald-800 font-bold">Faturamento Bruto</CardTitle>
@@ -190,6 +190,17 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
             <CardContent>
               <p className="text-2xl font-black text-emerald-600">
                 {currencyFormatter.format(summary.totalGross || summary.totalReceived)}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-sky-100 bg-sky-50/10 rounded-2xl shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs uppercase tracking-wider text-sky-800 font-bold">Investimento</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-black text-sky-600">
+                {currencyFormatter.format(summary.totalInvestment || 0)}
               </p>
             </CardContent>
           </Card>
@@ -435,6 +446,11 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
                       {tx.category === "MOTOBOY" && (
                         <span className="ml-2 inline-flex items-center rounded-md bg-orange-50 px-1.5 py-0.5 text-[10px] font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">
                           Motoboy
+                        </span>
+                      )}
+                      {(tx.category === "INVESTMENT" || tx.description.toLowerCase().includes("investimento")) && (
+                        <span className="ml-2 inline-flex items-center rounded-md bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">
+                          Investimento
                         </span>
                       )}
                     </TableCell>

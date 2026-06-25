@@ -33,7 +33,7 @@ export function useAddInvestment() {
             type: "OUTFLOW",
             amount: payload.amount,
             description: payload.description || "Transferência para Investimento",
-            category: "GENERAL",
+            category: "INVESTMENT",
           });
         } catch (err) {
           console.error("Erro ao descontar do caixa:", err);

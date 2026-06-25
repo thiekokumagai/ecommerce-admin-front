@@ -5,6 +5,8 @@ export interface DashboardKPIs {
   totalPedidos: number;
   ticketMedio: number;
   totalProdutosVendidos: number;
+  produtosAtivos: number;
+  produtosInativos: number;
 }
 
 export interface DashboardChartItem {

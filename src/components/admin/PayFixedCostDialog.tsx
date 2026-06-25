@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Landmark } from "lucide-react";
 import {
@@ -52,12 +52,12 @@ export default function PayFixedCostDialog({
   });
 
   // Initialize form values when dialog opens
-  useState(() => {
-    if (fixedCost) {
+  useEffect(() => {
+    if (isOpen && fixedCost) {
       setAmount(fixedCost.value.toString());
       setDescription(`Pagamento: ${fixedCost.name}`);
     }
-  });
+  }, [isOpen, fixedCost]);
 
   // Trigger when fixedCost changes
   const handleOpenChange = (open: boolean) => {

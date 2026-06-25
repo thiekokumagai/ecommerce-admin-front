@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ProductStockHistoryDrawer } from "./ProductStockHistoryDrawer";
 import type { ProductItem } from "@/types/product";
 
 export type QuickEditMode = "add" | "subtract" | "replace";
 
 type ProductStockEditorProps = {
+  productId?: string;
   productReady: boolean;
   hasVariations: boolean;
   loadingSavedItems: boolean;
@@ -13,10 +15,12 @@ type ProductStockEditorProps = {
   directStockValue: string;
   bulkMode: QuickEditMode;
   bulkValues: Record<string, string>;
+  observation: string;
   isSaving: boolean;
   onModeChange: (mode: QuickEditMode) => void;
   onDirectStockChange: (value: string) => void;
   onValueChange: (itemId: string, value: string) => void;
+  onObservationChange: (value: string) => void;
   onSaveAll: () => void;
 };
 
@@ -31,6 +35,7 @@ function renderSavedItemLabel(item: ProductItem) {
 }
 
 export function ProductStockEditor({
+  productId,
   productReady,
   hasVariations,
   loadingSavedItems,
@@ -38,16 +43,21 @@ export function ProductStockEditor({
   directStockValue,
   bulkMode,
   bulkValues,
+  observation,
   onModeChange,
   onDirectStockChange,
   onValueChange,
+  onObservationChange,
 }: ProductStockEditorProps) {
   const directSavedItem = savedItems[0];
 
   return (
     <Card className="rounded-3xl border bg-card shadow-sm">
       <CardHeader className="space-y-4">
-        <CardTitle className="text-lg">Estoque</CardTitle>
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-lg">Estoque</CardTitle>
+          {productId && <ProductStockHistoryDrawer productId={productId} />}
+        </div>
 
         <div className="flex flex-wrap gap-2">
           <Button
@@ -98,7 +108,12 @@ export function ProductStockEditor({
               <div className="w-full md:w-40 space-y-2">
                 <p className="text-sm font-medium">Quantidade</p>
                 {directSavedItem ? (
-                  <p className="text-sm text-muted-foreground">Atual: {directSavedItem.stock}</p>
+                  <div className="flex items-center gap-2 pb-2">
+                    <span className="text-sm text-muted-foreground">Atual:</span>
+                    <span className="inline-flex items-center justify-center min-w-8 rounded-md bg-blue-100 px-2.5 py-0.5 text-sm font-extrabold text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                      {directSavedItem.stock}
+                    </span>
+                  </div>
                 ) : null}
                 <Input
                   type="number"
@@ -150,7 +165,12 @@ export function ProductStockEditor({
                         </span>
                       )}
                     </p>
-                    <p className="text-sm text-muted-foreground">Atual: {item.stock}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-sm text-muted-foreground">Atual:</span>
+                      <span className="inline-flex items-center justify-center min-w-8 rounded-md bg-blue-100 px-2.5 py-0.5 text-sm font-extrabold text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                        {item.stock}
+                      </span>
+                    </div>
                   </div>
 
                   <div>
@@ -172,6 +192,18 @@ export function ProductStockEditor({
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {productReady && (savedItems.length > 0 || !hasVariations) && (
+          <div className="space-y-2 pt-4 border-t">
+            <p className="text-sm font-medium">Observações sobre o ajuste (opcional)</p>
+            <Input
+              value={observation}
+              onChange={(e) => onObservationChange(e.target.value)}
+              placeholder="Ex: Contagem de estoque / Entrada de mercadoria"
+              className="h-10 rounded-xl"
+            />
           </div>
         )}
       </CardContent>

@@ -266,3 +266,19 @@ Planos:
 - [x] 22-02: Integração e Serviços no Frontend
 - [x] 22-03: Tela de Listagem e Navegação
 - [x] 22-04: Drawer de Detalhes e Histórico
+
+---
+
+### Fase 23: Controle de Estoque Avançado (Réplica)
+
+**Objetivo:** Implementar a réplica do controle de estoque do sistema antigo. Inclui operações matemáticas diretas (Somar, Subtrair, Substituir) no estoque de produtos e variações, com preview do resultado, campo para observação, histórico de movimentações (auditoria) e edição rápida inline.
+**Requisitos**: Interface similar ao Vendizap, histórico de movimentação de estoque.
+**Depende de:** Fase 22
+**Planos:** 4 planos
+
+Planos:
+
+- [ ] 23-01: Modelagem e Endpoints de Histórico de Estoque (Backend)
+- [ ] 23-02: Componente de Edição Avançada de Estoque (Frontend)
+- [ ] 23-03: Drawer de Histórico de Movimentações e Observações (Frontend)
+- [ ] 23-04: Integração de Edição Rápida nas Variações (Frontend)
