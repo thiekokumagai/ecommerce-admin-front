@@ -26,6 +26,7 @@ O objetivo desta fase é criar um fluxo completo dentro do painel administrativo
 
 ### Pagamento e Finalização
 - O lojista deve poder selecionar a forma de pagamento do pedido antes da finalização.
+- Deve existir uma opção (toggle/checkbox) indicando se o pedido já está pago ou não.
 - Após o preenchimento de todos os dados e revisão, deve ser possível finalizar o pedido.
 
 ### the agent's Discretion
