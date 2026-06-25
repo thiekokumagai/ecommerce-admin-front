@@ -114,7 +114,7 @@ export function ProductListCard({
                           <Images className="h-3.5 w-3.5" />
                           {product.images.length} foto(s)
                         </span>
-                        <span>{product.itemsCount} SKU(s)</span>
+
                       </div>
                     </div>
                   </div>

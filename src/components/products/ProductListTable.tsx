@@ -469,7 +469,7 @@ export function ProductListTable({
               </TableHead>
               <TableHead>Custo</TableHead>
               <TableHead>Categoria</TableHead>
-              <TableHead>SKU</TableHead>
+
               <TableHead>Estoque</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="w-24 text-right">Ações</TableHead>
@@ -548,9 +548,7 @@ export function ProductListTable({
                   <TableCell className="text-muted-foreground">
                     {getCategoryName(product.categoryId)}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {product.primarySku ?? "—"}
-                  </TableCell>
+
                   <TableCell>
                     {product.variations.length === 0 ? (
                       product.items?.[0] && onUpdateStock ? (
