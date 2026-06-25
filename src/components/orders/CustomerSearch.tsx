@@ -17,6 +17,7 @@ export function CustomerSearch({ onSelectCustomer, onSelectAddress }: CustomerSe
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedTerm, setDebouncedTerm] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [selectedCustomerData, setSelectedCustomerData] = useState<Customer | null>(null);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   
   const [newCustomerName, setNewCustomerName] = useState("");
@@ -33,7 +34,7 @@ export function CustomerSearch({ onSelectCustomer, onSelectAddress }: CustomerSe
   const { data, isLoading } = useCustomers(debouncedTerm ? debouncedTerm : undefined, 1, 5);
   const customers = data?.data || [];
   
-  const selectedCustomer = selectedCustomerId ? customers.find(c => c.id === selectedCustomerId) : null;
+  const selectedCustomer = selectedCustomerData;
 
   // Mask function for phone (optional but requested in plan)
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,6 +52,7 @@ export function CustomerSearch({ onSelectCustomer, onSelectAddress }: CustomerSe
     // Reset selection when searching again
     if (selectedCustomerId) {
       setSelectedCustomerId(null);
+      setSelectedCustomerData(null);
       setSelectedAddressId(null);
       onSelectCustomer(null);
       onSelectAddress(null);
@@ -59,6 +61,7 @@ export function CustomerSearch({ onSelectCustomer, onSelectAddress }: CustomerSe
 
   const handleSelectCustomer = (customer: Customer) => {
     setSelectedCustomerId(customer.id);
+    setSelectedCustomerData(customer);
     onSelectCustomer(customer);
     
     // Auto-select default address if available

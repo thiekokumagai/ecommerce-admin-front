@@ -14,6 +14,9 @@ import { buildImageUrl } from "@/utils/image-url";
 import { useSettings } from "@/hooks/useSettings";
 import { useFreight } from "@/hooks/useFreight";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { SimpleAddressForm } from "@/components/orders/SimpleAddressForm";
 
 interface OrderItem {
   productId: string;
@@ -22,6 +25,7 @@ interface OrderItem {
   quantity: number;
   imageUrl?: string;
   variation?: string;
+  maxStock?: number;
 }
 
 export default function CreateOrderPage() {
@@ -36,6 +40,7 @@ export default function CreateOrderPage() {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [isPaid, setIsPaid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isBudgetMode, setIsBudgetMode] = useState(false);
   
   const [productForVariation, setProductForVariation] = useState<ProductResponse | null>(null);
 
@@ -97,10 +102,19 @@ export default function CreateOrderPage() {
   const creditInterestAmount = paymentMethod === "Cartão de Crédito" ? (totalAfterCoupon + effectiveDeliveryFee) * (selectedInstallment.interest / 100) : 0;
 
   const total = discountedProductsTotal + effectiveDeliveryFee + creditInterestAmount;
-  const isValid = selectedCustomer !== null && orderItems.length > 0 && paymentMethod !== "";
+  const isValid = (isBudgetMode || selectedCustomer !== null) && orderItems.length > 0 && paymentMethod !== "";
 
   const handleSubmit = async () => {
-    if (!isValid || !selectedCustomer) return;
+    if (!isValid || (!isBudgetMode && !selectedCustomer)) return;
+    
+    if (isBudgetMode) {
+      toast({
+        title: "Modo Orçamento",
+        description: "Orçamentos servem apenas para calcular preços e não são salvos.",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload = {
@@ -114,9 +128,10 @@ export default function CreateOrderPage() {
         couponDiscount: coupon?.type !== 'FREE_SHIPPING' ? Number(discount.toFixed(2)) : 0,
         couponFreightDiscount: coupon?.type === 'FREE_SHIPPING' ? Number(deliveryFee.toFixed(2)) : 0,
         totalOrder: Number(total.toFixed(2)),
-        totalReceived: Number(total.toFixed(2)),
+        totalReceived: isPaid ? Number(total.toFixed(2)) : 0,
         paymentType: paymentMethod === 'PIX' ? 'online' : 'entrega',
         paymentMethod: paymentMethod === 'PIX' ? 'pix' : paymentMethod === 'Cartão de Crédito' ? 'credit' : paymentMethod === 'Cartão de Débito' ? 'debit' : paymentMethod === 'Dinheiro' ? 'cash' : paymentMethod,
+        paymentStatus: isPaid ? "PAID" : "PENDING",
         installments: paymentMethod === 'Cartão de Crédito' ? effectiveCreditInstallments : 1,
         street: selectedAddress?.street || "Local",
         number: selectedAddress?.number || "S/N",
@@ -159,8 +174,10 @@ export default function CreateOrderPage() {
     setOrderItems((prev) => {
       const existing = prev.find((item) => item.productId === product.id && !item.variation);
       if (existing) {
+        const newQuantity = existing.quantity + 1;
+        if (newQuantity > product.totalStock) return prev;
         return prev.map((item) => 
-          item.productId === product.id && !item.variation ? { ...item, quantity: item.quantity + 1 } : item
+          item.productId === product.id && !item.variation ? { ...item, quantity: newQuantity } : item
         );
       }
       return [
@@ -171,6 +188,7 @@ export default function CreateOrderPage() {
           price: product.promotionalPrice || product.price || 0,
           quantity: 1,
           imageUrl: product.images?.[0]?.url,
+          maxStock: product.totalStock,
         }
       ];
     });
@@ -182,8 +200,10 @@ export default function CreateOrderPage() {
     setOrderItems((prev) => {
       const existing = prev.find((item) => item.productId === productForVariation.id && item.variation === variationLabel);
       if (existing) {
+        const newQuantity = existing.quantity + 1;
+        if (newQuantity > selectedItem.stock) return prev;
         return prev.map((item) => 
-          item.productId === productForVariation.id && item.variation === variationLabel ? { ...item, quantity: item.quantity + 1 } : item
+          item.productId === productForVariation.id && item.variation === variationLabel ? { ...item, quantity: newQuantity } : item
         );
       }
       return [
@@ -195,6 +215,7 @@ export default function CreateOrderPage() {
           quantity: 1,
           imageUrl: productForVariation.images?.[0]?.url,
           variation: variationLabel,
+          maxStock: selectedItem.stock,
         }
       ];
     });
@@ -204,7 +225,15 @@ export default function CreateOrderPage() {
   const handleUpdateQuantity = (productId: string, variation: string | undefined, quantity: number) => {
     if (quantity < 1) return;
     setOrderItems((prev) => 
-      prev.map((item) => (item.productId === productId && item.variation === variation ? { ...item, quantity } : item))
+      prev.map((item) => {
+        if (item.productId === productId && item.variation === variation) {
+          if (item.maxStock !== undefined && quantity > item.maxStock) {
+            return item;
+          }
+          return { ...item, quantity };
+        }
+        return item;
+      })
     );
   };
 
@@ -274,7 +303,8 @@ export default function CreateOrderPage() {
                         <Button 
                           variant="outline" 
                           size="icon" 
-                          className="h-7 w-7 rounded-md"
+                          className="h-7 w-7 rounded-md disabled:opacity-50"
+                          disabled={item.maxStock !== undefined && item.quantity >= item.maxStock}
                           onClick={() => handleUpdateQuantity(item.productId, item.variation, item.quantity + 1)}
                         >
                           +
@@ -297,11 +327,57 @@ export default function CreateOrderPage() {
 
           {/* Customer Search Section */}
           <div className="bg-white rounded-2xl border border-slate-200/60 p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Cliente</h2>
-            <CustomerSearch 
-              onSelectCustomer={setSelectedCustomer} 
-              onSelectAddress={setSelectedAddress} 
-            />
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-slate-800">Cliente</h2>
+              <div className="flex items-center gap-2">
+                <Switch 
+                  checked={isBudgetMode} 
+                  onCheckedChange={(val) => {
+                    setIsBudgetMode(val);
+                    if (val) {
+                      setSelectedCustomer(null);
+                      setSelectedAddress(null);
+                    }
+                  }} 
+                />
+                <Label className="text-sm font-medium text-slate-600 cursor-pointer" onClick={() => setIsBudgetMode(!isBudgetMode)}>Modo Orçamento</Label>
+              </div>
+            </div>
+            
+            {isBudgetMode ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl text-sm text-orange-700">
+                  <strong>Atenção:</strong> No modo orçamento o pedido não é salvo no sistema. Apenas calcule o frete buscando um endereço.
+                </div>
+                
+                {selectedAddress ? (
+                  <div className="p-4 border border-slate-200 rounded-xl bg-slate-50 relative">
+                    <div className="font-medium text-slate-800">Endereço de Entrega (Orçamento)</div>
+                    <div className="text-sm text-slate-500 mt-1">
+                      {selectedAddress.street}, {selectedAddress.number} - {selectedAddress.neighborhood}
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="absolute top-2 right-2 text-slate-500"
+                      onClick={() => setSelectedAddress(null)}
+                    >
+                      Alterar
+                    </Button>
+                  </div>
+                ) : (
+                  <SimpleAddressForm 
+                    onCancel={() => {}}
+                    onSave={(addr) => setSelectedAddress(addr)}
+                  />
+                )}
+              </div>
+            ) : (
+              <CustomerSearch 
+                onSelectCustomer={setSelectedCustomer} 
+                onSelectAddress={setSelectedAddress} 
+              />
+            )}
           </div>
         </div>
 
@@ -329,6 +405,7 @@ export default function CreateOrderPage() {
               pixDiscountAmount={pixDiscountAmount}
               creditInterestAmount={creditInterestAmount}
               isCalculatingFreight={isCalculatingFreight}
+              isBudgetMode={isBudgetMode}
             />
           </div>
         </div>

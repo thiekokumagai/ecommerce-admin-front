@@ -23,8 +23,8 @@ export function ProductSearch({ onSelectProduct }: ProductSearchProps) {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data, isLoading } = useProducts(debouncedTerm ? { search: debouncedTerm, limit: 10 } : undefined);
-  const products = data?.products || [];
+  const { data, isLoading } = useProducts(debouncedTerm ? { search: debouncedTerm, limit: 50 } : undefined);
+  const products = (data?.products || []).filter(p => p.status === 'active' && p.totalStock > 0);
 
   return (
     <div className="relative">

@@ -35,6 +35,7 @@ interface OrderSummaryProps {
   pixDiscountAmount: number;
   creditInterestAmount: number;
   isCalculatingFreight: boolean;
+  isBudgetMode?: boolean;
 }
 
 export function OrderSummary({
@@ -56,7 +57,8 @@ export function OrderSummary({
   isValid,
   pixDiscountAmount,
   creditInterestAmount,
-  isCalculatingFreight
+  isCalculatingFreight,
+  isBudgetMode
 }: OrderSummaryProps) {
   const [couponCode, setCouponCode] = useState("");
   const { data: coupons } = useCoupons();
@@ -227,11 +229,11 @@ export function OrderSummary({
       </div>
 
       <Button 
-        className="w-full h-12 rounded-xl font-bold bg-violet-600 hover:bg-violet-700 text-white shadow-sm"
+        className={`w-full h-12 rounded-xl font-bold text-white shadow-sm ${isBudgetMode ? 'bg-orange-500 hover:bg-orange-600' : 'bg-violet-600 hover:bg-violet-700'}`}
         disabled={!isValid || isSubmitting}
         onClick={onSubmit}
       >
-        {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
+        {isSubmitting ? "Finalizando..." : (isBudgetMode ? "Orçamento (Não Salva)" : "Finalizar Pedido")}
       </Button>
     </div>
   );
