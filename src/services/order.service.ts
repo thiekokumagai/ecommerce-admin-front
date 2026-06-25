@@ -35,6 +35,22 @@ export async function getOrders(
   return response.json();
 }
 
+export async function createOrder(payload: {
+  customerId: string;
+  items: { productId: string; quantity: number }[];
+  shippingAddressId?: string;
+  couponCode?: string;
+  paymentMethod: string;
+  paymentStatus: PaymentStatus;
+}): Promise<Order> {
+  const response = await apiFetch(`/orders`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return response.json();
+}
+
 
 export async function getOrderById(id: string): Promise<Order> {
   const response = await apiFetch(`/orders/${id}`);

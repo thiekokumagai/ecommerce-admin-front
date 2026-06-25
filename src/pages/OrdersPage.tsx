@@ -159,6 +159,12 @@ export default function OrdersPage() {
           </h1>
           <p className="text-sm text-slate-500 font-medium">Gerencie suas vendas e acompanhe os status de entrega em tempo real.</p>
         </div>
+        <Button 
+          className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl h-11 px-5 font-bold shadow-sm"
+          onClick={() => window.location.href = "/pedidos/novo"}
+        >
+          Novo Pedido
+        </Button>
       </div>
 
       {/* Toolbar / Filters */}
