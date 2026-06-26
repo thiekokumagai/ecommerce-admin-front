@@ -114,7 +114,7 @@ export function AdminSidebar() {
                     className="hover:bg-sidebar-accent/60 transition-colors"
                   >
                     <Printer className="mr-2 h-4 w-4 shrink-0 text-blue-500" />
-                    {!collapsed && <span className="text-blue-500 font-medium">Baixar Print Agent</span>}
+                    {!collapsed && <span className="text-blue-500 font-medium">Baixar Impressora</span>}
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>
