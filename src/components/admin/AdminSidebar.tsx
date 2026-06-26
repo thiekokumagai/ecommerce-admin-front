@@ -109,7 +109,8 @@ export function AdminSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <a
-                    href="http://localhost:3000/public/downloads/print-agent-setup.exe"
+                    href="https://drive.google.com/file/d/1FZySVH-F01SAdsSsa0mmHEZMhRk-IM_8/view?usp=drive_link"
+                    target="_blank"
                     className="hover:bg-sidebar-accent/60 transition-colors"
                   >
                     <Printer className="mr-2 h-4 w-4 shrink-0 text-blue-500" />
