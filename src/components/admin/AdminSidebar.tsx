@@ -109,7 +109,7 @@ export function AdminSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <a
-                    href="https://drive.google.com/file/d/1FZySVH-F01SAdsSsa0mmHEZMhRk-IM_8/view?usp=drive_link"
+                    href="https://drive.google.com/uc?export=download&id=1FZySVH-F01SAdsSsa0mmHEZMhRk-IM_8"
                     target="_blank"
                     className="hover:bg-sidebar-accent/60 transition-colors"
                   >
