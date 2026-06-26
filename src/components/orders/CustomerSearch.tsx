@@ -37,15 +37,20 @@ export function CustomerSearch({ onSelectCustomer, onSelectAddress }: CustomerSe
   const selectedCustomer = selectedCustomerData;
 
   // Mask function for phone (optional but requested in plan)
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value.replace(/\D/g, "");
-    if (value.length > 11) value = value.slice(0, 11);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
     
-    if (value.length > 2) {
-      value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
-    }
-    if (value.length > 9) {
-      value = `${value.slice(0, 10)}-${value.slice(10)}`;
+    // Se o valor contiver apenas números e pontuações comuns de telefone
+    if (/^[\d\s\(\)\-]+$/.test(value)) {
+      let digits = value.replace(/\D/g, "");
+      if (digits.length > 11) digits = digits.slice(0, 11);
+      
+      if (digits.length > 2) {
+        value = `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+      }
+      if (digits.length > 9) {
+        value = `${value.slice(0, 10)}-${value.slice(10)}`;
+      }
     }
     
     setSearchTerm(value);
@@ -85,7 +90,7 @@ export function CustomerSearch({ onSelectCustomer, onSelectAddress }: CustomerSe
           placeholder="Buscar cliente por telefone ou nome..." 
           className="pl-9 h-11"
           value={searchTerm}
-          onChange={handlePhoneChange}
+          onChange={handleSearchChange}
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
