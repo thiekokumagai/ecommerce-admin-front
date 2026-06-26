@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { NavLink as RouterNavLink, NavLinkProps } from "react-router-dom";
+import { Printer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -100,6 +101,25 @@ export function AdminSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         ))}
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Ferramentas</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a
+                    href="http://localhost:3000/public/downloads/print-agent-setup.exe"
+                    className="hover:bg-sidebar-accent/60 transition-colors"
+                  >
+                    <Printer className="mr-2 h-4 w-4 shrink-0 text-blue-500" />
+                    {!collapsed && <span className="text-blue-500 font-medium">Baixar Print Agent</span>}
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );
