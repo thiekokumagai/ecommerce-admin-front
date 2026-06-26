@@ -4,29 +4,6 @@ import { LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Outlet, useNavigate } from "react-router-dom";
 import { clearSession } from "@/services/auth.service";
-import { useOrders, useMarkOrderAsPrinted } from "@/hooks/useOrders";
-import { useEffect } from "react";
-
-function OrderAutoPrintListener() {
-  const { data } = useOrders(undefined, undefined, undefined, undefined, 1, 10, undefined, { refetchInterval: 10000 });
-  const markOrderAsPrintedMutation = useMarkOrderAsPrinted();
-  
-  useEffect(() => {
-    if (data?.data && data.data.length > 0) {
-      const newOrders = data.data.filter((o: any) => o.isPrinted === false);
-      
-      if (newOrders.length > 0) {
-        newOrders.forEach((order: any) => {
-          order.isPrinted = true;
-          window.open(`/pedidos/${order.id}/imprimir`, '_blank');
-          markOrderAsPrintedMutation.mutate(order.id);
-        });
-      }
-    }
-  }, [data, markOrderAsPrintedMutation]);
-
-  return null;
-}
 
 export function AdminLayout() {
   const navigate = useNavigate();
@@ -62,7 +39,6 @@ export function AdminLayout() {
           </main>
         </div>
       </div>
-      <OrderAutoPrintListener />
     </SidebarProvider>
   );
 }
