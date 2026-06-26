@@ -36,6 +36,10 @@ interface OrderSummaryProps {
   creditInterestAmount: number;
   isCalculatingFreight: boolean;
   isBudgetMode?: boolean;
+  customTotal: string;
+  onCustomTotalChange: (val: string) => void;
+  showProductPrices: boolean;
+  onShowProductPricesChange: (val: boolean) => void;
 }
 
 export function OrderSummary({
@@ -58,7 +62,11 @@ export function OrderSummary({
   pixDiscountAmount,
   creditInterestAmount,
   isCalculatingFreight,
-  isBudgetMode
+  isBudgetMode,
+  customTotal,
+  onCustomTotalChange,
+  showProductPrices,
+  onShowProductPricesChange
 }: OrderSummaryProps) {
   const [couponCode, setCouponCode] = useState("");
   const { data: coupons } = useCoupons();
@@ -183,6 +191,16 @@ export function OrderSummary({
         />
       </div>
 
+      <div className="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200 mt-3">
+        <Label htmlFor="show-product-prices" className="text-slate-700 font-bold cursor-pointer">Mostrar Preços na Impressão</Label>
+        <Switch 
+          id="show-product-prices" 
+          checked={showProductPrices}
+          onCheckedChange={onShowProductPricesChange}
+          className="data-[state=checked]:bg-emerald-500"
+        />
+      </div>
+
       <hr className="border-slate-100" />
 
       {/* Totals */}
@@ -222,9 +240,22 @@ export function OrderSummary({
           </div>
         )}
         
-        <div className="flex justify-between text-slate-800 font-black text-xl pt-3 border-t border-slate-100">
-          <span>Total</span>
+        <div className="flex justify-between items-center text-slate-800 font-black text-xl pt-3 border-t border-slate-100">
+          <span>Total Calculado</span>
           <span>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total)}</span>
+        </div>
+        
+        <div className="flex justify-between items-center pt-3">
+          <Label className="text-slate-700 font-bold">Total Final (Editar)</Label>
+          <div className="relative w-32">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium text-sm">R$</span>
+            <Input 
+              value={customTotal} 
+              onChange={(e) => onCustomTotalChange(e.target.value)} 
+              placeholder={total.toFixed(2)}
+              className="pl-8 font-bold h-10"
+            />
+          </div>
         </div>
       </div>
 

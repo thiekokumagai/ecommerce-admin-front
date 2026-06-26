@@ -41,6 +41,8 @@ export default function CreateOrderPage() {
   const [isPaid, setIsPaid] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isBudgetMode, setIsBudgetMode] = useState(false);
+  const [customTotal, setCustomTotal] = useState("");
+  const [showProductPrices, setShowProductPrices] = useState(true);
   
   const [productForVariation, setProductForVariation] = useState<ProductResponse | null>(null);
 
@@ -102,6 +104,9 @@ export default function CreateOrderPage() {
   const creditInterestAmount = paymentMethod === "Cartão de Crédito" ? (totalAfterCoupon + effectiveDeliveryFee) * (selectedInstallment.interest / 100) : 0;
 
   const total = discountedProductsTotal + effectiveDeliveryFee + creditInterestAmount;
+  const parsedCustomTotal = parseFloat(customTotal.replace(',', '.'));
+  const finalTotal = !isNaN(parsedCustomTotal) && customTotal.trim() !== "" ? parsedCustomTotal : total;
+
   const isValid = (isBudgetMode || selectedCustomer !== null) && orderItems.length > 0 && paymentMethod !== "";
 
   const handleSubmit = async () => {
@@ -127,12 +132,13 @@ export default function CreateOrderPage() {
         couponTitle: coupon?.title || undefined,
         couponDiscount: coupon?.type !== 'FREE_SHIPPING' ? Number(discount.toFixed(2)) : 0,
         couponFreightDiscount: coupon?.type === 'FREE_SHIPPING' ? Number(deliveryFee.toFixed(2)) : 0,
-        totalOrder: Number(total.toFixed(2)),
-        totalReceived: isPaid ? Number(total.toFixed(2)) : 0,
+        totalOrder: Number(finalTotal.toFixed(2)),
+        totalReceived: isPaid ? Number(finalTotal.toFixed(2)) : 0,
         paymentType: paymentMethod === 'PIX' ? 'online' : 'entrega',
         paymentMethod: paymentMethod === 'PIX' ? 'pix' : paymentMethod === 'Cartão de Crédito' ? 'credit' : paymentMethod === 'Cartão de Débito' ? 'debit' : paymentMethod === 'Dinheiro' ? 'cash' : paymentMethod,
         paymentStatus: isPaid ? "PAID" : "PENDING",
         installments: paymentMethod === 'Cartão de Crédito' ? effectiveCreditInstallments : 1,
+        showProductPrices: showProductPrices,
         street: selectedAddress?.street || "Local",
         number: selectedAddress?.number || "S/N",
         neighborhood: selectedAddress?.neighborhood || "Local",
@@ -406,6 +412,10 @@ export default function CreateOrderPage() {
               creditInterestAmount={creditInterestAmount}
               isCalculatingFreight={isCalculatingFreight}
               isBudgetMode={isBudgetMode}
+              customTotal={customTotal}
+              onCustomTotalChange={setCustomTotal}
+              showProductPrices={showProductPrices}
+              onShowProductPricesChange={setShowProductPrices}
             />
           </div>
         </div>
