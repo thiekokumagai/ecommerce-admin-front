@@ -246,13 +246,21 @@ export function OrderSummary({
         </div>
         
         <div className="flex justify-between items-center pt-3">
-          <Label className="text-slate-700 font-bold">Total Final (Editar)</Label>
+          <Label className="text-slate-700 font-bold">Total Final (Editar) <span className="font-normal text-slate-400 text-xs ml-1">(Opcional)</span></Label>
           <div className="relative w-32">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium text-sm">R$</span>
             <Input 
               value={customTotal} 
-              onChange={(e) => onCustomTotalChange(e.target.value)} 
-              placeholder={total.toFixed(2)}
+              onChange={(e) => {
+                let val = e.target.value.replace(/\D/g, "");
+                if (!val) {
+                  onCustomTotalChange("");
+                  return;
+                }
+                const num = Number(val) / 100;
+                onCustomTotalChange(num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+              }} 
+              placeholder={total.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               className="pl-8 font-bold h-10"
             />
           </div>

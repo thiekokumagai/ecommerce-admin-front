@@ -104,7 +104,7 @@ export default function CreateOrderPage() {
   const creditInterestAmount = paymentMethod === "Cartão de Crédito" ? (totalAfterCoupon + effectiveDeliveryFee) * (selectedInstallment.interest / 100) : 0;
 
   const total = discountedProductsTotal + effectiveDeliveryFee + creditInterestAmount;
-  const parsedCustomTotal = parseFloat(customTotal.replace(',', '.'));
+  const parsedCustomTotal = parseFloat(customTotal.replace(/\./g, '').replace(',', '.'));
   const finalTotal = !isNaN(parsedCustomTotal) && customTotal.trim() !== "" ? parsedCustomTotal : total;
 
   const isValid = (isBudgetMode || selectedCustomer !== null) && orderItems.length > 0 && paymentMethod !== "";

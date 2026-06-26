@@ -93,7 +93,7 @@ export function SimpleAddressForm({ onSave, onCancel }: SimpleAddressFormProps) 
 
   const handleSave = () => {
     onSave({
-      id: crypto.randomUUID(),
+      id: "addr_" + Math.random().toString(36).substring(2, 11),
       street,
       number: number || "s/n",
       neighborhood,
