@@ -130,9 +130,22 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
           }
         }
 
+        const initialCalculated = Math.round((baseTotal + initialCardSurcharge - initialPixDiscount - totalDiscount) * 100) / 100;
+        const diff = Math.round((order.totalOrder - initialCalculated) * 100) / 100;
+        
+        let initialSurcharge = 0;
+        let initialManualDiscount = 0;
+        if (diff > 0) {
+          initialSurcharge = diff;
+        } else if (diff < 0) {
+          initialManualDiscount = Math.abs(diff);
+        }
+
+        setSurcharge(initialSurcharge);
+        setManualDiscount(initialManualDiscount);
         setPixDiscount(initialPixDiscount);
         setCardSurcharge(initialCardSurcharge);
-        setTotalReceived(Math.round((baseTotal + initialCardSurcharge - initialPixDiscount - totalDiscount) * 100) / 100);
+        setTotalReceived(order.totalOrder);
       }
     }
   }, [order, settings]);
@@ -639,7 +652,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
                 </div>
                 <div className="flex justify-between font-bold text-slate-800 border-t border-slate-100 pt-2.5 items-center">
                   <span>Total final</span>
-                  <span>{formatCurrency((order.itemsTotal || 0) + (order.freight || 0) + surcharge + cardSurcharge - (couponDiscount + manualDiscount) - pixDiscount)}</span>
+                  <span>{formatCurrency(order.totalOrder)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-emerald-600 bg-emerald-50/50 p-2 rounded-lg mt-1 items-center">
                   <span>Total recebido</span>
