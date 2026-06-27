@@ -102,3 +102,9 @@ export async function markOrderPrinted(id: string): Promise<void> {
     method: "PATCH",
   });
 }
+
+export async function reprintOrder(id: string): Promise<void> {
+  await apiFetch(`/orders/${id}/reprint`, {
+    method: "POST",
+  });
+}

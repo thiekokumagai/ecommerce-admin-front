@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useOrderDetails, useCancelOrder } from "@/hooks/useOrders";
+import { useOrderDetails, useCancelOrder, useReprintOrder } from "@/hooks/useOrders";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
@@ -33,6 +33,24 @@ export default function OrderDetailsPage() {
   
   const { data: order, isLoading } = useOrderDetails(id ?? "");
   const cancelMutation = useCancelOrder();
+  const reprintMutation = useReprintOrder();
+
+  const handleReprintOrder = async () => {
+    if (!id) return;
+    try {
+      await reprintMutation.mutateAsync(id);
+      toast({
+        title: "Reimpressão enviada",
+        description: `O pedido #${order?.orderNumber} foi enviado para a impressora.`,
+      });
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao imprimir",
+        description: err.message || "Ocorreu um erro ao processar a reimpressão.",
+      });
+    }
+  };
 
   const handleCopyAddress = () => {
     if (!order) return;
@@ -120,8 +138,13 @@ export default function OrderDetailsPage() {
           >
             <MessageSquare className="h-4 w-4" /> <span className="hidden sm:inline">WhatsApp</span>
           </a>
-          <button className="w-9 h-9 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors shrink-0" title="Imprimir">
-            <Printer className="h-4 w-4" />
+          <button 
+            onClick={handleReprintOrder}
+            disabled={reprintMutation.isPending}
+            className="w-9 h-9 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors shrink-0 disabled:opacity-50" 
+            title="Imprimir"
+          >
+            {reprintMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
           </button>
           <button className="w-9 h-9 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors shrink-0" title="Download PDF">
             <Download className="h-4 w-4" />

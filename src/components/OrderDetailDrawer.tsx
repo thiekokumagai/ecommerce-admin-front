@@ -1,4 +1,4 @@
-import { useOrderDetails, useCancelOrder, useReceiveOrder, useRevertReceiveOrder, useUpdateOrderStatus } from "@/hooks/useOrders";
+import { useOrderDetails, useCancelOrder, useReceiveOrder, useRevertReceiveOrder, useUpdateOrderStatus, useReprintOrder } from "@/hooks/useOrders";
 import { useSettings } from "@/hooks/useSettings";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -60,6 +60,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
   const receiveMutation = useReceiveOrder();
   const revertReceiveMutation = useRevertReceiveOrder();
   const updateStatusMutation = useUpdateOrderStatus();
+  const reprintMutation = useReprintOrder();
 
   const [paymentMethod, setPaymentMethod] = useState("");
   const [localStatus, setLocalStatus] = useState<OrderStatus | "">("");
@@ -404,6 +405,23 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
     }
   };
 
+  const handleReprintOrder = async () => {
+    if (!orderId) return;
+    try {
+      await reprintMutation.mutateAsync(orderId);
+      toast({
+        title: "Reimpressão enviada",
+        description: `O pedido #${order?.orderNumber} foi enviado para a impressora.`,
+      });
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao imprimir",
+        description: err.message || "Ocorreu um erro ao processar a reimpressão.",
+      });
+    }
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
   };
@@ -433,16 +451,15 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
 
                 {/* Quick actions top-right */}
                 <div className="flex items-center gap-1.5">
-                  {/* 1. Imprimir */}
-                  <a 
-                    href={`/pedidos/${order.id}/imprimir`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-8 h-8 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors" 
+                  {/* 1. Imprimir na máquina (Print Agent) */}
+                  <button 
+                    onClick={handleReprintOrder}
+                    disabled={reprintMutation.isPending}
+                    className="w-8 h-8 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors disabled:opacity-50" 
                     title="Imprimir"
                   >
-                    <Printer className="h-3.5 w-3.5" />
-                  </a>
+                    {reprintMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Printer className="h-3.5 w-3.5" />}
+                  </button>
                   
                   {/* 2. Compartilhar */}
                   <button 
