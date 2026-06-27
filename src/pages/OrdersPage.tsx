@@ -21,6 +21,8 @@ import { Button } from "@/components/ui/button";
 import { Search, ArrowRight, Loader2, Calendar, ShoppingBag, X } from "lucide-react";
 import OrderDetailDrawer from "@/components/OrderDetailDrawer";
 import { OrderStatus, PaymentStatus } from "@/types/order";
+import { io } from "socket.io-client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const statusConfig: Record<OrderStatus, { label: string; bg: string; text: string }> = {
   PENDING: { label: "Pendente", bg: "bg-amber-100/80 text-amber-700", text: "text-amber-700" },
@@ -59,6 +61,25 @@ export default function OrdersPage() {
   const limit = 20;
 
   const hasFilters = search !== "" || status !== "ALL" || paymentStatus !== "ALL" || startDate !== "" || endDate !== "";
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const socketUrl = import.meta.env.VITE_ADMIN_API?.replace(/\/api$/, '') || 'http://localhost:3000';
+    const socket = io(socketUrl);
+
+    socket.on('connect', () => {
+      console.log('Connected to websocket server for order updates');
+    });
+
+    socket.on('order.new', (order) => {
+      console.log('New order received via websocket:', order);
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [queryClient]);
 
   const handleClearFilters = () => {
     setSearch("");
