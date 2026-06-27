@@ -1,5 +1,6 @@
 import { useOrderDetails, useCancelOrder, useReceiveOrder, useRevertReceiveOrder, useUpdateOrderStatus, useReprintOrder } from "@/hooks/useOrders";
 import { useSettings } from "@/hooks/useSettings";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,7 @@ const paymentLabels: Record<string, string> = {
 
 export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly = false }: OrderDetailDrawerProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   
   const { data: order, isLoading } = useOrderDetails(orderId ?? "");
@@ -472,9 +474,9 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
 
                   {/* 3. Editar */}
                   <button 
-                    disabled
-                    className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 cursor-not-allowed" 
-                    title="Editar pedido (Em breve)"
+                    onClick={() => navigate(`/pedidos/${order.id}/editar`)}
+                    className="w-8 h-8 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors" 
+                    title="Editar pedido"
                   >
                     <Edit className="h-3.5 w-3.5" />
                   </button>

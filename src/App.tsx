@@ -9,6 +9,8 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const OrdersPage = lazy(() => import("@/pages/OrdersPage"));
 const CreateOrderPage = lazy(() => import("@/pages/CreateOrderPage"));
+const EditOrderPage = lazy(() => import("@/pages/EditOrderPage"));
+const OrderDetailsPage = lazy(() => import("@/pages/OrderDetailsPage"));
 const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
 const CustomersPage = lazy(() => import("@/pages/CustomersPage"));
 const CustomerDetailsPage = lazy(() => import("@/pages/CustomerDetailsPage"));
@@ -62,6 +64,8 @@ const App = () => (
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/pedidos" element={<OrdersPage />} />
                 <Route path="/pedidos/novo" element={<CreateOrderPage />} />
+                <Route path="/pedidos/:id/editar" element={<EditOrderPage />} />
+                <Route path="/pedidos/:id" element={<OrderDetailsPage />} />
                 <Route path="/clientes" element={<CustomersPage />} />
                 <Route path="/clientes/:id" element={<CustomerDetailsPage />} />
                 <Route path="/produtos" element={<ProductsPage />} />

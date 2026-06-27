@@ -11,18 +11,32 @@ import { SimpleAddressForm } from "@/components/orders/SimpleAddressForm";
 interface CustomerSearchProps {
   onSelectCustomer: (customer: Customer | null) => void;
   onSelectAddress: (address: CustomerAddress | null) => void;
+  initialCustomer?: Customer | null;
 }
 
-export function CustomerSearch({ onSelectCustomer, onSelectAddress }: CustomerSearchProps) {
+export function CustomerSearch({ onSelectCustomer, onSelectAddress, initialCustomer }: CustomerSearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedTerm, setDebouncedTerm] = useState("");
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
-  const [selectedCustomerData, setSelectedCustomerData] = useState<Customer | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(initialCustomer?.id || null);
+  const [selectedCustomerData, setSelectedCustomerData] = useState<Customer | null>(initialCustomer || null);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   
   const [newCustomerName, setNewCustomerName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
+
+  useEffect(() => {
+    if (initialCustomer) {
+      setSelectedCustomerId(initialCustomer.id);
+      setSelectedCustomerData(initialCustomer);
+      setSearchTerm(initialCustomer.phone || initialCustomer.name);
+      
+      const defaultAddress = initialCustomer.addresses?.find(a => a.isDefault) || initialCustomer.addresses?.[0];
+      if (defaultAddress) {
+        setSelectedAddressId(defaultAddress.id);
+      }
+    }
+  }, [initialCustomer]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

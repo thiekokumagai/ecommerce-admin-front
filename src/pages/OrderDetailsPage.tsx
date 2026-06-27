@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { 
-  ArrowLeft, Send, MessageSquare, Copy, Printer, Download,
+  ArrowLeft, Send, MessageSquare, Copy, Printer, Download, Edit,
   User, Phone, MapPin, CreditCard, Check, Loader2 
 } from "lucide-react";
 import { useState } from "react";
@@ -145,6 +145,13 @@ export default function OrderDetailsPage() {
             title="Imprimir"
           >
             {reprintMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
+          </button>
+          <button 
+            onClick={() => navigate(`/pedidos/${order.id}/editar`)}
+            className="w-9 h-9 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors shrink-0" 
+            title="Editar pedido"
+          >
+            <Edit className="h-4 w-4" />
           </button>
           <button className="w-9 h-9 rounded-full bg-violet-50 hover:bg-violet-100 flex items-center justify-center text-violet-600 hover:text-violet-700 transition-colors shrink-0" title="Download PDF">
             <Download className="h-4 w-4" />
