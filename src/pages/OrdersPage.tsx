@@ -76,6 +76,11 @@ export default function OrdersPage() {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
     });
 
+    socket.on('order.updated', (order) => {
+      console.log('Order updated via websocket:', order);
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    });
+
     return () => {
       socket.disconnect();
     };
