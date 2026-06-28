@@ -119,6 +119,9 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
     socket.on('order.updated', (order) => {
       console.log('Order updated via websocket:', order);
       queryClient.invalidateQueries({ queryKey: ["cash-register-summary", id] });
+      if (order && order.id) {
+        queryClient.invalidateQueries({ queryKey: ["orders", order.id] });
+      }
     });
 
     // Option: also invalidate on product or status change
