@@ -824,7 +824,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
 
             {/* Footer Buttons aligned side-by-side */}
             {!readOnly && (
-            <div className="flex items-center gap-3 p-6 border-t border-slate-200/80 bg-slate-50 shrink-0">
+            <div className="flex flex-col sm:flex-row gap-3 p-6 border-t border-slate-200/80 bg-slate-50 shrink-0">
               {order.status !== "CANCELLED" ? (
                 order.paymentStatus === "PAID" ? (
                   <Button 

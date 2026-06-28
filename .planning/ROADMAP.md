@@ -295,3 +295,16 @@ Planos:
 Planos:
 
 - [ ] TBD (execute o comando `/gsd-plan-phase 24` para detalhar)
+
+---
+
+### Fase 25: Melhoria de todas as telas no mobile do admin
+
+**Objetivo:** Adaptar e melhorar a interface e experiência de uso de todas as telas do painel administrativo para dispositivos móveis, garantindo responsividade e usabilidade.
+**Requisitos**: TBD
+**Depende de:** N/A
+**Planos:** 0 planos
+
+Planos:
+
+- [ ] TBD (execute o comando `/gsd-plan-phase 25` para detalhar)

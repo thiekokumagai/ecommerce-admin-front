@@ -98,9 +98,10 @@ export default function CashRegistersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-3xl font-bold">Caixas</h1>
         <Button
+          className="w-full md:w-auto"
           onClick={() => {
             resetForm();
             setIsModalOpen(true);
@@ -110,8 +111,8 @@ export default function CashRegistersPage() {
         </Button>
       </div>
 
-      <div className="bg-white rounded-lg border shadow-sm">
-        <Table>
+      <div className="bg-white rounded-lg border shadow-sm overflow-x-auto">
+        <Table className="min-w-[600px]">
           <TableHeader>
             <TableRow>
               <TableHead>Título</TableHead>

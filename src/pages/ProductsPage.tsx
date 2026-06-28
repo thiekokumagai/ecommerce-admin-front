@@ -184,7 +184,7 @@ export default function ProductsPage() {
           </p>
         </div>
 
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link to="/produtos/novo">
             <Plus className="mr-2 h-4 w-4" />
             Novo produto

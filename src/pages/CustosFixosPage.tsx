@@ -194,7 +194,7 @@ export default function CustosFixosPage() {
             Gerencie seus custos fixos estimados como aluguel, luz, marketing e registre saídas diretamente no caixa vigente.
           </p>
         </div>
-        <Button onClick={handleOpenCreateSheet} className="gap-2 font-semibold">
+        <Button onClick={handleOpenCreateSheet} className="gap-2 font-semibold w-full md:w-auto">
           <Plus className="h-5 w-5" />
           Nova Conta Fixa
         </Button>
@@ -251,8 +251,8 @@ export default function CustosFixosPage() {
               <p className="text-xs text-gray-400">Clique em "Nova Conta Fixa" para registrar sua primeira conta.</p>
             </div>
           ) : (
-            <div className="border rounded-lg overflow-hidden bg-white">
-              <Table>
+            <div className="border rounded-lg overflow-hidden overflow-x-auto bg-white">
+              <Table className="min-w-[700px]">
                 <TableHeader>
                   <TableRow className="bg-gray-50/50">
                     <TableHead className="font-bold text-gray-700">Nome da Conta</TableHead>

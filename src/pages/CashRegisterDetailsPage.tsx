@@ -348,7 +348,7 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
       </div>
 
       <Tabs defaultValue="pedidos" className="w-full">
-        <TabsList className="mb-6 bg-slate-100 p-1">
+        <TabsList className="mb-6 bg-slate-100 p-1 w-full overflow-x-auto flex whitespace-nowrap justify-start md:w-fit md:inline-flex">
           <TabsTrigger value="pedidos" className="font-semibold">Pedidos Recebidos</TabsTrigger>
           <TabsTrigger value="movimentacoes" className="font-semibold">Movimentações Manuais</TabsTrigger>
         </TabsList>
@@ -360,7 +360,8 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
               <div className="p-4 border-b bg-slate-50/50">
                 <h3 className="font-bold text-slate-700">Pedidos Incluídos neste Caixa</h3>
               </div>
-              <Table>
+              <div className="overflow-x-auto">
+                <Table className="min-w-[800px]">
                 <TableHeader>
                   <TableRow className="bg-slate-50/30">
                     <TableHead className="w-24">Nº Pedido</TableHead>
@@ -414,6 +415,7 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
                   )}
                 </TableBody>
               </Table>
+              </div>
             </div>
 
             {/* Resumo por Método */}
@@ -451,7 +453,8 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
             <div className="p-4 border-b bg-slate-50/50 flex justify-between items-center">
               <h3 className="font-bold text-slate-700">Movimentações Manuais & Saídas de Caixa</h3>
             </div>
-            <Table>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[800px]">
               <TableHeader>
                 <TableRow className="bg-slate-50/30">
                   <TableHead>Data</TableHead>
@@ -520,6 +523,7 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
                 )}
               </TableBody>
             </Table>
+            </div>
           </div>
         </TabsContent>
       </Tabs>

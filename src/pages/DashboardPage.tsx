@@ -165,7 +165,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header and Filter Bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">
             Dashboard

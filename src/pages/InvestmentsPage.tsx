@@ -62,7 +62,7 @@ export default function InvestmentsPage() {
             Gerencie o capital destinado a compras de fornecedores.
           </p>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Capital
@@ -133,8 +133,8 @@ export default function InvestmentsPage() {
               <p className="text-slate-500 font-medium">Nenhum caixa aberto no momento. Abra um caixa para listar os lançamentos.</p>
             </div>
           ) : filteredTransactions && filteredTransactions.length > 0 ? (
-            <div className="border rounded-xl overflow-hidden">
-              <Table>
+            <div className="border rounded-xl overflow-hidden overflow-x-auto">
+              <Table className="min-w-[800px]">
                 <TableHeader className="bg-slate-50">
                   <TableRow>
                     <TableHead className="font-semibold text-slate-600">Data e Hora</TableHead>

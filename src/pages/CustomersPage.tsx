@@ -90,8 +90,8 @@ export default function CustomersPage() {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
-          <Table>
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden overflow-x-auto">
+          <Table className="min-w-[600px]">
             <TableHeader className="bg-slate-50/50">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="font-bold text-slate-600 pl-6">Nome</TableHead>

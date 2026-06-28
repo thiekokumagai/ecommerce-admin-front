@@ -173,7 +173,7 @@ export default function OrdersPage() {
   return (
     <div className="space-y-6">
       {/* Title */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
             <span>Pedidos</span>
@@ -181,7 +181,7 @@ export default function OrdersPage() {
           <p className="text-sm text-slate-500 font-medium">Gerencie suas vendas e acompanhe os status de entrega em tempo real.</p>
         </div>
         <Button 
-          className="rounded-xl h-11 px-5 font-bold shadow-sm"
+          className="rounded-xl h-11 px-5 font-bold shadow-sm w-full md:w-auto"
           onClick={() => window.location.href = "/pedidos/novo"}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -282,8 +282,8 @@ export default function OrdersPage() {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
-          <Table>
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden overflow-x-auto">
+          <Table className="min-w-[800px]">
             <TableHeader className="bg-slate-50/50">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-[100px] font-bold text-slate-600">Pedido</TableHead>

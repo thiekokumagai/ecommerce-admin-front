@@ -373,15 +373,15 @@ export function ProductListTable({
       )}
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col md:flex-row flex-wrap gap-3 items-start md:items-center w-full">
+        <div className="flex items-center gap-2 w-full md:w-auto">
           <Input
             id="product-search"
             placeholder="Buscar produtos..."
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             onKeyDown={handleSearchKeyDown}
-            className="w-56"
+            className="w-full md:w-56"
           />
           <Button variant="secondary" onClick={handleSearchClick}>
             Buscar
@@ -394,7 +394,7 @@ export function ProductListTable({
             onFiltersChange({ ...filters, status: v as ProductListTableFilters["status"] })
           }
         >
-          <SelectTrigger id="product-status-filter" className="w-40">
+          <SelectTrigger id="product-status-filter" className="w-full md:w-40">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -410,7 +410,7 @@ export function ProductListTable({
             onFiltersChange({ ...filters, categoryId: v === "all" ? "" : v })
           }
         >
-          <SelectTrigger id="product-category-filter" className="w-44">
+          <SelectTrigger id="product-category-filter" className="w-full md:w-44">
             <SelectValue placeholder="Categoria" />
           </SelectTrigger>
           <SelectContent>
@@ -420,12 +420,11 @@ export function ProductListTable({
                 {c.title}
               </SelectItem>
             ))}
-
           </SelectContent>
         </Select>
 
         {hasFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters}>
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full md:w-auto">
             <X className="h-3.5 w-3.5 mr-1" />
             Limpar filtros
           </Button>
@@ -434,7 +433,7 @@ export function ProductListTable({
 
       {/* Table */}
       <div className="rounded-md border">
-        <Table>
+        <Table className="min-w-[1000px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-10">
