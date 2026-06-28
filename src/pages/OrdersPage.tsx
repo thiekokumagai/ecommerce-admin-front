@@ -196,7 +196,7 @@ export default function OrdersPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input 
             type="text" 
-            placeholder="Buscar por ID ou nome do cliente..." 
+            placeholder="Buscar por ID, nome ou telefone..." 
             value={search}
             onChange={(e) => { setSearch(e.target.value); }}
             className="pl-10 h-11 border-slate-200 focus-visible:ring-violet-600 rounded-xl font-medium placeholder:text-slate-400"
