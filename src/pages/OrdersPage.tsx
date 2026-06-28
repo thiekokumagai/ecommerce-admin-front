@@ -18,7 +18,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowRight, Loader2, Calendar, ShoppingBag, X } from "lucide-react";
+import { Search, ArrowRight, Loader2, Calendar, ShoppingBag, X, Plus } from "lucide-react";
 import OrderDetailDrawer from "@/components/OrderDetailDrawer";
 import { OrderStatus, PaymentStatus } from "@/types/order";
 import { io } from "socket.io-client";
@@ -181,9 +181,10 @@ export default function OrdersPage() {
           <p className="text-sm text-slate-500 font-medium">Gerencie suas vendas e acompanhe os status de entrega em tempo real.</p>
         </div>
         <Button 
-          className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl h-11 px-5 font-bold shadow-sm"
+          className="rounded-xl h-11 px-5 font-bold shadow-sm"
           onClick={() => window.location.href = "/pedidos/novo"}
         >
+          <Plus className="mr-2 h-4 w-4" />
           Novo Pedido
         </Button>
       </div>
@@ -330,6 +331,7 @@ export default function OrdersPage() {
                             <Select 
                               value={order.paymentStatus || 'PENDING'} 
                               onValueChange={(val) => handleUpdatePaymentStatus(order.id, val as PaymentStatus)}
+                              disabled={order.status === 'CANCELLED'}
                             >
                               <SelectTrigger className="h-6 w-6 p-0 border-0 bg-transparent focus:ring-0 shadow-none">
                                 <ArrowRight className="h-3 w-3 rotate-90 text-slate-400" />
@@ -360,7 +362,7 @@ export default function OrdersPage() {
                               <SelectItem value="CONFIRMED">Separado</SelectItem>
                               <SelectItem value="DISPATCHED">Enviado</SelectItem>
                               <SelectItem value="COMPLETED">Entregue</SelectItem>
-                              <SelectItem value="CANCELLED">Cancelado</SelectItem>
+                              <SelectItem value="CANCELLED" disabled={order.paymentStatus === 'PAID'}>Cancelado</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>

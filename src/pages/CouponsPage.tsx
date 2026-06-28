@@ -60,7 +60,7 @@ export default function CouponsPage() {
         </div>
         <Button 
           onClick={handleCreateNew}
-          className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl shadow-sm h-11 px-5"
+          className="rounded-xl shadow-sm h-11 px-5"
         >
           <Plus className="w-4 h-4 mr-2" />
           Novo Cupom

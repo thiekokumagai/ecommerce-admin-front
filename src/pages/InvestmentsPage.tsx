@@ -63,7 +63,7 @@ export default function InvestmentsPage() {
           </p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto bg-violet-600 hover:bg-violet-700">
+          <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Capital
           </Button>

@@ -511,7 +511,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
                       <SelectItem value="CONFIRMED">Separado</SelectItem>
                       <SelectItem value="DISPATCHED">Enviado</SelectItem>
                       <SelectItem value="COMPLETED">Entregue</SelectItem>
-                      <SelectItem value="CANCELLED">Cancelado</SelectItem>
+                      <SelectItem value="CANCELLED" disabled={order.paymentStatus === 'PAID'}>Cancelado</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -552,7 +552,7 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
               {/* Product items section */}
               <div className="space-y-3">
                 <div className="text-xs uppercase tracking-wider text-slate-400 font-bold">Itens do Pedido</div>
-                <div className="space-y-3 bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm max-h-[220px] overflow-y-auto">
+                <div className="space-y-3 bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm">
                   {order.items.map((item) => (
                     <div key={item.id} className="flex items-center gap-3 relative">
                       {/* Product Image */}
@@ -700,7 +700,9 @@ export default function OrderDetailDrawer({ orderId, isOpen, onClose, readOnly =
                 <div className="flex justify-between text-slate-500">
                   <span>Pagamento</span>
                   <span className="text-slate-800 font-bold">
-                    {isPaid ? order.paymentType : (paymentMethod === "pix" ? "Online" : "Na Entrega")}
+                    {isPaid 
+                      ? (order.paymentType?.toLowerCase() === "online" ? "Online" : "Na Entrega") 
+                      : (paymentMethod === "pix" ? "Online" : "Na Entrega")}
                   </span>
                 </div>
                 <div className="flex justify-between text-slate-500 items-center">
