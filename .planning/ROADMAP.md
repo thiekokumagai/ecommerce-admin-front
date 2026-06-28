@@ -307,4 +307,21 @@ Planos:
 
 Planos:
 
-- [ ] TBD (execute o comando `/gsd-plan-phase 25` para detalhar)
+- [x] 25-01: Ajuste de Componentes Globais e Layout Base
+- [x] 25-02: Melhoria nas Telas de Produtos, Categorias e Pedidos
+- [x] 25-03: Melhoria nas Telas Financeiras e Clientes
+- [x] 25-04: Ajuste de Drawers e Modais
+
+---
+
+### Fase 26: Trocar tabelas por grid (cards) no mobile no admin
+
+**Objetivo:** Substituir as tabelas com scroll horizontal (aplicadas na Fase 25) por layouts em grid/cards (um embaixo do outro) quando o painel for acessado via mobile, garantindo uma melhor leitura e toques mais responsivos para dispositivos móveis.
+**Requisitos**: No desktop mantém-se a Tabela. No mobile, exibe-se uma lista de Cards (um item por linha).
+**Depende de:** Fase 25
+**Planos:** 0 planos
+
+Planos:
+
+- [ ] TBD (execute o comando `/gsd-plan-phase 26` para detalhar)
+

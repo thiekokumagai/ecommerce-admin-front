@@ -298,7 +298,55 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      <Card>
+      {/* Mobile Grid View */}
+      <div className="grid md:hidden gap-3">
+        {localCategories.map((c) => (
+          <div
+            key={c.id}
+            draggable
+            onDragStart={() => setDraggingId(c.id)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => {
+              if (draggingId) handleReorder(draggingId, c.id);
+              setDraggingId(null);
+            }}
+            onDragEnd={() => setDraggingId(null)}
+            className={`bg-card border rounded-md p-4 flex items-center gap-3 shadow-sm ${draggingId === c.id ? "opacity-50" : ""}`}
+          >
+            <GripVertical className="h-5 w-5 text-muted-foreground shrink-0 active:cursor-grabbing cursor-grab" />
+            
+            {c.image ? (
+              <img src={buildImageUrl(c.image)} className="h-12 w-12 rounded-full object-cover shrink-0 border" />
+            ) : (
+              <div className="h-12 w-12 rounded-full bg-muted shrink-0 border flex items-center justify-center text-xs text-muted-foreground">—</div>
+            )}
+            
+            <div className="flex flex-col flex-1 min-w-0">
+              <span className="font-bold text-foreground text-sm truncate">{c.title}</span>
+              <Badge variant={c.isVisible ? "default" : "secondary"} className="w-fit mt-1 py-0 text-[10px]">
+                {c.isVisible ? "Ativa" : "Inativa"}
+              </Badge>
+            </div>
+            
+            <div className="flex flex-col gap-1 shrink-0">
+              <Button size="icon" variant="ghost" onClick={() => openEdit(c)} className="h-8 w-8">
+                <Pencil className="h-4 w-4 text-slate-600" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => handleDelete(c.id)}
+                className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                disabled={loadingId === c.id}
+              >
+                {loadingId === c.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <Card className="hidden md:block">
         <CardContent className="p-0 overflow-x-auto">
           <Table className="min-w-[500px]">
             <TableHeader>

@@ -111,7 +111,38 @@ export default function CashRegistersPage() {
         </Button>
       </div>
 
-      <div className="bg-white rounded-lg border shadow-sm overflow-x-auto">
+      {/* Mobile Grid View */}
+      <div className="grid md:hidden gap-3">
+        {registers?.map((register) => (
+          <div key={register.id} className="bg-white rounded-lg border shadow-sm p-4 flex flex-col gap-3">
+             <div className="flex flex-col">
+               <span className="font-bold text-slate-800">{register.title}</span>
+               <span className="text-xs text-slate-500 mt-1">
+                 {format(new Date(register.startDate), "dd/MM/yyyy")} até {format(new Date(register.endDate), "dd/MM/yyyy")}
+               </span>
+             </div>
+             <div className="flex justify-between items-center pt-3 border-t border-slate-100">
+               <div className="flex gap-2">
+                 <Button variant="ghost" size="icon" onClick={() => handleEdit(register)} className="h-8 w-8 text-slate-500">
+                   <Edit className="h-4 w-4" />
+                 </Button>
+                 <Button variant="ghost" size="icon" onClick={() => { if (confirm("Tem certeza que deseja excluir?")) deleteMutation.mutate(register.id); }} className="h-8 w-8 text-red-500 hover:bg-red-50">
+                   <Trash className="h-4 w-4" />
+                 </Button>
+               </div>
+               <Link to={`/caixa/${register.id}`}>
+                 <Button variant="outline" size="sm" className="h-8 text-xs font-bold">Relatório <ChevronRight className="ml-1 h-3.5 w-3.5" /></Button>
+               </Link>
+             </div>
+          </div>
+        ))}
+        {registers?.length === 0 && (
+          <div className="text-center py-8 text-gray-500 border rounded-lg bg-white">Nenhum caixa encontrado.</div>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block bg-white rounded-lg border shadow-sm overflow-x-auto">
         <Table className="min-w-[600px]">
           <TableHeader>
             <TableRow>

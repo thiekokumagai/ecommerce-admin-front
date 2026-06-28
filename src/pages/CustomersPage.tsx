@@ -90,8 +90,30 @@ export default function CustomersPage() {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden overflow-x-auto">
-          <Table className="min-w-[600px]">
+        <>
+          {/* Mobile Grid View */}
+          <div className="grid md:hidden gap-3">
+            {customers.map((customer) => (
+              <div 
+                key={customer.id} 
+                onClick={() => navigate(`/clientes/${customer.id}`)}
+                className="bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm flex items-center justify-between active:bg-violet-50/40 cursor-pointer"
+              >
+                <div className="flex flex-col">
+                  <span className="font-bold text-slate-800 text-sm">{customer.name}</span>
+                  <span className="font-mono text-slate-500 text-xs">{customer.phone}</span>
+                  <span className="text-slate-400 text-[10px] mt-1">Cadastro: {new Date(customer.createdAt).toLocaleDateString("pt-BR")}</span>
+                </div>
+                <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-400">
+                  <ArrowRight className="h-4 w-4" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden overflow-x-auto">
+            <Table className="min-w-[600px]">
             <TableHeader className="bg-slate-50/50">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="font-bold text-slate-600 pl-6">Nome</TableHead>
@@ -135,6 +157,7 @@ export default function CustomersPage() {
             </div>
           )}
         </div>
+        </>
       )}
     </div>
   );

@@ -157,7 +157,7 @@ export function PaymentRulesSettingsForm() {
   return (
     <Card>
       <CardContent className="p-5 space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <h2 className="font-semibold text-base flex items-center gap-2">
               <Settings className="h-5 w-5 text-primary" />
@@ -167,12 +167,12 @@ export function PaymentRulesSettingsForm() {
               Adicione regras de desconto, taxas e juros de parcelas para as formas de pagamento.
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={handleAddRule}>
+          <div className="flex gap-2 w-full md:w-auto">
+            <Button size="sm" variant="outline" onClick={handleAddRule} className="flex-1 md:flex-none">
               <Plus className="h-4 w-4 mr-1" />
-              Nova Configuração
+              Nova Regra
             </Button>
-            <Button size="sm" onClick={handleSave} disabled={updateSettingsMutation.isPending}>
+            <Button size="sm" onClick={handleSave} disabled={updateSettingsMutation.isPending} className="flex-1 md:flex-none">
               <Save className="h-4 w-4 mr-1" />
               {updateSettingsMutation.isPending ? "Salvando..." : "Salvar"}
             </Button>
@@ -209,10 +209,10 @@ export function PaymentRulesSettingsForm() {
               }).map((rule) => (
                 <div
                   key={rule.id}
-                  className="grid grid-cols-1 sm:grid-cols-12 gap-3 p-3 rounded-lg border bg-muted/40 sm:bg-transparent sm:p-0 sm:border-none sm:rounded-none items-center"
+                  className="grid grid-cols-2 sm:grid-cols-12 gap-4 p-4 rounded-lg border bg-slate-50/50 sm:bg-transparent sm:p-0 sm:border-none sm:rounded-none items-start sm:items-center relative"
                 >
                   {/* Forma de Pagamento */}
-                  <div className="col-span-3">
+                  <div className="col-span-2 sm:col-span-3">
                     <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground mb-1">Forma de Pagamento</Label>
                     <Select
                       value={rule.paymentMethod}
@@ -231,7 +231,7 @@ export function PaymentRulesSettingsForm() {
                   </div>
 
                   {/* Tipo de Ação */}
-                  <div className="col-span-2">
+                  <div className="col-span-1 sm:col-span-2">
                     <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground mb-1">Ação</Label>
                     {rule.paymentMethod === "credit" ? (
                       <div className="h-9 flex items-center px-3 bg-muted/20 border rounded-md text-xs text-muted-foreground select-none font-semibold">
@@ -243,7 +243,7 @@ export function PaymentRulesSettingsForm() {
                         onValueChange={(val: 'discount' | 'charge') => handleUpdateRule(rule.id, "type", val)}
                       >
                         <SelectTrigger className="h-9">
-                          <SelectValue placeholder="Selecione..." />
+                          <SelectValue placeholder="Selecione" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="discount">Desconto</SelectItem>
@@ -254,7 +254,7 @@ export function PaymentRulesSettingsForm() {
                   </div>
 
                   {/* Valor (%) */}
-                  <div className="col-span-1">
+                  <div className="col-span-1 sm:col-span-1">
                     <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground mb-1">
                       {rule.paymentMethod === "credit" ? "Juros (%)" : "Valor (%)"}
                     </Label>
@@ -272,7 +272,7 @@ export function PaymentRulesSettingsForm() {
                   </div>
 
                   {/* Parcelas (De / Até - Específico para Juros de Crédito) */}
-                  <div className="col-span-3">
+                  <div className="col-span-2 sm:col-span-3">
                     <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground mb-1">Parcelamento</Label>
                     {rule.paymentMethod === "credit" ? (
                       <div className="flex items-center gap-2">
@@ -307,8 +307,8 @@ export function PaymentRulesSettingsForm() {
                   </div>
 
                   {/* Repassar para o cliente? */}
-                  <div className="col-span-2 flex flex-col justify-center sm:items-center">
-                    <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground mb-1">Repassar Cliente?</Label>
+                  <div className="col-span-2 sm:col-span-2 flex justify-between sm:justify-center items-center">
+                    <Label className="sm:hidden text-[10px] uppercase font-semibold text-muted-foreground">Repassar Cliente?</Label>
                     {rule.type === "charge" ? (
                       <div className="h-9 flex items-center">
                         <Switch
@@ -317,16 +317,16 @@ export function PaymentRulesSettingsForm() {
                         />
                       </div>
                     ) : (
-                       <span className="text-xs text-muted-foreground opacity-50">-</span>
+                       <span className="text-xs text-muted-foreground opacity-50 hidden sm:block">-</span>
                     )}
                   </div>
 
                   {/* Exclusão */}
-                  <div className="col-span-1 text-right flex justify-end">
+                  <div className="absolute top-2 right-2 sm:relative sm:top-0 sm:right-0 col-span-2 sm:col-span-1 text-right flex justify-end">
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="text-destructive h-9 w-9 hover:bg-destructive/10"
+                      className="text-destructive h-8 w-8 sm:h-9 sm:w-9 hover:bg-destructive/10 bg-white sm:bg-transparent border sm:border-0 shadow-sm sm:shadow-none"
                       onClick={() => handleRemoveRule(rule.id)}
                     >
                       <Trash2 className="h-4 w-4" />

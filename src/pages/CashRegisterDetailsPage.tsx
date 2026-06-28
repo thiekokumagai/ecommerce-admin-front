@@ -360,7 +360,54 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
               <div className="p-4 border-b bg-slate-50/50">
                 <h3 className="font-bold text-slate-700">Pedidos Incluídos neste Caixa</h3>
               </div>
-              <div className="overflow-x-auto">
+              <>
+              {/* Mobile Grid View */}
+              <div className="grid md:hidden gap-3 p-4 bg-slate-50/30">
+                {orders.map((order: any) => (
+                  <div key={order.id} className="border rounded-lg p-4 flex flex-col gap-3 bg-white shadow-sm">
+                    <div className="flex justify-between items-start">
+                       <div className="flex flex-col">
+                         <span className="font-bold text-slate-900 text-sm">{order.customerName}</span>
+                         <span className="font-bold text-slate-500 text-xs">#{order.orderNumber}</span>
+                       </div>
+                       <span className="font-black text-emerald-600">
+                         {currencyFormatter.format(order.totalReceived - (order.cardFee || 0))}
+                       </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 mt-1">
+                       <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase">Pagamento</span>
+                          <span className="text-xs text-slate-600 font-medium">{order.paymentDate ? format(new Date(order.paymentDate), "dd/MM/yyyy HH:mm") : "-"}</span>
+                       </div>
+                       <div className="flex flex-col">
+                          <span className="text-[10px] text-slate-400 font-bold uppercase">Método</span>
+                          <span className="text-xs text-slate-600 font-bold">
+                             {
+                               (order.paymentMethod === 'pix' || order.paymentMethod === 'PIX') ? 'Pix' :
+                               (order.paymentMethod === 'credito' || order.paymentMethod === 'credit' || order.paymentMethod === 'Cartão de Crédito') ? 'Cartão de Crédito' :
+                               (order.paymentMethod === 'debito' || order.paymentMethod === 'debit' || order.paymentMethod === 'Cartão de Débito') ? 'Cartão de Débito' :
+                               (order.paymentMethod === 'dinheiro' || order.paymentMethod === 'cash' || order.paymentMethod === 'Dinheiro') ? 'Dinheiro' :
+                               order.paymentMethod || "-"
+                             }
+                             {(order.paymentMethod === "Cartão de Crédito" || order.paymentMethod === "credito" || order.paymentMethod === "credit") && order.installments && (
+                               <span className="text-slate-400 font-normal text-[11px] ml-1">({order.installments}x)</span>
+                             )}
+                          </span>
+                       </div>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-100 text-xs mt-1">
+                       <span className="text-slate-500 font-medium">Bruto: {currencyFormatter.format(order.totalReceived)}</span>
+                       {order.cardFee ? <span className="text-rose-500 font-semibold">Taxa: {currencyFormatter.format(order.cardFee)}</span> : null}
+                    </div>
+                  </div>
+                ))}
+                {orders.length === 0 && (
+                   <div className="text-center py-8 text-gray-500 border rounded-lg bg-white">Nenhum pedido pago neste período.</div>
+                )}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
                 <Table className="min-w-[800px]">
                 <TableHeader>
                   <TableRow className="bg-slate-50/30">
@@ -416,6 +463,7 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
                 </TableBody>
               </Table>
               </div>
+              </>
             </div>
 
             {/* Resumo por Método */}
@@ -453,7 +501,51 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
             <div className="p-4 border-b bg-slate-50/50 flex justify-between items-center">
               <h3 className="font-bold text-slate-700">Movimentações Manuais & Saídas de Caixa</h3>
             </div>
-            <div className="overflow-x-auto">
+            <>
+            {/* Mobile Grid View */}
+            <div className="grid md:hidden gap-3 p-4 bg-slate-50/30">
+              {transactions.map((tx: any) => (
+                <div key={tx.id} className="border rounded-lg p-4 flex flex-col gap-3 bg-white shadow-sm">
+                   <div className="flex justify-between items-start">
+                      <div className="flex flex-col">
+                         <span className="font-bold text-slate-900 text-sm">{tx.description}</span>
+                         <span className="text-xs text-slate-500 font-medium mt-1">{format(new Date(tx.date || tx.createdAt), "dd/MM/yyyy HH:mm")}</span>
+                      </div>
+                      <span className={`font-black ${tx.type === "ENTRY" ? "text-emerald-600" : "text-rose-600"}`}>
+                        {tx.type === "ENTRY" ? "+" : "-"} {currencyFormatter.format(tx.amount)}
+                      </span>
+                   </div>
+                   <div className="flex flex-wrap items-center gap-2">
+                     {tx.type === "ENTRY" ? (
+                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-100">
+                         <ArrowUpRight className="h-3 w-3 text-emerald-600" /> Entrada
+                       </span>
+                     ) : (
+                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-100">
+                         <ArrowDownRight className="h-3 w-3 text-rose-600" /> Saída
+                       </span>
+                     )}
+                     {tx.category === "MOTOBOY" && (
+                       <span className="inline-flex items-center rounded-md bg-orange-50 px-1.5 py-0.5 text-[10px] font-bold text-orange-700 ring-1 ring-inset ring-orange-600/20">Motoboy</span>
+                     )}
+                     {(tx.category === "INVESTMENT" || tx.description.toLowerCase().includes("investimento")) && (
+                       <span className="inline-flex items-center rounded-md bg-sky-50 px-1.5 py-0.5 text-[10px] font-bold text-sky-700 ring-1 ring-inset ring-sky-600/20">Investimento</span>
+                     )}
+                   </div>
+                   <div className="flex justify-end pt-2 border-t border-slate-100">
+                      <Button variant="ghost" size="icon" onClick={() => { if (confirm("Deseja excluir esta movimentação?")) deleteTransaction(tx.id); }} className="h-8 w-8 text-rose-500 hover:bg-rose-50 rounded-full">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                   </div>
+                </div>
+              ))}
+              {transactions.length === 0 && (
+                <div className="text-center py-8 text-gray-500 border rounded-lg bg-white">Nenhuma movimentação registrada.</div>
+              )}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <Table className="min-w-[800px]">
               <TableHeader>
                 <TableRow className="bg-slate-50/30">
@@ -524,6 +616,7 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
               </TableBody>
             </Table>
             </div>
+            </>
           </div>
         </TabsContent>
       </Tabs>

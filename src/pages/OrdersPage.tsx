@@ -235,19 +235,20 @@ export default function OrdersPage() {
         </div>
 
         {/* Date Filters */}
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
           <Input 
             type="date" 
             value={startDate}
             onChange={(e) => { setStartDate(e.target.value); }}
-            className="h-11 border-slate-200 focus-visible:ring-violet-600 rounded-xl font-medium text-slate-600"
+            className="h-11 border-slate-200 focus-visible:ring-violet-600 rounded-xl font-medium text-slate-600 w-full"
           />
-          <span className="text-slate-400 font-medium">até</span>
+          <span className="text-slate-400 font-medium hidden sm:inline">até</span>
+          <span className="text-slate-400 font-medium text-center sm:hidden text-xs uppercase">até</span>
           <Input 
             type="date" 
             value={endDate}
             onChange={(e) => { setEndDate(e.target.value); }}
-            className="h-11 border-slate-200 focus-visible:ring-violet-600 rounded-xl font-medium text-slate-600"
+            className="h-11 border-slate-200 focus-visible:ring-violet-600 rounded-xl font-medium text-slate-600 w-full"
           />
         </div>
 
@@ -282,7 +283,83 @@ export default function OrdersPage() {
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden overflow-x-auto">
+        <>
+          {/* Mobile Grid View */}
+          <div className="grid md:hidden gap-4">
+            {Object.entries(groupedOrders).map(([date, items]) => (
+              <div key={date} className="flex flex-col gap-3">
+                <div className="flex items-center gap-2 text-slate-500 font-bold text-xs uppercase tracking-wider bg-slate-50 p-2 rounded-md">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>{date}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mx-1" />
+                  <span>{items.length} {items.length === 1 ? 'venda' : 'vendas'}</span>
+                </div>
+                {items.map((order) => (
+                  <div
+                    key={order.id}
+                    onClick={() => setSelectedOrderId(order.id)}
+                    className="bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm flex flex-col gap-3 active:bg-violet-50/40 cursor-pointer"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-800 text-sm">{order.customerName}</span>
+                        <span className="font-mono font-bold text-slate-400 text-xs">#{order.orderNumber} • {new Date(order.createdAt).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                      <span className="font-extrabold text-violet-600">
+                        {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(order.totalOrder)}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mt-1">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] uppercase font-bold text-slate-400">Pagamento</span>
+                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          {order.status === 'CANCELLED' ? (
+                            <Badge className="bg-rose-100 text-rose-700 shadow-none font-bold rounded-full text-[10px] px-2 py-0 border-0">Cancelado</Badge>
+                          ) : (
+                            <>
+                              <Badge className={`${paymentStatusConfig[order.paymentStatus || 'PENDING'].bg} shadow-none font-bold rounded-full text-[10px] px-2 py-0 border-0`}>
+                                {paymentStatusConfig[order.paymentStatus || 'PENDING'].label}
+                              </Badge>
+                              <Select value={order.paymentStatus || 'PENDING'} onValueChange={(val) => handleUpdatePaymentStatus(order.id, val as PaymentStatus)}>
+                                <SelectTrigger className="h-5 w-5 p-0 border-0 bg-transparent focus:ring-0 shadow-none">
+                                  <ArrowRight className="h-3 w-3 rotate-90 text-slate-400" />
+                                </SelectTrigger>
+                                <SelectContent><SelectItem value="PENDING">Pendente</SelectItem><SelectItem value="PAID">Pago</SelectItem></SelectContent>
+                              </Select>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[10px] uppercase font-bold text-slate-400">Entrega</span>
+                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Badge className={`${statusConfig[order.status].bg} shadow-none font-bold rounded-full text-[10px] px-2 py-0 border-0`}>
+                            {statusConfig[order.status].label}
+                          </Badge>
+                          <Select value={order.status} onValueChange={(val) => handleUpdateStatus(order.id, val as OrderStatus)}>
+                            <SelectTrigger className="h-5 w-5 p-0 border-0 bg-transparent focus:ring-0 shadow-none">
+                              <ArrowRight className="h-3 w-3 rotate-90 text-slate-400" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="PENDING">Pendente</SelectItem>
+                              <SelectItem value="CONFIRMED">Separado</SelectItem>
+                              <SelectItem value="DISPATCHED">Enviado</SelectItem>
+                              <SelectItem value="COMPLETED">Entregue</SelectItem>
+                              <SelectItem value="CANCELLED" disabled={order.paymentStatus === 'PAID'}>Cancelado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden overflow-x-auto">
           <Table className="min-w-[800px]">
             <TableHeader className="bg-slate-50/50">
               <TableRow className="hover:bg-transparent">
@@ -410,9 +487,8 @@ export default function OrdersPage() {
             </div>
           )}
         </div>
+        </>
       )}
-
-
       {/* Modal Details Drawer */}
       <OrderDetailDrawer 
         orderId={selectedOrderId} 

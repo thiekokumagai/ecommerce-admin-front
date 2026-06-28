@@ -431,8 +431,100 @@ export function ProductListTable({
         )}
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border">
+      {/* Mobile Grid View */}
+      <div className="grid md:hidden gap-3 mb-4">
+        {isLoading ? (
+          <div className="text-center py-8 text-muted-foreground border rounded-md">Carregando produtos...</div>
+        ) : sorted.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground border rounded-md">Nenhum produto encontrado.</div>
+        ) : (
+          sorted.map((product) => (
+            <div key={product.id} className="border rounded-md p-4 flex flex-col gap-3 relative bg-card shadow-sm cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/produtos/${product.id}`)}>
+              <div className="absolute top-2 right-2 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  id={`select-mobile-${product.id}`}
+                  checked={selectedIds.includes(product.id)}
+                  onCheckedChange={() => toggleOne(product.id)}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground"
+                  disabled={duplicatingId !== null}
+                  onClick={(e) => { e.stopPropagation(); void handleDuplicate(product.id); }}
+                >
+                  {duplicatingId === product.id ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border border-primary border-t-transparent" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <div className="flex gap-3">
+                {product.images[0] ? (
+                  <img src={buildImageUrl(product.images[0].url)} alt={product.title} className="h-16 w-16 aspect-square rounded-md object-cover border min-w-16 min-h-16 block" />
+                ) : (
+                  <div className="h-16 w-16 aspect-square rounded-md bg-muted border flex items-center justify-center text-muted-foreground text-xs min-w-16 min-h-16">—</div>
+                )}
+                <div className="flex flex-col flex-1 min-w-0 pr-16">
+                  <span className="font-bold text-foreground text-sm leading-tight">{product.title}</span>
+                  <span className="text-xs text-muted-foreground truncate">{getCategoryName(product.categoryId)}</span>
+                  <div className="mt-1 flex items-center gap-2">
+                    {product.status === "active" ? (
+                      <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 py-0 text-[10px]">Ativo</Badge>
+                    ) : (
+                      <Badge variant="secondary" className="py-0 text-[10px]">Inativo</Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 mt-2 bg-muted/30 p-2 rounded-lg" onClick={(e) => e.stopPropagation()}>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-muted-foreground font-semibold">Preço Venda</span>
+                  <InlinePriceInput value={product.price} onSave={async (newPrice) => { if (onUpdateProduct) await onUpdateProduct(product.id, { price: newPrice }); }} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-muted-foreground font-semibold">Preço Custo</span>
+                  <InlinePriceInput value={product.costPrice} onSave={async (newCost) => { if (onUpdateProduct) await onUpdateProduct(product.id, { costPrice: newCost }); }} />
+                </div>
+              </div>
+              
+              <div className="flex flex-col mt-1" onClick={(e) => e.stopPropagation()}>
+                <span className="text-[10px] text-muted-foreground font-semibold mb-1">Estoque</span>
+                {product.variations.length === 0 ? (
+                  product.items?.[0] && onUpdateStock ? (
+                    <div className="w-fit">
+                    <InlineStockEditor stock={product.items[0].stock} onAdd={() => onUpdateStock(product.items![0].id, 'ADD', 1)} onSub={() => onUpdateStock(product.items![0].id, 'SUBTRACT', 1)} />
+                    </div>
+                  ) : (
+                    <span className="font-semibold text-foreground text-sm">{product.totalStock}</span>
+                  )
+                ) : (
+                  <div className="flex flex-col gap-1 text-[11px] text-muted-foreground">
+                    {product.items?.map((item) => {
+                       const optionLabel = item.options.map((o) => o.optionValue).join("/");
+                       return (
+                         <div key={item.id} className="flex items-center gap-2 justify-between border-b border-muted pb-1 last:border-0 last:pb-0">
+                           <span className="whitespace-nowrap truncate">{optionLabel}</span>
+                           {onUpdateStock ? (
+                             <InlineStockEditor stock={item.stock} onAdd={() => onUpdateStock(item.id, 'ADD', 1)} onSub={() => onUpdateStock(item.id, 'SUBTRACT', 1)} />
+                           ) : (
+                             <span className="font-semibold text-foreground">{item.stock}</span>
+                           )}
+                         </div>
+                       );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block rounded-md border overflow-x-auto">
         <Table className="min-w-[1000px]">
           <TableHeader>
             <TableRow>

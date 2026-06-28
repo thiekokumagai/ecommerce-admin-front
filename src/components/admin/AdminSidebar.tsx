@@ -39,8 +39,14 @@ const NavLink = forwardRef<HTMLAnchorElement, NavLinkCompatProps>(
 NavLink.displayName = "NavLink";
 
 export function AdminSidebar() {
-  const { state } = useSidebar();
+  const { state, setOpenMobile, isMobile } = useSidebar();
   const collapsed = state === "collapsed";
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -65,6 +71,7 @@ export function AdminSidebar() {
                   <NavLink
                     to={dashboardNavItem.url}
                     end
+                    onClick={handleLinkClick}
                     className="hover:bg-sidebar-accent/60 transition-colors"
                     activeClassName="bg-sidebar-accent text-sidebar-primary font-semibold"
                   >
@@ -88,6 +95,7 @@ export function AdminSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
+                        onClick={handleLinkClick}
                         className="hover:bg-sidebar-accent/60 transition-colors"
                         activeClassName="bg-sidebar-accent text-sidebar-primary font-semibold"
                       >
@@ -111,6 +119,7 @@ export function AdminSidebar() {
                   <a
                     href="https://drive.google.com/uc?export=download&id=1FZySVH-F01SAdsSsa0mmHEZMhRk-IM_8"
                     target="_blank"
+                    onClick={handleLinkClick}
                     className="hover:bg-sidebar-accent/60 transition-colors"
                   >
                     <Printer className="mr-2 h-4 w-4 shrink-0 text-blue-500" />

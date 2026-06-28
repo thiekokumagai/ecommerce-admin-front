@@ -133,8 +133,35 @@ export default function InvestmentsPage() {
               <p className="text-slate-500 font-medium">Nenhum caixa aberto no momento. Abra um caixa para listar os lançamentos.</p>
             </div>
           ) : filteredTransactions && filteredTransactions.length > 0 ? (
-            <div className="border rounded-xl overflow-hidden overflow-x-auto">
-              <Table className="min-w-[800px]">
+            <>
+              {/* Mobile Grid View */}
+              <div className="grid md:hidden gap-3">
+                {filteredTransactions.map((tx) => (
+                   <div key={tx.id} className="border rounded-xl p-4 flex flex-col gap-3 bg-white shadow-sm">
+                      <div className="flex justify-between items-start">
+                         <div className="flex flex-col">
+                            <span className="font-bold text-slate-700 text-sm">{tx.description || "-"}</span>
+                            <span className="text-xs text-slate-500 font-medium mt-1">{format(new Date(tx.createdAt), "dd 'de' MMM, yyyy 'às' HH:mm", { locale: ptBR })}</span>
+                         </div>
+                         <Badge variant={tx.type === "ENTRY" ? "default" : "destructive"} className={tx.type === "ENTRY" ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-emerald-200 shadow-none px-2 py-0 text-[10px]" : "bg-rose-100 text-rose-700 hover:bg-rose-200 border-rose-200 shadow-none px-2 py-0 text-[10px]"}>
+                           {tx.type === "ENTRY" ? "Entrada" : "Saída"}
+                         </Badge>
+                      </div>
+                      <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+                         <Button variant="ghost" size="icon" className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 h-8 w-8" onClick={() => { if (window.confirm("Tem certeza que deseja excluir esta transação?")) { deleteTransaction(tx.id); } }} disabled={isDeleting}>
+                           <Trash2 className="h-4 w-4" />
+                         </Button>
+                         <span className={`font-bold text-lg ${tx.type === "ENTRY" ? "text-emerald-600" : "text-rose-600"}`}>
+                           {tx.type === "ENTRY" ? "+" : "-"} {formatCurrency(tx.amount)}
+                         </span>
+                      </div>
+                   </div>
+                ))}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block border rounded-xl overflow-hidden overflow-x-auto">
+                <Table className="min-w-[800px]">
                 <TableHeader className="bg-slate-50">
                   <TableRow>
                     <TableHead className="font-semibold text-slate-600">Data e Hora</TableHead>
@@ -184,6 +211,7 @@ export default function InvestmentsPage() {
                 </TableBody>
               </Table>
             </div>
+            </>
           ) : (
             <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
               <p className="text-slate-500 font-medium">Nenhuma transação encontrada no módulo de investimento.</p>

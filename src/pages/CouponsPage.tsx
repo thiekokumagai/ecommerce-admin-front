@@ -91,8 +91,52 @@ export default function CouponsPage() {
           </Button>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
-          <Table>
+        <>
+        {/* Mobile Grid View */}
+        <div className="grid md:hidden gap-3">
+          {coupons.map((coupon) => (
+             <div key={coupon.id} className="bg-white rounded-xl border border-slate-200/60 p-4 shadow-sm flex flex-col gap-3">
+                <div className="flex justify-between items-start">
+                   <div className="flex flex-col">
+                      <span className="font-bold text-slate-800">{coupon.title}</span>
+                      <span className="text-[10px] text-slate-500 font-medium">{coupon.type === "VALUE" ? "Valor Fixo" : coupon.type === "PERCENTAGE" ? "Porcentagem" : "Frete Grátis"}</span>
+                   </div>
+                   <span className="font-black text-violet-600 text-lg">{formatValue(coupon.type, coupon.value)}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                   <div className="flex flex-col">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">Usos</span>
+                      <span className="text-xs text-slate-600 font-medium">{coupon.currentUses} {coupon.maxUses ? `/ ${coupon.maxUses}` : ""}</span>
+                   </div>
+                   <div className="flex flex-col">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">Validade</span>
+                      <span className="text-xs text-slate-600 font-medium">{coupon.validUntilDate ? new Date(coupon.validUntilDate).toLocaleDateString("pt-BR") : "Sem limite"}</span>
+                   </div>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+                   <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleStatus(coupon.id)}
+                      className={`h-7 px-2 rounded-md ${coupon.status ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100" : "text-slate-400 bg-slate-100 hover:bg-slate-200"}`}
+                    >
+                      {coupon.status ? (
+                        <><CheckCircle2 className="w-3 h-3 mr-1" /> Ativo</>
+                      ) : (
+                        <><XCircle className="w-3 h-3 mr-1" /> Inativo</>
+                      )}
+                    </Button>
+                   <Button variant="ghost" size="sm" onClick={() => handleEdit(coupon)} className="h-8 w-8 p-0 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg">
+                      <Edit2 className="h-4 w-4" />
+                   </Button>
+                </div>
+             </div>
+          ))}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden overflow-x-auto">
+          <Table className="min-w-[700px]">
             <TableHeader className="bg-slate-50/50">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="font-bold text-slate-600">Título</TableHead>
@@ -159,6 +203,7 @@ export default function CouponsPage() {
             </TableBody>
           </Table>
         </div>
+        </>
       )}
 
       {isModalOpen && (

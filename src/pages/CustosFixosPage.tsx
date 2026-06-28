@@ -251,8 +251,46 @@ export default function CustosFixosPage() {
               <p className="text-xs text-gray-400">Clique em "Nova Conta Fixa" para registrar sua primeira conta.</p>
             </div>
           ) : (
-            <div className="border rounded-lg overflow-hidden overflow-x-auto bg-white">
-              <Table className="min-w-[700px]">
+            <>
+              {/* Mobile Grid View */}
+              <div className="grid md:hidden gap-3">
+                 {costs.map((cost) => (
+                    <div key={cost.id} className="border rounded-lg p-4 flex flex-col gap-3 bg-white shadow-sm">
+                       <div className="flex justify-between items-start">
+                         <div className="flex flex-col">
+                           <span className="font-bold text-gray-800">{cost.name}</span>
+                           <span className="font-medium text-gray-600 mt-1">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cost.value)}</span>
+                         </div>
+                         <div className="flex text-right">
+                           {!cost.repeats ? (
+                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-800">Não repete</span>
+                           ) : cost.type === "ALWAYS" ? (
+                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800">Mensal</span>
+                           ) : (
+                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-800">Parcelado ({cost.installmentsCount}x)</span>
+                           )}
+                         </div>
+                       </div>
+                       <div className="grid grid-cols-1 gap-2 pt-2 border-t border-gray-100">
+                           <Button size="sm" variant="outline" className="w-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100/80 border-emerald-100/50 gap-1 font-semibold" onClick={() => setPayingCost(cost)}>
+                             <DollarSign className="h-4 w-4" /> Pagar / Lançar Saída
+                           </Button>
+                           <div className="grid grid-cols-2 gap-2">
+                             <Button size="sm" variant="outline" className="w-full font-medium" onClick={() => handleOpenEditSheet(cost)}>
+                               <Edit className="h-4 w-4 mr-1" /> Editar
+                             </Button>
+                             <Button size="sm" variant="outline" className="w-full text-red-500 hover:text-red-700 hover:bg-red-50 border-red-100 font-medium" onClick={() => handleDelete(cost.id)}>
+                               <Trash2 className="h-4 w-4 mr-1" /> Excluir
+                             </Button>
+                           </div>
+                       </div>
+                    </div>
+                 ))}
+              </div>
+
+              {/* Desktop Table View */}
+              <div className="hidden md:block border rounded-lg overflow-hidden overflow-x-auto bg-white">
+                <Table className="min-w-[700px]">
                 <TableHeader>
                   <TableRow className="bg-gray-50/50">
                     <TableHead className="font-bold text-gray-700">Nome da Conta</TableHead>
@@ -320,6 +358,7 @@ export default function CustosFixosPage() {
                 </TableBody>
               </Table>
             </div>
+            </>
           )}
         </CardContent>
       </Card>
