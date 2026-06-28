@@ -324,24 +324,29 @@ export default function OrdersPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col gap-1 items-start" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center gap-2">
-                            <Badge className={`${paymentStatusConfig[order.paymentStatus || 'PENDING'].bg} shadow-none font-bold rounded-full text-[12px] px-2.5 py-0.5 border-0`}>
-                              {paymentStatusConfig[order.paymentStatus || 'PENDING'].label}
+                          {order.status === 'CANCELLED' ? (
+                            <Badge className="bg-rose-100 text-rose-700 shadow-none font-bold rounded-full text-[12px] px-2.5 py-0.5 border-0 hover:bg-rose-100">
+                              Cancelado
                             </Badge>
-                            <Select 
-                              value={order.paymentStatus || 'PENDING'} 
-                              onValueChange={(val) => handleUpdatePaymentStatus(order.id, val as PaymentStatus)}
-                              disabled={order.status === 'CANCELLED'}
-                            >
-                              <SelectTrigger className="h-6 w-6 p-0 border-0 bg-transparent focus:ring-0 shadow-none">
-                                <ArrowRight className="h-3 w-3 rotate-90 text-slate-400" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="PENDING">Pendente</SelectItem>
-                                <SelectItem value="PAID">Pago</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <Badge className={`${paymentStatusConfig[order.paymentStatus || 'PENDING'].bg} shadow-none font-bold rounded-full text-[12px] px-2.5 py-0.5 border-0`}>
+                                {paymentStatusConfig[order.paymentStatus || 'PENDING'].label}
+                              </Badge>
+                              <Select 
+                                value={order.paymentStatus || 'PENDING'} 
+                                onValueChange={(val) => handleUpdatePaymentStatus(order.id, val as PaymentStatus)}
+                              >
+                                <SelectTrigger className="h-6 w-6 p-0 border-0 bg-transparent focus:ring-0 shadow-none">
+                                  <ArrowRight className="h-3 w-3 rotate-90 text-slate-400" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="PENDING">Pendente</SelectItem>
+                                  <SelectItem value="PAID">Pago</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
                           <span className="text-[11px] text-slate-400 font-medium">{paymentLabels[order.paymentMethod] || order.paymentMethod}</span>
                         </div>
                       </TableCell>
