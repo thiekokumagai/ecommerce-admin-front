@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Landmark, Plus, ArrowUpRight, ArrowDownRight, Trash2, ShoppingBag, TrendingUp, Calendar, Package } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { io } from "socket.io-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -99,6 +100,31 @@ export default function CashRegisterDetailsPage({ currentId }: { currentId?: str
       });
     },
   });
+
+  // Escutar eventos de novos pedidos e atualizações de produtos/pedidos
+  useEffect(() => {
+    if (!id) return;
+    const socketUrl = import.meta.env.VITE_ADMIN_API?.replace(/\/api$/, '') || 'http://localhost:3000';
+    const socket = io(socketUrl);
+
+    socket.on('connect', () => {
+      console.log('Connected to websocket server for cash register updates');
+    });
+
+    socket.on('order.new', (order) => {
+      console.log('New order received via websocket:', order);
+      queryClient.invalidateQueries({ queryKey: ["cash-register-summary", id] });
+    });
+
+    // Option: also invalidate on product or status change
+    socket.on('products.refresh', () => {
+      queryClient.invalidateQueries({ queryKey: ["cash-register-summary", id] });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [id, queryClient]);
 
   if (isLoading) return <div className="p-8">Carregando relatório...</div>;
   if (!data) return <div className="p-8">Caixa não encontrado.</div>;
