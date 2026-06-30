@@ -118,7 +118,7 @@ export default function CashRegistersPage() {
              <div className="flex flex-col">
                <span className="font-bold text-slate-800">{register.title}</span>
                <span className="text-xs text-slate-500 mt-1">
-                 {format(new Date(register.startDate), "dd/MM/yyyy")} até {format(new Date(register.endDate), "dd/MM/yyyy")}
+                 {format(new Date(register.startDate.split("T")[0] + "T00:00:00"), "dd/MM/yyyy")} até {format(new Date(register.endDate.split("T")[0] + "T00:00:00"), "dd/MM/yyyy")}
                </span>
              </div>
              <div className="flex justify-between items-center pt-3 border-t border-slate-100">
@@ -156,8 +156,8 @@ export default function CashRegistersPage() {
               <TableRow key={register.id}>
                 <TableCell className="font-medium">{register.title}</TableCell>
                 <TableCell>
-                  {format(new Date(register.startDate), "dd/MM/yyyy")} até{" "}
-                  {format(new Date(register.endDate), "dd/MM/yyyy")}
+                  {format(new Date(register.startDate.split("T")[0] + "T00:00:00"), "dd/MM/yyyy")} até{" "}
+                  {format(new Date(register.endDate.split("T")[0] + "T00:00:00"), "dd/MM/yyyy")}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">

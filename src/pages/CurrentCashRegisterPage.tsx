@@ -17,8 +17,8 @@ export default function CurrentCashRegisterPage() {
   today.setHours(0, 0, 0, 0);
 
   const openRegister = registers?.find((r) => {
-    const start = new Date(r.startDate);
-    const end = new Date(r.endDate);
+    const start = new Date(r.startDate.split("T")[0] + "T00:00:00");
+    const end = new Date(r.endDate.split("T")[0] + "T00:00:00");
     
     // Normalize to midnight for fair comparison
     start.setHours(0, 0, 0, 0);
