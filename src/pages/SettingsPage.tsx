@@ -2,8 +2,9 @@ import { DeliverySettingsForm } from "@/components/settings/DeliverySettingsForm
 import { PaymentSettingsForm } from "@/components/settings/PaymentSettingsForm";
 import { GeneralSettingsForm } from "@/components/settings/GeneralSettingsForm";
 import { PaymentRulesSettingsForm } from "@/components/settings/PaymentRulesSettingsForm";
+import { BusinessHoursSettingsForm } from "@/components/settings/BusinessHoursSettingsForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Store, QrCode, Percent, Truck } from "lucide-react";
+import { Store, QrCode, Percent, Truck, Clock } from "lucide-react";
 
 export default function SettingsPage() {
   return (
@@ -16,7 +17,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="geral" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-2 h-auto p-1.5 bg-muted/60">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 gap-2 h-auto p-1.5 bg-muted/60">
           <TabsTrigger value="geral" className="flex items-center gap-2 py-2 px-3 justify-center text-xs font-semibold">
             <Store className="h-4 w-4" />
             Identidade &amp; Endereço
@@ -32,6 +33,10 @@ export default function SettingsPage() {
           <TabsTrigger value="entrega" className="flex items-center gap-2 py-2 px-3 justify-center text-xs font-semibold">
             <Truck className="h-4 w-4" />
             Frete &amp; Entrega
+          </TabsTrigger>
+          <TabsTrigger value="horarios" className="flex items-center gap-2 py-2 px-3 justify-center text-xs font-semibold">
+            <Clock className="h-4 w-4" />
+            Horários
           </TabsTrigger>
         </TabsList>
 
@@ -49,6 +54,10 @@ export default function SettingsPage() {
 
         <TabsContent value="entrega" className="space-y-4 outline-none">
           <DeliverySettingsForm />
+        </TabsContent>
+
+        <TabsContent value="horarios" className="space-y-4 outline-none">
+          <BusinessHoursSettingsForm />
         </TabsContent>
       </Tabs>
     </div>
