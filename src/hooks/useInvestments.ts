@@ -17,6 +17,14 @@ export function useInvestmentTransactions() {
   });
 }
 
+export function usePurchaseAnalysis(params: import("@/services/investment.service").PurchaseAnalysisParams, enabled: boolean) {
+  return useQuery({
+    queryKey: ["purchase-analysis", params],
+    queryFn: () => investmentService.getPurchaseAnalysis(params),
+    enabled,
+  });
+}
+
 export function useAddInvestment() {
   const queryClient = useQueryClient();
 

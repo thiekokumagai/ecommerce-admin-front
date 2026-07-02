@@ -11,8 +11,11 @@ import { AddInvestmentModal } from "@/components/investments/AddInvestmentModal"
 import { RegisterPurchaseModal } from "@/components/investments/RegisterPurchaseModal";
 import { cashRegisterService } from "@/services/cash-register.service";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { Calculator } from "lucide-react";
 
 export default function InvestmentsPage() {
+  const navigate = useNavigate();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
 
@@ -63,6 +66,10 @@ export default function InvestmentsPage() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <Button onClick={() => navigate("/investimentos/simulacao")} variant="outline" className="w-full sm:w-auto">
+            <Calculator className="mr-2 h-4 w-4" />
+            Simular Compra
+          </Button>
           <Button onClick={() => setIsAddModalOpen(true)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Capital

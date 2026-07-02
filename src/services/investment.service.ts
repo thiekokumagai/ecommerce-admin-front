@@ -14,6 +14,13 @@ export interface InvestmentSummary {
   totalOutflows: number;
 }
 
+export interface PurchaseAnalysisParams {
+  meses?: number;
+  categoria?: string;
+  dias_cobertura?: number;
+  valor?: number;
+}
+
 export const investmentService = {
   getSummary: async (): Promise<InvestmentSummary> => {
     const response = await apiFetch("/investments/summary");
@@ -22,6 +29,17 @@ export const investmentService = {
 
   getTransactions: async (): Promise<InvestmentTransaction[]> => {
     const response = await apiFetch("/investments/transactions");
+    return response.json();
+  },
+
+  getPurchaseAnalysis: async (params: PurchaseAnalysisParams): Promise<any> => {
+    const query = new URLSearchParams();
+    if (params.meses) query.append("meses", params.meses.toString());
+    if (params.categoria) query.append("categoria", params.categoria);
+    if (params.dias_cobertura) query.append("dias_cobertura", params.dias_cobertura.toString());
+    if (params.valor) query.append("valor", params.valor.toString());
+    
+    const response = await apiFetch(`/investments/purchase-analysis?${query.toString()}`);
     return response.json();
   },
 
