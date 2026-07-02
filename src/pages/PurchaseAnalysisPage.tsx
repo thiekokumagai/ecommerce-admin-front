@@ -202,7 +202,7 @@ export default function PurchaseAnalysisPage() {
                <div className="flex justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
                </div>
-            ) : data && data.itens && data.itens.length > 0 ? (
+            ) : (data && data.itens && data.itens.length > 0) ? (
                <div className="overflow-x-auto">
                  <Table>
                    <TableHeader>
@@ -257,9 +257,9 @@ export default function PurchaseAnalysisPage() {
                          </TableCell>
                        </TableRow>
                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                   </TableBody>
+                 </Table>
+               </div>
             ) : (
                <div className="text-center py-12 text-slate-500">
                   {data?.alerta || "Nenhum item sugerido para compra com os critérios informados."}
